@@ -1,0 +1,12 @@
+type Mutation {
+    # File
+
+    """Create file with FileInput"""
+    fileCreate(input: FileInput!): File
+
+    """Update file with id and FileUpdateInput"""
+    fileUpdate(id: ID!, input: FileUpdateInput!): File
+
+    """Delete file with id"""
+    fileDelete(id: ID!): File
+}

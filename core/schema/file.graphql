@@ -1,4 +1,14 @@
 type File {
     id: ID!
     name: String!
+    createdAt: Time!
+    updatedAt: Time!
+}
+
+input FileInput {
+    name: String!
+}
+
+input FileUpdateInput {
+    name: String
 }
