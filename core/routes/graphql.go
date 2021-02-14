@@ -7,11 +7,14 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
-func GraphQL(router fiber.Router) {
+func GraphQL(router fiber.Router, db *gorm.DB) {
 	router.All("/graphql", func(c *fiber.Ctx) error {
-		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{}}))
+		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{
+			DB: db,
+		}}))
 
 		gqlHandler := srv.Handler()
 

@@ -1,3 +1,9 @@
 type Query {
-    test: String
+    # File
+
+    """Get file by id"""
+    file(id: ID!): File!
+
+    """Get all files"""
+    files: [File!]!
 }

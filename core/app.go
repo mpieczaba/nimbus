@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/mpieczaba/nimbus/core/database"
+	"github.com/mpieczaba/nimbus/core/models"
 	"github.com/mpieczaba/nimbus/core/routes"
 
 	"github.com/gofiber/fiber/v2"
@@ -25,6 +26,8 @@ func (app *App) Start() {
 	// Connect to database
 	app.db = database.Connect()
 
+	app.db.AutoMigrate(models.File{})
+
 	app.http = fiber.New()
 
 	app.http.Get("/", func(c *fiber.Ctx) error {
@@ -32,7 +35,7 @@ func (app *App) Start() {
 	})
 
 	// GraphQL api endpoint and playground
-	routes.GraphQL(app.http)
+	routes.GraphQL(app.http, app.db)
 
 	if err := app.http.Listen(":" + os.Getenv("PORT")); err != nil {
 		panic(err)
