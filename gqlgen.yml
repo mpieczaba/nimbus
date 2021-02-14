@@ -1,0 +1,14 @@
+schema:
+  - "core/schema/**/*.graphql"
+
+exec:
+  filename: core/generated/server_generated.go
+  package: generated
+
+resolver:
+  filename: core/resolvers/resolver.go
+  package: resolvers
+  type: Resolver
+
+autobind:
+  - "github.com/mpieczaba/nimbus/core/models"
