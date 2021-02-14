@@ -2,8 +2,10 @@ package resolvers
 
 import (
 	"context"
+	"path/filepath"
 
 	"github.com/mpieczaba/nimbus/core/models"
+	"github.com/mpieczaba/nimbus/core/utils"
 
 	"github.com/rs/xid"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -38,12 +40,18 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input models.FileInpu
 
 	id := xid.New()
 
-	file = models.File{
-		ID:   id.String(),
-		Name: input.Name,
+	// Write file in data directory
+	if err := utils.WriteFile(id.String(), input.File.File); err != nil {
+		return &file, gqlerror.Errorf("Cannot save file!")
 	}
 
-	// TODO: Add file saving in data directory
+	file = models.File{
+		ID:        id.String(),
+		Name:      input.Name,
+		MimeType:  input.File.ContentType,
+		Extension: filepath.Ext(input.File.Filename),
+		Size:      input.File.Size,
+	}
 
 	if err := r.DB.Save(&file).Error; err != nil {
 		return &file, gqlerror.Errorf("Incorrect form data!")
@@ -64,7 +72,16 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input mode
 		file.Name = input.Name
 	}
 
-	// TODO: Add file updating in data directory
+	if input.File.File != nil {
+		// Write file in data directory
+		if err := utils.WriteFile(file.ID, input.File.File); err != nil {
+			return &file, gqlerror.Errorf("Cannot save file!")
+		}
+
+		file.MimeType = input.File.ContentType
+		file.Extension = filepath.Ext(input.File.Filename)
+		file.Size = input.File.Size
+	}
 
 	if err := r.DB.Save(&file).Error; err != nil {
 		return &file, gqlerror.Errorf("Incorrect form data!")
@@ -76,10 +93,13 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input mode
 func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*models.File, error) {
 	var file models.File
 
-	// TODO: Add file deleting in data directory
-
 	if err := r.DB.Where("id = ?", id).First(&file).Delete(&file).Error; err != nil {
 		return &file, gqlerror.Errorf("File with id `" + id + "` not found!")
+	}
+
+	// Delete file in data directory
+	if err := utils.RemoveFile(id); err != nil {
+		return &file, gqlerror.Errorf("Cannot delete file!")
 	}
 
 	return &file, nil

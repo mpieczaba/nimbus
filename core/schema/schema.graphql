@@ -4,3 +4,4 @@ schema {
 }
 
 scalar Time
+scalar Upload
