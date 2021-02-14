@@ -38,6 +38,10 @@ func (r *queryResolver) Files(ctx context.Context) ([]*models.File, error) {
 func (r *mutationResolver) FileCreate(ctx context.Context, input models.FileInput) (*models.File, error) {
 	var file models.File
 
+	if err := r.Validator.Validate(input); err != nil {
+		return &file, err
+	}
+
 	id := xid.New()
 
 	// Write file in data directory
@@ -62,6 +66,10 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input models.FileInpu
 
 func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input models.FileUpdateInput) (*models.File, error) {
 	var file models.File
+
+	if err := r.Validator.Validate(input); err != nil {
+		return &file, err
+	}
 
 	// Query file to update
 	if err := r.DB.Where("id = ?", id).First(&file).Error; err != nil {

@@ -4,12 +4,14 @@ package resolvers
 
 import (
 	"github.com/mpieczaba/nimbus/core/generated"
+	"github.com/mpieczaba/nimbus/core/validators"
 
 	"gorm.io/gorm"
 )
 
 type Resolver struct {
-	DB *gorm.DB
+	DB        *gorm.DB
+	Validator *validators.Validator
 }
 
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
