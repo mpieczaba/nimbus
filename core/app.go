@@ -4,7 +4,9 @@ import (
 	"os"
 
 	"github.com/mpieczaba/nimbus/core/database"
+	"github.com/mpieczaba/nimbus/core/models"
 	"github.com/mpieczaba/nimbus/core/routes"
+	"github.com/mpieczaba/nimbus/core/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -22,8 +24,15 @@ func NewApp() *App {
 }
 
 func (app *App) Start() {
+	// Create data directory if it does not exist
+	if err := utils.CreateDataDirectory(); err != nil {
+		panic(err)
+	}
+
 	// Connect to database
 	app.db = database.Connect()
+
+	app.db.AutoMigrate(models.File{})
 
 	app.http = fiber.New()
 
@@ -32,7 +41,7 @@ func (app *App) Start() {
 	})
 
 	// GraphQL api endpoint and playground
-	routes.GraphQL(app.http)
+	routes.GraphQL(app.http, app.db)
 
 	if err := app.http.Listen(":" + os.Getenv("PORT")); err != nil {
 		panic(err)

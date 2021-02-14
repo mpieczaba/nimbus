@@ -1,0 +1,19 @@
+type File {
+    id: ID!
+    name: String!
+    mimeType: String!
+    extension: String!
+    size: Int!
+    createdAt: Time!
+    updatedAt: Time!
+}
+
+input FileInput {
+    name: String!
+    file: Upload!
+}
+
+input FileUpdateInput {
+    name: String
+    file: Upload
+}

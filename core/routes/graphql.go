@@ -3,15 +3,20 @@ package routes
 import (
 	"github.com/mpieczaba/nimbus/core/generated"
 	"github.com/mpieczaba/nimbus/core/resolvers"
+	"github.com/mpieczaba/nimbus/core/validators"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
-func GraphQL(router fiber.Router) {
+func GraphQL(router fiber.Router, db *gorm.DB) {
 	router.All("/graphql", func(c *fiber.Ctx) error {
-		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{}}))
+		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{
+			DB:        db,
+			Validator: validators.New(),
+		}}))
 
 		gqlHandler := srv.Handler()
 
