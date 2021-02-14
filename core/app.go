@@ -6,6 +6,7 @@ import (
 	"github.com/mpieczaba/nimbus/core/database"
 	"github.com/mpieczaba/nimbus/core/models"
 	"github.com/mpieczaba/nimbus/core/routes"
+	"github.com/mpieczaba/nimbus/core/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -23,6 +24,11 @@ func NewApp() *App {
 }
 
 func (app *App) Start() {
+	// Create data directory if it does not exist
+	if err := utils.CreateDataDirectory(); err != nil {
+		panic(err)
+	}
+
 	// Connect to database
 	app.db = database.Connect()
 
