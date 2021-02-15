@@ -17,6 +17,10 @@ func New() *Validator {
 		validate: validator.New(),
 	}
 
+	// User
+	val.validate.RegisterValidation("username", CheckUserUsername)
+	val.validate.RegisterValidation("password", CheckUserPassword)
+
 	// File
 	val.validate.RegisterValidation("filename", CheckFileName)
 

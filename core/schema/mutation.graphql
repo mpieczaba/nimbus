@@ -1,4 +1,20 @@
 type Mutation {
+    # Auth
+
+    """Sign in user with username and password"""
+    login(username: String!, password: String!): AuthPayload
+
+    # User
+
+    """Sign up user with UserInput"""
+    userCreate(input: UserInput!): User
+
+    """Update currently authenticated user with UserUpdateInput"""
+    userUpdate(input: UserUpdateInput!): User
+
+    """Delete currently authenticated user"""
+    userDelete: User
+
     # File
 
     """Create file with FileInput"""

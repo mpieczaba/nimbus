@@ -1,0 +1,16 @@
+type User {
+    id: ID!
+    username: String!
+    createdAt: Time!
+    updatedAt: Time!
+}
+
+input UserInput {
+    username: String!
+    password: String!
+}
+
+input UserUpdateInput {
+    username: String
+    password: String
+}

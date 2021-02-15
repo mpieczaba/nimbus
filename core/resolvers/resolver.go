@@ -6,10 +6,12 @@ import (
 	"github.com/mpieczaba/nimbus/core/generated"
 	"github.com/mpieczaba/nimbus/core/validators"
 
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
 type Resolver struct {
+	Ctx       *fiber.Ctx
 	DB        *gorm.DB
 	Validator *validators.Validator
 }
