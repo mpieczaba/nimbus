@@ -9,10 +9,10 @@ type Mutation {
     """Sign up user with UserInput"""
     userCreate(input: UserInput!): User
 
-    """Update user with UserUpdateInput"""
+    """Update currently authenticated user with UserUpdateInput"""
     userUpdate(input: UserUpdateInput!): User
 
-    """Delete user"""
+    """Delete currently authenticated user"""
     userDelete: User
 
     # File

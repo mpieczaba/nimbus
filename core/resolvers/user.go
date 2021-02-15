@@ -13,6 +13,24 @@ import (
 
 // Query
 
+func (r *queryResolver) Me(ctx context.Context) (*models.User, error) {
+	var user models.User
+
+	claims, err := utils.Auth(r.Ctx)
+
+	if err != nil {
+		return &user, err
+	}
+
+	id := claims["id"].(string)
+
+	if err := r.DB.Where("id = ?", id).First(&user).Error; err != nil {
+		return &user, gqlerror.Errorf("User not found!")
+	}
+
+	return &user, nil
+}
+
 func (r *queryResolver) User(ctx context.Context, id string) (*models.User, error) {
 	var user models.User
 

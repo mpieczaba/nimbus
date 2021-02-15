@@ -1,6 +1,9 @@
 type Query {
     # User
 
+    """Get currently authenticated user"""
+    me: User!
+
     """Get user by id"""
     user(id: ID!): User!
 
