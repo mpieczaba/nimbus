@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mpieczaba/nimbus/core/models"
+	"github.com/mpieczaba/nimbus/core/utils"
 
 	"github.com/rs/xid"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -62,4 +63,60 @@ func (r *mutationResolver) UserCreate(ctx context.Context, input models.UserInpu
 	return &user, nil
 }
 
-// TODO: Add user updating and deleting (auth required!)
+func (r *mutationResolver) UserUpdate(ctx context.Context, input models.UserUpdateInput) (*models.User, error) {
+	var user models.User
+
+	if err := r.Validator.Validate(input); err != nil {
+		return &user, err
+	}
+
+	claims, err := utils.Auth(r.Ctx)
+
+	if err != nil {
+		return &user, err
+	}
+
+	id := claims["id"].(string)
+
+	if err := r.DB.Where("id = ?", id).First(&user).Error; err != nil {
+		return &user, gqlerror.Errorf("User not found!")
+	}
+
+	if input.Username != "" {
+		user.Username = input.Username
+	}
+
+	if input.Password != "" {
+		pass, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+
+		if err != nil {
+			return &user, gqlerror.Errorf("Cannot parse password!")
+		}
+
+		user.Password = string(pass)
+	}
+
+	if err := r.DB.Save(&user).Error; err != nil {
+		return &user, gqlerror.Errorf("Incorrect form data or user already exists!")
+	}
+
+	return &user, nil
+}
+
+func (r *mutationResolver) UserDelete(ctx context.Context) (*models.User, error) {
+	var user models.User
+
+	claims, err := utils.Auth(r.Ctx)
+
+	if err != nil {
+		return &user, err
+	}
+
+	id := claims["id"].(string)
+
+	if err := r.DB.Where("id = ?", id).First(&user).Delete(&user).Error; err != nil {
+		return &user, gqlerror.Errorf("User not found!")
+	}
+
+	return &user, nil
+}

@@ -64,6 +64,8 @@ type ComplexityRoot struct {
 		FileUpdate func(childComplexity int, id string, input models.FileUpdateInput) int
 		Login      func(childComplexity int, username string, password string) int
 		UserCreate func(childComplexity int, input models.UserInput) int
+		UserDelete func(childComplexity int) int
+		UserUpdate func(childComplexity int, input models.UserUpdateInput) int
 	}
 
 	Query struct {
@@ -84,6 +86,8 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	Login(ctx context.Context, username string, password string) (*models.AuthPayload, error)
 	UserCreate(ctx context.Context, input models.UserInput) (*models.User, error)
+	UserUpdate(ctx context.Context, input models.UserUpdateInput) (*models.User, error)
+	UserDelete(ctx context.Context) (*models.User, error)
 	FileCreate(ctx context.Context, input models.FileInput) (*models.File, error)
 	FileUpdate(ctx context.Context, id string, input models.FileUpdateInput) (*models.File, error)
 	FileDelete(ctx context.Context, id string) (*models.File, error)
@@ -225,6 +229,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UserCreate(childComplexity, args["input"].(models.UserInput)), true
+
+	case "Mutation.userDelete":
+		if e.complexity.Mutation.UserDelete == nil {
+			break
+		}
+
+		return e.complexity.Mutation.UserDelete(childComplexity), true
+
+	case "Mutation.userUpdate":
+		if e.complexity.Mutation.UserUpdate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_userUpdate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UserUpdate(childComplexity, args["input"].(models.UserUpdateInput)), true
 
 	case "Query.file":
 		if e.complexity.Query.File == nil {
@@ -391,6 +414,12 @@ input FileUpdateInput {
     """Sign up user with UserInput"""
     userCreate(input: UserInput!): User
 
+    """Update user with UserUpdateInput"""
+    userUpdate(input: UserUpdateInput!): User
+
+    """Delete user"""
+    userDelete: User
+
     # File
 
     """Create file with FileInput"""
@@ -439,6 +468,11 @@ scalar Upload
 input UserInput {
     username: String!
     password: String!
+}
+
+input UserUpdateInput {
+    username: String
+    password: String
 }
 `, BuiltIn: false},
 }
@@ -533,6 +567,21 @@ func (ec *executionContext) field_Mutation_userCreate_args(ctx context.Context, 
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNUserInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUserInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_userUpdate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.UserUpdateInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUserUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUserUpdateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -969,6 +1018,77 @@ func (ec *executionContext) _Mutation_userCreate(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().UserCreate(rctx, args["input"].(models.UserInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_userUpdate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_userUpdate_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UserUpdate(rctx, args["input"].(models.UserUpdateInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_userDelete(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UserDelete(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2635,6 +2755,34 @@ func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj int
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUserUpdateInput(ctx context.Context, obj interface{}) (models.UserUpdateInput, error) {
+	var it models.UserUpdateInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "username":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			it.Username, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			it.Password, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -2746,6 +2894,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_login(ctx, field)
 		case "userCreate":
 			out.Values[i] = ec._Mutation_userCreate(ctx, field)
+		case "userUpdate":
+			out.Values[i] = ec._Mutation_userUpdate(ctx, field)
+		case "userDelete":
+			out.Values[i] = ec._Mutation_userDelete(ctx, field)
 		case "fileCreate":
 			out.Values[i] = ec._Mutation_fileCreate(ctx, field)
 		case "fileUpdate":
@@ -3340,6 +3492,11 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋ
 
 func (ec *executionContext) unmarshalNUserInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUserInput(ctx context.Context, v interface{}) (models.UserInput, error) {
 	res, err := ec.unmarshalInputUserInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUserUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUserUpdateInput(ctx context.Context, v interface{}) (models.UserUpdateInput, error) {
+	res, err := ec.unmarshalInputUserUpdateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
