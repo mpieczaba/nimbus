@@ -10,11 +10,11 @@ type User struct {
 }
 
 type UserInput struct {
-	Username string `json:"username" validate:"required,min=3,max=64,lowercase"`
-	Password string `json:"password" validate:"required,min=8"`
+	Username string `json:"username" validate:"required,username,min=3,max=64,lowercase"`
+	Password string `json:"password" validate:"required,password,min=8,max=512"`
 }
 
 type UserUpdateInput struct {
-	Username string `json:"username" validate:"omitempty,min=3,max=64,lowercase"`
-	Password string `json:"password" validate:"omitempty,min=8"`
+	Username string `json:"username" validate:"omitempty,username,min=3,max=64,lowercase"`
+	Password string `json:"password" validate:"omitempty,password,min=8,max=512"`
 }
