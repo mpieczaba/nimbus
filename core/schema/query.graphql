@@ -1,4 +1,12 @@
 type Query {
+    # User
+
+    """Get user by id"""
+    user(id: ID!): User!
+
+    """Get all users"""
+    users: [User!]!
+
     # File
 
     """Get file by id"""
