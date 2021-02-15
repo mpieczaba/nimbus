@@ -14,6 +14,7 @@ import (
 func GraphQL(router fiber.Router, db *gorm.DB) {
 	router.All("/graphql", func(c *fiber.Ctx) error {
 		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{
+			Ctx:       c,
 			DB:        db,
 			Validator: validators.New(),
 		}}))
