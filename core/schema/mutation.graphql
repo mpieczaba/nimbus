@@ -1,4 +1,9 @@
 type Mutation {
+    # User
+
+    """Sign up user with UserInput"""
+    userCreate(input: UserInput!): User
+
     # File
 
     """Create file with FileInput"""

@@ -4,3 +4,8 @@ type User {
     createdAt: Time!
     updatedAt: Time!
 }
+
+input UserInput {
+    username: String!
+    password: String!
+}

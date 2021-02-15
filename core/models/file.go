@@ -8,7 +8,7 @@ import (
 
 type File struct {
 	database.Model
-	ID        string `json:"id"  gorm:"type:varchar(20);primary_key;not null"`
+	ID        string `json:"id"  gorm:"type:varchar(20);primaryKey;not null"`
 	Name      string `json:"name" gorm:"type:varchar(255);not null"`
 	MimeType  string `json:"mimeType" gorm:"type:varchar(127);not null"`
 	Extension string `json:"extension" gorm:"type:varchar(10);not null"`
