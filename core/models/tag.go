@@ -8,3 +8,12 @@ type Tag struct {
 	Name    string `json:"name" gorm:"type:varchar(64);unique;not null"`
 	OwnerID string `json:"ownerId" gorm:"type:varchar(20);not null"`
 }
+
+type TagInput struct {
+	Name string `json:"name" validate:"required,min=3,max=64"`
+}
+
+type TagUpdateInput struct {
+	Name    string `json:"name" validate:"omitempty,min=3,max=64"`
+	OwnerID string `json:"ownerId" validate:"omitempty,alphanum,len=20"`
+}

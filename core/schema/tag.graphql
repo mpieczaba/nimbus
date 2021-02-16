@@ -5,3 +5,12 @@ type Tag {
     createdAt: Time!
     updatedAt: Time!
 }
+
+input TagInput {
+    name: String!
+}
+
+input TagUpdateInput {
+    name: String
+    ownerId: ID
+}

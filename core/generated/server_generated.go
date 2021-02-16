@@ -64,6 +64,9 @@ type ComplexityRoot struct {
 		FileDelete func(childComplexity int, id string) int
 		FileUpdate func(childComplexity int, id string, input models.FileUpdateInput) int
 		Login      func(childComplexity int, username string, password string) int
+		TagCreate  func(childComplexity int, input models.TagInput) int
+		TagDelete  func(childComplexity int, id string) int
+		TagUpdate  func(childComplexity int, id string, input models.TagUpdateInput) int
 		UserCreate func(childComplexity int, input models.UserInput) int
 		UserDelete func(childComplexity int) int
 		UserUpdate func(childComplexity int, input models.UserUpdateInput) int
@@ -103,6 +106,9 @@ type MutationResolver interface {
 	FileCreate(ctx context.Context, input models.FileInput) (*models.File, error)
 	FileUpdate(ctx context.Context, id string, input models.FileUpdateInput) (*models.File, error)
 	FileDelete(ctx context.Context, id string) (*models.File, error)
+	TagCreate(ctx context.Context, input models.TagInput) (*models.Tag, error)
+	TagUpdate(ctx context.Context, id string, input models.TagUpdateInput) (*models.Tag, error)
+	TagDelete(ctx context.Context, id string) (*models.Tag, error)
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (*models.User, error)
@@ -235,6 +241,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.Login(childComplexity, args["username"].(string), args["password"].(string)), true
+
+	case "Mutation.tagCreate":
+		if e.complexity.Mutation.TagCreate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_tagCreate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TagCreate(childComplexity, args["input"].(models.TagInput)), true
+
+	case "Mutation.tagDelete":
+		if e.complexity.Mutation.TagDelete == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_tagDelete_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TagDelete(childComplexity, args["id"].(string)), true
+
+	case "Mutation.tagUpdate":
+		if e.complexity.Mutation.TagUpdate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_tagUpdate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TagUpdate(childComplexity, args["id"].(string), args["input"].(models.TagUpdateInput)), true
 
 	case "Mutation.userCreate":
 		if e.complexity.Mutation.UserCreate == nil {
@@ -509,6 +551,17 @@ input FileUpdateInput {
 
     """Delete file with id"""
     fileDelete(id: ID!): File
+
+    # Tag
+
+    """Create tag with TagInput"""
+    tagCreate(input: TagInput!): Tag
+
+    """Update tag with id and TagUpdateInput"""
+    tagUpdate(id: ID!, input: TagUpdateInput!): Tag
+
+    """Delete tag with id"""
+    tagDelete(id: ID!): Tag
 }
 `, BuiltIn: false},
 	{Name: "core/schema/query.graphql", Input: `type Query {
@@ -554,6 +607,15 @@ scalar Upload
     owner: User!
     createdAt: Time!
     updatedAt: Time!
+}
+
+input TagInput {
+    name: String!
+}
+
+input TagUpdateInput {
+    name: String
+    ownerId: ID
 }
 `, BuiltIn: false},
 	{Name: "core/schema/user.graphql", Input: `type User {
@@ -655,6 +717,60 @@ func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawAr
 		}
 	}
 	args["password"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_tagCreate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.TagInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNTagInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_tagDelete_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_tagUpdate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 models.TagUpdateInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNTagUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagUpdateInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -1330,6 +1446,123 @@ func (ec *executionContext) _Mutation_fileDelete(ctx context.Context, field grap
 	res := resTmp.(*models.File)
 	fc.Result = res
 	return ec.marshalOFile2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐFile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_tagCreate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_tagCreate_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().TagCreate(rctx, args["input"].(models.TagInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Tag)
+	fc.Result = res
+	return ec.marshalOTag2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTag(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_tagUpdate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_tagUpdate_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().TagUpdate(rctx, args["id"].(string), args["input"].(models.TagUpdateInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Tag)
+	fc.Result = res
+	return ec.marshalOTag2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTag(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_tagDelete(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_tagDelete_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().TagDelete(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Tag)
+	fc.Result = res
+	return ec.marshalOTag2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTag(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3124,6 +3357,54 @@ func (ec *executionContext) unmarshalInputFileUpdateInput(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputTagInput(ctx context.Context, obj interface{}) (models.TagInput, error) {
+	var it models.TagInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTagUpdateInput(ctx context.Context, obj interface{}) (models.TagUpdateInput, error) {
+	var it models.TagUpdateInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ownerId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ownerId"))
+			it.OwnerID, err = ec.unmarshalOID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj interface{}) (models.UserInput, error) {
 	var it models.UserInput
 	var asMap = obj.(map[string]interface{})
@@ -3301,6 +3582,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_fileUpdate(ctx, field)
 		case "fileDelete":
 			out.Values[i] = ec._Mutation_fileDelete(ctx, field)
+		case "tagCreate":
+			out.Values[i] = ec._Mutation_tagCreate(ctx, field)
+		case "tagUpdate":
+			out.Values[i] = ec._Mutation_tagUpdate(ctx, field)
+		case "tagDelete":
+			out.Values[i] = ec._Mutation_tagDelete(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3948,6 +4235,16 @@ func (ec *executionContext) marshalNTag2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋc
 	return ec._Tag(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNTagInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagInput(ctx context.Context, v interface{}) (models.TagInput, error) {
+	res, err := ec.unmarshalInputTagInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNTagUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagUpdateInput(ctx context.Context, v interface{}) (models.TagUpdateInput, error) {
+	res, err := ec.unmarshalInputTagUpdateInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
 	res, err := graphql.UnmarshalTime(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4304,6 +4601,15 @@ func (ec *executionContext) marshalOFile2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋ
 		return graphql.Null
 	}
 	return ec._File(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := graphql.UnmarshalID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	return graphql.MarshalID(v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
