@@ -1,0 +1,7 @@
+type Tag {
+    id: ID!
+    name: String!
+    owner: User!
+    createdAt: Time!
+    updatedAt: Time!
+}
