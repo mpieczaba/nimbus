@@ -10,10 +10,10 @@ type Tag struct {
 }
 
 type TagInput struct {
-	Name string `json:"name" validate:"required,min=3,max=64"`
+	Name string `json:"name" validate:"required,tagname,min=3,max=64"`
 }
 
 type TagUpdateInput struct {
-	Name    string `json:"name" validate:"omitempty,min=3,max=64"`
+	Name    string `json:"name" validate:"omitempty,tagname,min=3,max=64"`
 	OwnerID string `json:"ownerId" validate:"omitempty,alphanum,len=20"`
 }
