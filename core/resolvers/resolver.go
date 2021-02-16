@@ -23,3 +23,7 @@ type queryResolver struct{ *Resolver }
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
 type mutationResolver struct{ *Resolver }
+
+func (r *Resolver) Tag() generated.TagResolver { return &tagResolver{r} }
+
+type tagResolver struct{ *Resolver }

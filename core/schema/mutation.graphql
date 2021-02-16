@@ -25,4 +25,15 @@ type Mutation {
 
     """Delete file with id"""
     fileDelete(id: ID!): File
+
+    # Tag
+
+    """Create tag with TagInput"""
+    tagCreate(input: TagInput!): Tag
+
+    """Update tag with id and TagUpdateInput"""
+    tagUpdate(id: ID!, input: TagUpdateInput!): Tag
+
+    """Delete tag with id"""
+    tagDelete(id: ID!): Tag
 }

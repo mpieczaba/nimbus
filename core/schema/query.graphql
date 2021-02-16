@@ -17,4 +17,12 @@ type Query {
 
     """Get all files"""
     files: [File!]!
+
+    # Tag
+
+    """Get tag by id"""
+    tag(id: ID!): Tag
+
+    """Get all tags"""
+    tags: [Tag!]!
 }

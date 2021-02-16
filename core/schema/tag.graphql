@@ -1,0 +1,16 @@
+type Tag {
+    id: ID!
+    name: String!
+    owner: User!
+    createdAt: Time!
+    updatedAt: Time!
+}
+
+input TagInput {
+    name: String!
+}
+
+input TagUpdateInput {
+    name: String
+    ownerId: ID
+}
