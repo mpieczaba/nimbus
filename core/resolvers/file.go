@@ -146,3 +146,15 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*models.F
 
 	return &file, nil
 }
+
+// Field resolver
+
+func (r *fileResolver) Owner(ctx context.Context, obj *models.File) (*models.User, error) {
+	var owner models.User
+
+	if err := r.DB.Where("id = ?", obj.OwnerID).First(&owner).Error; err != nil {
+		return &owner, gqlerror.Errorf("Owner not found!")
+	}
+
+	return &owner, nil
+}

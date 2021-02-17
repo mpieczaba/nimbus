@@ -4,6 +4,7 @@ type File {
     mimeType: String!
     extension: String!
     size: Int!
+    owner: User!
     createdAt: Time!
     updatedAt: Time!
 }
