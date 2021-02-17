@@ -16,4 +16,5 @@ input FileInput {
 input FileUpdateInput {
     name: String
     file: Upload
+    ownerId: ID
 }
