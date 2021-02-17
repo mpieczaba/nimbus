@@ -42,6 +42,14 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input models.FileInpu
 		return &file, err
 	}
 
+	claims, err := utils.Auth(r.Ctx)
+
+	if err != nil {
+		return &file, err
+	}
+
+	ownerID := claims["id"].(string)
+
 	id := xid.New()
 
 	// Write file in data directory
@@ -55,6 +63,7 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input models.FileInpu
 		MimeType:  input.File.ContentType,
 		Extension: filepath.Ext(input.File.Filename),
 		Size:      input.File.Size,
+		OwnerID:   ownerID,
 	}
 
 	if err := r.DB.Save(&file).Error; err != nil {
@@ -71,8 +80,16 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input mode
 		return &file, err
 	}
 
+	claims, err := utils.Auth(r.Ctx)
+
+	if err != nil {
+		return &file, err
+	}
+
+	ownerID := claims["id"].(string)
+
 	// Query file to update
-	if err := r.DB.Where("id = ?", id).First(&file).Error; err != nil {
+	if err := r.DB.Where("id = ? AND owner_id = ?", id, ownerID).First(&file).Error; err != nil {
 		return &file, gqlerror.Errorf("File with id `" + id + "` not found!")
 	}
 
@@ -91,6 +108,15 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input mode
 		file.Size = input.File.Size
 	}
 
+	if input.OwnerID != "" {
+		// Check if owner does exist
+		if err := r.DB.Where("id = ?", input.OwnerID).First(&models.User{}).Error; err != nil {
+			return nil, gqlerror.Errorf("Owner not found!")
+		}
+
+		file.OwnerID = input.OwnerID
+	}
+
 	if err := r.DB.Save(&file).Error; err != nil {
 		return &file, gqlerror.Errorf("Incorrect form data!")
 	}
@@ -101,7 +127,15 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input mode
 func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*models.File, error) {
 	var file models.File
 
-	if err := r.DB.Where("id = ?", id).First(&file).Delete(&file).Error; err != nil {
+	claims, err := utils.Auth(r.Ctx)
+
+	if err != nil {
+		return &file, err
+	}
+
+	ownerID := claims["id"].(string)
+
+	if err := r.DB.Where("id = ? AND owner_id = ?", id, ownerID).First(&file).Delete(&file).Error; err != nil {
 		return &file, gqlerror.Errorf("File with id `" + id + "` not found!")
 	}
 
@@ -111,4 +145,16 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*models.F
 	}
 
 	return &file, nil
+}
+
+// Field resolver
+
+func (r *fileResolver) Owner(ctx context.Context, obj *models.File) (*models.User, error) {
+	var owner models.User
+
+	if err := r.DB.Where("id = ?", obj.OwnerID).First(&owner).Error; err != nil {
+		return &owner, gqlerror.Errorf("Owner not found!")
+	}
+
+	return &owner, nil
 }

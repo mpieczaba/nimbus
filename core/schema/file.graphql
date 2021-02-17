@@ -4,6 +4,7 @@ type File {
     mimeType: String!
     extension: String!
     size: Int!
+    owner: User!
     createdAt: Time!
     updatedAt: Time!
 }
@@ -16,4 +17,5 @@ input FileInput {
 input FileUpdateInput {
     name: String
     file: Upload
+    ownerId: ID
 }

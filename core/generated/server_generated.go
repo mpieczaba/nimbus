@@ -36,6 +36,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	File() FileResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Tag() TagResolver
@@ -55,6 +56,7 @@ type ComplexityRoot struct {
 		ID        func(childComplexity int) int
 		MimeType  func(childComplexity int) int
 		Name      func(childComplexity int) int
+		Owner     func(childComplexity int) int
 		Size      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 	}
@@ -98,6 +100,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type FileResolver interface {
+	Owner(ctx context.Context, obj *models.File) (*models.User, error)
+}
 type MutationResolver interface {
 	Login(ctx context.Context, username string, password string) (*models.AuthPayload, error)
 	UserCreate(ctx context.Context, input models.UserInput) (*models.User, error)
@@ -179,6 +184,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.File.Name(childComplexity), true
+
+	case "File.owner":
+		if e.complexity.File.Owner == nil {
+			break
+		}
+
+		return e.complexity.File.Owner(childComplexity), true
 
 	case "File.size":
 		if e.complexity.File.Size == nil {
@@ -510,6 +522,7 @@ var sources = []*ast.Source{
     mimeType: String!
     extension: String!
     size: Int!
+    owner: User!
     createdAt: Time!
     updatedAt: Time!
 }
@@ -522,6 +535,7 @@ input FileInput {
 input FileUpdateInput {
     name: String
     file: Upload
+    ownerId: ID
 }
 `, BuiltIn: false},
 	{Name: "core/schema/mutation.graphql", Input: `type Mutation {
@@ -1110,6 +1124,41 @@ func (ec *executionContext) _File_size(ctx context.Context, field graphql.Collec
 	res := resTmp.(int64)
 	fc.Result = res
 	return ec.marshalNInt2int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _File_owner(ctx context.Context, field graphql.CollectedField, obj *models.File) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "File",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.File().Owner(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _File_createdAt(ctx context.Context, field graphql.CollectedField, obj *models.File) (ret graphql.Marshaler) {
@@ -3351,6 +3400,14 @@ func (ec *executionContext) unmarshalInputFileUpdateInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "ownerId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ownerId"))
+			it.OwnerID, err = ec.unmarshalOID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -3510,37 +3567,51 @@ func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj
 		case "id":
 			out.Values[i] = ec._File_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._File_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "mimeType":
 			out.Values[i] = ec._File_mimeType(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "extension":
 			out.Values[i] = ec._File_extension(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "size":
 			out.Values[i] = ec._File_size(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "owner":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._File_owner(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "createdAt":
 			out.Values[i] = ec._File_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedAt":
 			out.Values[i] = ec._File_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
