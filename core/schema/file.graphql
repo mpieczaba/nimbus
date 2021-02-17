@@ -5,6 +5,7 @@ type File {
     extension: String!
     size: Int!
     owner: User!
+    tags: [Tag!]!
     createdAt: Time!
     updatedAt: Time!
 }

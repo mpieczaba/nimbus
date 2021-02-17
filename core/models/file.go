@@ -13,7 +13,7 @@ type File struct {
 	MimeType  string `json:"mimeType" gorm:"type:varchar(127);not null"`
 	Extension string `json:"extension" gorm:"type:varchar(10);not null"`
 	Size      int64  `json:"size" gorm:"type:bigint"`
-	OwnerID   string `json:"ownerId"  gorm:"type:varchar(20);not null"`
+	OwnerID   string `json:"ownerId" gorm:"type:varchar(20);not null"`
 }
 
 type FileInput struct {
