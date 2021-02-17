@@ -57,6 +57,13 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input models.FileInpu
 		return &file, gqlerror.Errorf("Cannot save file!")
 	}
 
+	// Save file tags
+	fileTags := utils.TagIDsToFileTags(id.String(), input.Tags)
+
+	if err := r.DB.Save(&fileTags).Error; err != nil {
+		return &file, gqlerror.Errorf("Cannot save file tags!")
+	}
+
 	file = models.File{
 		ID:        id.String(),
 		Name:      input.Name,

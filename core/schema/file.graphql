@@ -12,6 +12,7 @@ type File {
 
 input FileInput {
     name: String!
+    tags: [ID!]!
     file: Upload!
 }
 

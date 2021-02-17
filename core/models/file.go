@@ -18,6 +18,7 @@ type File struct {
 
 type FileInput struct {
 	Name string         `json:"name"  validate:"required,filename,min=1,max=255"`
+	Tags []string       `json:"tags" validate:"required,dive,alphanum,len=20"`
 	File graphql.Upload `json:"file"  validate:"required"`
 }
 
