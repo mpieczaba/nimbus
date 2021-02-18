@@ -58,6 +58,7 @@ type ComplexityRoot struct {
 		Name      func(childComplexity int) int
 		Owner     func(childComplexity int) int
 		Size      func(childComplexity int) int
+		Tags      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 	}
 
@@ -102,6 +103,7 @@ type ComplexityRoot struct {
 
 type FileResolver interface {
 	Owner(ctx context.Context, obj *models.File) (*models.User, error)
+	Tags(ctx context.Context, obj *models.File) ([]*models.Tag, error)
 }
 type MutationResolver interface {
 	Login(ctx context.Context, username string, password string) (*models.AuthPayload, error)
@@ -198,6 +200,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.File.Size(childComplexity), true
+
+	case "File.tags":
+		if e.complexity.File.Tags == nil {
+			break
+		}
+
+		return e.complexity.File.Tags(childComplexity), true
 
 	case "File.updatedAt":
 		if e.complexity.File.UpdatedAt == nil {
@@ -523,19 +532,22 @@ var sources = []*ast.Source{
     extension: String!
     size: Int!
     owner: User!
+    tags: [Tag!]!
     createdAt: Time!
     updatedAt: Time!
 }
 
 input FileInput {
     name: String!
+    tags: [ID!]!
     file: Upload!
 }
 
 input FileUpdateInput {
     name: String
-    file: Upload
     ownerId: ID
+    tags: [ID!]
+    file: Upload
 }
 `, BuiltIn: false},
 	{Name: "core/schema/mutation.graphql", Input: `type Mutation {
@@ -1159,6 +1171,41 @@ func (ec *executionContext) _File_owner(ctx context.Context, field graphql.Colle
 	res := resTmp.(*models.User)
 	fc.Result = res
 	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _File_tags(ctx context.Context, field graphql.CollectedField, obj *models.File) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "File",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.File().Tags(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Tag)
+	fc.Result = res
+	return ec.marshalNTag2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _File_createdAt(ctx context.Context, field graphql.CollectedField, obj *models.File) (ret graphql.Marshaler) {
@@ -3364,6 +3411,14 @@ func (ec *executionContext) unmarshalInputFileInput(ctx context.Context, obj int
 			if err != nil {
 				return it, err
 			}
+		case "tags":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
+			it.Tags, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "file":
 			var err error
 
@@ -3392,19 +3447,27 @@ func (ec *executionContext) unmarshalInputFileUpdateInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-		case "file":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
-			it.File, err = ec.unmarshalOUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "ownerId":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ownerId"))
 			it.OwnerID, err = ec.unmarshalOID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tags":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
+			it.Tags, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "file":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
+			it.File, err = ec.unmarshalOUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3598,6 +3661,20 @@ func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._File_owner(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "tags":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._File_tags(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -4229,6 +4306,36 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNInt2int64(ctx context.Context, v interface{}) (int64, error) {
 	res, err := graphql.UnmarshalInt64(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4681,6 +4788,42 @@ func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface
 
 func (ec *executionContext) marshalOID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalID(v)
+}
+
+func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

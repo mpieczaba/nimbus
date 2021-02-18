@@ -32,7 +32,7 @@ func (app *App) Start() {
 	// Connect to database
 	app.db = database.Connect()
 
-	app.db.AutoMigrate(models.User{}, models.File{}, models.Tag{})
+	app.db.AutoMigrate(models.User{}, models.File{}, models.Tag{}, models.FileTag{})
 
 	app.http = fiber.New()
 

@@ -5,17 +5,20 @@ type File {
     extension: String!
     size: Int!
     owner: User!
+    tags: [Tag!]!
     createdAt: Time!
     updatedAt: Time!
 }
 
 input FileInput {
     name: String!
+    tags: [ID!]!
     file: Upload!
 }
 
 input FileUpdateInput {
     name: String
-    file: Upload
     ownerId: ID
+    tags: [ID!]
+    file: Upload
 }
