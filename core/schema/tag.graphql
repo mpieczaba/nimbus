@@ -2,8 +2,14 @@ type Tag {
     id: ID!
     name: String!
     owner: User!
+    sharedFor: [TagShare!]!
     createdAt: Time!
     updatedAt: Time!
+}
+
+type TagShare {
+    user: User!
+    permissions: Int!
 }
 
 input TagInput {

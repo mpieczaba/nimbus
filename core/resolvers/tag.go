@@ -132,3 +132,13 @@ func (r *tagResolver) Owner(ctx context.Context, obj *models.Tag) (*models.User,
 
 	return &owner, nil
 }
+
+func (r *tagResolver) SharedFor(ctx context.Context, obj *models.Tag) ([]*models.TagShare, error) {
+	var tagShares []*models.TagShare
+
+	if err := r.DB.Where("tag_id = ?", obj.ID).Find(&tagShares).Error; err != nil {
+		return tagShares, gqlerror.Errorf("Internal database error occurred while getting tag shares!")
+	}
+
+	return tagShares, nil
+}
