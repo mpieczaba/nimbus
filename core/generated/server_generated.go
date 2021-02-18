@@ -687,11 +687,17 @@ type TagShare {
 
 input TagInput {
     name: String!
+    sharedFor: [TagShareInput!]
 }
 
 input TagUpdateInput {
     name: String
     ownerId: ID
+}
+
+input TagShareInput {
+    userId: ID!
+    permissions: Int!
 }
 `, BuiltIn: false},
 	{Name: "core/schema/user.graphql", Input: `type User {
@@ -3682,6 +3688,42 @@ func (ec *executionContext) unmarshalInputTagInput(ctx context.Context, obj inte
 			if err != nil {
 				return it, err
 			}
+		case "sharedFor":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sharedFor"))
+			it.SharedFor, err = ec.unmarshalOTagShareInput2ᚕgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShareInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTagShareInput(ctx context.Context, obj interface{}) (models.TagShareInput, error) {
+	var it models.TagShareInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			it.UserID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "permissions":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permissions"))
+			it.Permissions, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -4740,6 +4782,11 @@ func (ec *executionContext) marshalNTagShare2ᚖgithubᚗcomᚋmpieczabaᚋnimbu
 	return ec._TagShare(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNTagShareInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShareInput(ctx context.Context, v interface{}) (models.TagShareInput, error) {
+	res, err := ec.unmarshalInputTagShareInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNTagUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagUpdateInput(ctx context.Context, v interface{}) (models.TagUpdateInput, error) {
 	res, err := ec.unmarshalInputTagUpdateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5177,6 +5224,30 @@ func (ec *executionContext) marshalOTag2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋc
 		return graphql.Null
 	}
 	return ec._Tag(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOTagShareInput2ᚕgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShareInputᚄ(ctx context.Context, v interface{}) ([]models.TagShareInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]models.TagShareInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNTagShareInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShareInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (graphql.Upload, error) {

@@ -51,6 +51,13 @@ func (r *mutationResolver) TagCreate(ctx context.Context, input models.TagInput)
 
 	id := xid.New()
 
+	// Save tag shares
+	tagShares := utils.TagShareInputsToTagShares(id.String(), input.SharedFor)
+
+	if err := r.DB.Save(&tagShares).Error; err != nil {
+		return &tag, gqlerror.Errorf("Cannot save tag shares!")
+	}
+
 	tag = models.Tag{
 		ID:      id.String(),
 		Name:    input.Name,
