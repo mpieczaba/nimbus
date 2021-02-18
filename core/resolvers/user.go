@@ -138,3 +138,15 @@ func (r *mutationResolver) UserDelete(ctx context.Context) (*models.User, error)
 
 	return &user, nil
 }
+
+// Field resolver
+
+func (r *userResolver) Files(ctx context.Context, obj *models.User) ([]*models.File, error) {
+	var files []*models.File
+
+	if err := r.DB.Where("owner_id = ?", obj.ID).Find(&files).Error; err != nil {
+		return files, gqlerror.Errorf("Internal database error occurred while getting user files!")
+	}
+
+	return files, nil
+}

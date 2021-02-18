@@ -24,6 +24,10 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 
 type mutationResolver struct{ *Resolver }
 
+func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
+
+type userResolver struct{ *Resolver }
+
 func (r *Resolver) File() generated.FileResolver { return &fileResolver{r} }
 
 type fileResolver struct{ *Resolver }
