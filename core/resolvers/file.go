@@ -104,6 +104,24 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input mode
 		file.Name = input.Name
 	}
 
+	if input.OwnerID != "" {
+		// Check if owner does exist
+		if err := r.DB.Where("id = ?", input.OwnerID).First(&models.User{}).Error; err != nil {
+			return nil, gqlerror.Errorf("Owner not found!")
+		}
+
+		file.OwnerID = input.OwnerID
+	}
+
+	if input.Tags[0] != "" {
+		// Update file tags
+		fileTags := utils.TagIDsToFileTags(file.ID, input.Tags)
+
+		if err := r.DB.Save(&fileTags).Error; err != nil {
+			return &file, gqlerror.Errorf("Cannot update file tags!")
+		}
+	}
+
 	if input.File.File != nil {
 		// Write file in data directory
 		if err := utils.WriteFile(file.ID, input.File.File); err != nil {
@@ -113,15 +131,6 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input mode
 		file.MimeType = input.File.ContentType
 		file.Extension = filepath.Ext(input.File.Filename)
 		file.Size = input.File.Size
-	}
-
-	if input.OwnerID != "" {
-		// Check if owner does exist
-		if err := r.DB.Where("id = ?", input.OwnerID).First(&models.User{}).Error; err != nil {
-			return nil, gqlerror.Errorf("Owner not found!")
-		}
-
-		file.OwnerID = input.OwnerID
 	}
 
 	if err := r.DB.Save(&file).Error; err != nil {
@@ -144,6 +153,13 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*models.F
 
 	if err := r.DB.Where("id = ? AND owner_id = ?", id, ownerID).First(&file).Delete(&file).Error; err != nil {
 		return &file, gqlerror.Errorf("File with id `" + id + "` not found!")
+	}
+
+	// Delete file tags
+	var fileTags []models.FileTag
+
+	if err := r.DB.Where("file_id = ?", id).Find(&fileTags).Delete(&fileTags).Error; err != nil {
+		return &file, gqlerror.Errorf("Cannot delete file tags!")
 	}
 
 	// Delete file in data directory

@@ -24,6 +24,12 @@ type FileInput struct {
 
 type FileUpdateInput struct {
 	Name    string         `json:"name" validate:"omitempty,filename,min=1,max=255"`
-	File    graphql.Upload `json:"file" validate:"omitempty"`
 	OwnerID string         `json:"ownerId" validate:"omitempty,alphanum,len=20"`
+	Tags    []string       `json:"tags" validate:"omitempty,dive,alphanum,len=20"`
+	File    graphql.Upload `json:"file" validate:"omitempty"`
+}
+
+type FileTag struct {
+	FileID string `json:"fileId" gorm:"type:varchar(20);not null"`
+	TagID  string `json:"tagId" gorm:"type:varchar(20);not null"`
 }
