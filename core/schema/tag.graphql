@@ -20,6 +20,7 @@ input TagInput {
 input TagUpdateInput {
     name: String
     ownerId: ID
+    sharedFor: [TagShareInput!]
 }
 
 input TagShareInput {

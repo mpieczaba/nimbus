@@ -15,8 +15,9 @@ type TagInput struct {
 }
 
 type TagUpdateInput struct {
-	Name    string `json:"name" validate:"omitempty,tagname,min=3,max=64"`
-	OwnerID string `json:"ownerId" validate:"omitempty,alphanum,len=20"`
+	Name      string          `json:"name" validate:"omitempty,tagname,min=3,max=64"`
+	OwnerID   string          `json:"ownerId" validate:"omitempty,alphanum,len=20"`
+	SharedFor []TagShareInput `validate:"omitempty,dive"`
 }
 
 type TagShare struct {

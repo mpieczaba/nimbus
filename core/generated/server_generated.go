@@ -693,6 +693,7 @@ input TagInput {
 input TagUpdateInput {
     name: String
     ownerId: ID
+    sharedFor: [TagShareInput!]
 }
 
 input TagShareInput {
@@ -3749,6 +3750,14 @@ func (ec *executionContext) unmarshalInputTagUpdateInput(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ownerId"))
 			it.OwnerID, err = ec.unmarshalOID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sharedFor":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sharedFor"))
+			it.SharedFor, err = ec.unmarshalOTagShareInput2ᚕgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShareInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

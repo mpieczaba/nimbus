@@ -51,11 +51,13 @@ func (r *mutationResolver) TagCreate(ctx context.Context, input models.TagInput)
 
 	id := xid.New()
 
-	// Save tag shares
-	tagShares := utils.TagShareInputsToTagShares(id.String(), input.SharedFor)
+	if len(input.SharedFor) > 0 {
+		// Save tag shares
+		tagShares := utils.TagShareInputsToTagShares(id.String(), input.SharedFor)
 
-	if err := r.DB.Save(&tagShares).Error; err != nil {
-		return &tag, gqlerror.Errorf("Cannot save tag shares!")
+		if err := r.DB.Save(&tagShares).Error; err != nil {
+			return &tag, gqlerror.Errorf("Cannot save tag shares!")
+		}
 	}
 
 	tag = models.Tag{
@@ -103,6 +105,15 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input model
 		tag.OwnerID = input.OwnerID
 	}
 
+	if len(input.SharedFor) > 0 {
+		// Update tag shares
+		tagShares := utils.TagShareInputsToTagShares(tag.ID, input.SharedFor)
+
+		if err := r.DB.Save(&tagShares).Error; err != nil {
+			return &tag, gqlerror.Errorf("Cannot update tag shares!")
+		}
+	}
+
 	if err := r.DB.Save(&tag).Error; err != nil {
 		return &tag, gqlerror.Errorf("Incorrect form data or tag already exists!")
 	}
@@ -123,6 +134,13 @@ func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*models.Ta
 
 	if err := r.DB.Where("id = ? AND owner_id = ?", id, ownerID).First(&tag).Delete(&tag).Error; err != nil {
 		return &tag, gqlerror.Errorf("Tag not found or you are not the owner!")
+	}
+
+	// Delete tag shares
+	var tagShares []models.TagShare
+
+	if err := r.DB.Where("tag_id = ?", id).Find(&tagShares).Delete(&tagShares).Error; err != nil {
+		return &tag, gqlerror.Errorf("Cannot delete tag shares!")
 	}
 
 	return &tag, nil
