@@ -35,3 +35,7 @@ type fileResolver struct{ *Resolver }
 func (r *Resolver) Tag() generated.TagResolver { return &tagResolver{r} }
 
 type tagResolver struct{ *Resolver }
+
+func (r *Resolver) TagShare() generated.TagShareResolver { return &tagShareResolver{r} }
+
+type tagShareResolver struct{ *Resolver }

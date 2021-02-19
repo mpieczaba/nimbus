@@ -40,6 +40,7 @@ type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Tag() TagResolver
+	TagShare() TagShareResolver
 	User() UserResolver
 }
 
@@ -91,7 +92,13 @@ type ComplexityRoot struct {
 		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
 		Owner     func(childComplexity int) int
+		SharedFor func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
+	}
+
+	TagShare struct {
+		Permissions func(childComplexity int) int
+		User        func(childComplexity int) int
 	}
 
 	User struct {
@@ -130,6 +137,10 @@ type QueryResolver interface {
 }
 type TagResolver interface {
 	Owner(ctx context.Context, obj *models.Tag) (*models.User, error)
+	SharedFor(ctx context.Context, obj *models.Tag) ([]*models.TagShare, error)
+}
+type TagShareResolver interface {
+	User(ctx context.Context, obj *models.TagShare) (*models.User, error)
 }
 type UserResolver interface {
 	Files(ctx context.Context, obj *models.User) ([]*models.File, error)
@@ -427,12 +438,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Tag.Owner(childComplexity), true
 
+	case "Tag.sharedFor":
+		if e.complexity.Tag.SharedFor == nil {
+			break
+		}
+
+		return e.complexity.Tag.SharedFor(childComplexity), true
+
 	case "Tag.updatedAt":
 		if e.complexity.Tag.UpdatedAt == nil {
 			break
 		}
 
 		return e.complexity.Tag.UpdatedAt(childComplexity), true
+
+	case "TagShare.permissions":
+		if e.complexity.TagShare.Permissions == nil {
+			break
+		}
+
+		return e.complexity.TagShare.Permissions(childComplexity), true
+
+	case "TagShare.user":
+		if e.complexity.TagShare.User == nil {
+			break
+		}
+
+		return e.complexity.TagShare.User(childComplexity), true
 
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
@@ -643,17 +675,30 @@ scalar Upload
     id: ID!
     name: String!
     owner: User!
+    sharedFor: [TagShare!]!
     createdAt: Time!
     updatedAt: Time!
 }
 
+type TagShare {
+    user: User!
+    permissions: Int!
+}
+
 input TagInput {
     name: String!
+    sharedFor: [TagShareInput!]
 }
 
 input TagUpdateInput {
     name: String
     ownerId: ID
+    sharedFor: [TagShareInput!]
+}
+
+input TagShareInput {
+    userId: ID!
+    permissions: Int!
 }
 `, BuiltIn: false},
 	{Name: "core/schema/user.graphql", Input: `type User {
@@ -2113,6 +2158,41 @@ func (ec *executionContext) _Tag_owner(ctx context.Context, field graphql.Collec
 	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Tag_sharedFor(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Tag",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Tag().SharedFor(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.TagShare)
+	fc.Result = res
+	return ec.marshalNTagShare2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShareᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Tag_createdAt(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2181,6 +2261,76 @@ func (ec *executionContext) _Tag_updatedAt(ctx context.Context, field graphql.Co
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TagShare_user(ctx context.Context, field graphql.CollectedField, obj *models.TagShare) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TagShare",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TagShare().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TagShare_permissions(ctx context.Context, field graphql.CollectedField, obj *models.TagShare) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TagShare",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Permissions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
@@ -3539,6 +3689,42 @@ func (ec *executionContext) unmarshalInputTagInput(ctx context.Context, obj inte
 			if err != nil {
 				return it, err
 			}
+		case "sharedFor":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sharedFor"))
+			it.SharedFor, err = ec.unmarshalOTagShareInput2ᚕgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShareInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTagShareInput(ctx context.Context, obj interface{}) (models.TagShareInput, error) {
+	var it models.TagShareInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			it.UserID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "permissions":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permissions"))
+			it.Permissions, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -3564,6 +3750,14 @@ func (ec *executionContext) unmarshalInputTagUpdateInput(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ownerId"))
 			it.OwnerID, err = ec.unmarshalOID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sharedFor":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sharedFor"))
+			it.SharedFor, err = ec.unmarshalOTagShareInput2ᚕgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShareInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3955,6 +4149,20 @@ func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj 
 				}
 				return res
 			})
+		case "sharedFor":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Tag_sharedFor(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "createdAt":
 			out.Values[i] = ec._Tag_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3962,6 +4170,47 @@ func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj 
 			}
 		case "updatedAt":
 			out.Values[i] = ec._Tag_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var tagShareImplementors = []string{"TagShare"}
+
+func (ec *executionContext) _TagShare(ctx context.Context, sel ast.SelectionSet, obj *models.TagShare) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, tagShareImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TagShare")
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TagShare_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "permissions":
+			out.Values[i] = ec._TagShare_permissions(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -4398,6 +4647,21 @@ func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast
 	return ret
 }
 
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNInt2int64(ctx context.Context, v interface{}) (int64, error) {
 	res, err := graphql.UnmarshalInt64(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4477,6 +4741,58 @@ func (ec *executionContext) marshalNTag2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋc
 
 func (ec *executionContext) unmarshalNTagInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagInput(ctx context.Context, v interface{}) (models.TagInput, error) {
 	res, err := ec.unmarshalInputTagInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTagShare2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShareᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.TagShare) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTagShare2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShare(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNTagShare2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShare(ctx context.Context, sel ast.SelectionSet, v *models.TagShare) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._TagShare(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTagShareInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShareInput(ctx context.Context, v interface{}) (models.TagShareInput, error) {
+	res, err := ec.unmarshalInputTagShareInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -4917,6 +5233,30 @@ func (ec *executionContext) marshalOTag2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋc
 		return graphql.Null
 	}
 	return ec._Tag(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOTagShareInput2ᚕgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShareInputᚄ(ctx context.Context, v interface{}) ([]models.TagShareInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]models.TagShareInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNTagShareInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐTagShareInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (graphql.Upload, error) {
