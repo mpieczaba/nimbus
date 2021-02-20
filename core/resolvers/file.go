@@ -64,6 +64,15 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input models.FileInpu
 		return &file, gqlerror.Errorf("Cannot save file tags!")
 	}
 
+	if len(input.SharedFor) > 0 {
+		// Save file shares
+		fileShares := utils.FileShareInputsToFileShares(id.String(), input.SharedFor)
+
+		if err := r.DB.Save(&fileShares).Error; err != nil {
+			return &file, gqlerror.Errorf("Cannot save file shares!")
+		}
+	}
+
 	file = models.File{
 		ID:        id.String(),
 		Name:      input.Name,
@@ -122,6 +131,15 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input mode
 		}
 	}
 
+	if len(input.SharedFor) > 0 {
+		// Update file shares
+		fileShares := utils.FileShareInputsToFileShares(file.ID, input.SharedFor)
+
+		if err := r.DB.Save(&fileShares).Error; err != nil {
+			return &file, gqlerror.Errorf("Cannot update file shares!")
+		}
+	}
+
 	if input.File.File != nil {
 		// Write file in data directory
 		if err := utils.WriteFile(file.ID, input.File.File); err != nil {
@@ -162,6 +180,13 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*models.F
 		return &file, gqlerror.Errorf("Cannot delete file tags!")
 	}
 
+	// Delete file shares
+	var fileShares []models.FileShare
+
+	if err := r.DB.Where("file_id = ?", id).Find(&fileShares).Delete(&fileShares).Error; err != nil {
+		return &file, gqlerror.Errorf("Cannot delete file shares!")
+	}
+
 	// Delete file in data directory
 	if err := utils.RemoveFile(id); err != nil {
 		return &file, gqlerror.Errorf("Cannot delete file!")
@@ -192,4 +217,14 @@ func (r *fileResolver) Tags(ctx context.Context, obj *models.File) ([]*models.Ta
 	}
 
 	return tags, nil
+}
+
+func (r *fileResolver) SharedFor(ctx context.Context, obj *models.File) ([]*models.FileShare, error) {
+	var fileShares []*models.FileShare
+
+	if err := r.DB.Where("file_id = ?", obj.ID).Find(&fileShares).Error; err != nil {
+		return fileShares, gqlerror.Errorf("Internal database error occurred while getting file shares!")
+	}
+
+	return fileShares, nil
 }

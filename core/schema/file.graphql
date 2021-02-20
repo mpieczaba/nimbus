@@ -6,13 +6,20 @@ type File {
     size: Int!
     owner: User!
     tags: [Tag!]!
+    sharedFor: [FileShare!]!
     createdAt: Time!
     updatedAt: Time!
+}
+
+type FileShare {
+    user: User!
+    permissions: Int!
 }
 
 input FileInput {
     name: String!
     tags: [ID!]!
+    sharedFor: [FileShareInput!]
     file: Upload!
 }
 
@@ -20,5 +27,11 @@ input FileUpdateInput {
     name: String
     ownerId: ID
     tags: [ID!]
+    sharedFor: [FileShareInput!]
     file: Upload
+}
+
+input FileShareInput {
+    userId: ID!
+    permissions: Int!
 }
