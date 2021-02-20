@@ -19,6 +19,7 @@ type FileShare {
 input FileInput {
     name: String!
     tags: [ID!]!
+    sharedFor: [FileShareInput!]
     file: Upload!
 }
 
@@ -27,4 +28,9 @@ input FileUpdateInput {
     ownerId: ID
     tags: [ID!]
     file: Upload
+}
+
+input FileShareInput {
+    userId: ID!
+    permissions: Int!
 }

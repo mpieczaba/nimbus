@@ -64,6 +64,15 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input models.FileInpu
 		return &file, gqlerror.Errorf("Cannot save file tags!")
 	}
 
+	if len(input.SharedFor) > 0 {
+		// Save file shares
+		fileShares := utils.FileShareInputsToFileShares(id.String(), input.SharedFor)
+
+		if err := r.DB.Save(&fileShares).Error; err != nil {
+			return &file, gqlerror.Errorf("Cannot save file shares!")
+		}
+	}
+
 	file = models.File{
 		ID:        id.String(),
 		Name:      input.Name,

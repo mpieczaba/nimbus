@@ -17,9 +17,10 @@ type File struct {
 }
 
 type FileInput struct {
-	Name string         `json:"name"  validate:"required,filename,min=1,max=255"`
-	Tags []string       `json:"tags" validate:"required,dive,alphanum,len=20"`
-	File graphql.Upload `json:"file"  validate:"required"`
+	Name      string           `json:"name"  validate:"required,filename,min=1,max=255"`
+	Tags      []string         `json:"tags" validate:"required,dive,alphanum,len=20"`
+	SharedFor []FileShareInput `validate:"omitempty,dive"`
+	File      graphql.Upload   `json:"file"  validate:"required"`
 }
 
 type FileUpdateInput struct {
@@ -38,4 +39,9 @@ type FileShare struct {
 	FileID      string `json:"fileId" gorm:"type:varchar(20);not null"`
 	UserID      string `json:"userId" gorm:"type:varchar(20);not null"`
 	Permissions int    `json:"permissions" gorm:"type:int;not null"`
+}
+
+type FileShareInput struct {
+	UserID      string `json:"userId" validate:"required,alphanum,len=20"`
+	Permissions int    `json:"permissions" validate:"required"`
 }

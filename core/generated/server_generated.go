@@ -622,6 +622,7 @@ type FileShare {
 input FileInput {
     name: String!
     tags: [ID!]!
+    sharedFor: [FileShareInput!]
     file: Upload!
 }
 
@@ -630,6 +631,11 @@ input FileUpdateInput {
     ownerId: ID
     tags: [ID!]
     file: Upload
+}
+
+input FileShareInput {
+    userId: ID!
+    permissions: Int!
 }
 `, BuiltIn: false},
 	{Name: "core/schema/mutation.graphql", Input: `type Mutation {
@@ -3760,11 +3766,47 @@ func (ec *executionContext) unmarshalInputFileInput(ctx context.Context, obj int
 			if err != nil {
 				return it, err
 			}
+		case "sharedFor":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sharedFor"))
+			it.SharedFor, err = ec.unmarshalOFileShareInput2ᚕgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐFileShareInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "file":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
 			it.File, err = ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputFileShareInput(ctx context.Context, obj interface{}) (models.FileShareInput, error) {
+	var it models.FileShareInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			it.UserID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "permissions":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permissions"))
+			it.Permissions, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4842,6 +4884,11 @@ func (ec *executionContext) marshalNFileShare2ᚖgithubᚗcomᚋmpieczabaᚋnimb
 	return ec._FileShare(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNFileShareInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐFileShareInput(ctx context.Context, v interface{}) (models.FileShareInput, error) {
+	res, err := ec.unmarshalInputFileShareInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNFileUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐFileUpdateInput(ctx context.Context, v interface{}) (models.FileUpdateInput, error) {
 	res, err := ec.unmarshalInputFileUpdateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5402,6 +5449,30 @@ func (ec *executionContext) marshalOFile2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋ
 		return graphql.Null
 	}
 	return ec._File(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOFileShareInput2ᚕgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐFileShareInputᚄ(ctx context.Context, v interface{}) ([]models.FileShareInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]models.FileShareInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNFileShareInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐFileShareInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {

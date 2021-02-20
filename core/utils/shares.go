@@ -15,3 +15,17 @@ func TagShareInputsToTagShares(tagID string, tagShareInputs []models.TagShareInp
 
 	return tagShares
 }
+
+func FileShareInputsToFileShares(fileID string, fileShareInputs []models.FileShareInput) []models.FileShare {
+	var fileShares []models.FileShare
+
+	for _, fileShareInput := range fileShareInputs {
+		fileShares = append(fileShares, models.FileShare{
+			FileID:      fileID,
+			UserID:      fileShareInput.UserID,
+			Permissions: fileShareInput.Permissions,
+		})
+	}
+
+	return fileShares
+}
