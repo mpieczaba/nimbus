@@ -27,6 +27,7 @@ input FileUpdateInput {
     name: String
     ownerId: ID
     tags: [ID!]
+    sharedFor: [FileShareInput!]
     file: Upload
 }
 

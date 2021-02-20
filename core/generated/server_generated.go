@@ -630,6 +630,7 @@ input FileUpdateInput {
     name: String
     ownerId: ID
     tags: [ID!]
+    sharedFor: [FileShareInput!]
     file: Upload
 }
 
@@ -3843,6 +3844,14 @@ func (ec *executionContext) unmarshalInputFileUpdateInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
 			it.Tags, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sharedFor":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sharedFor"))
+			it.SharedFor, err = ec.unmarshalOFileShareInput2ᚕgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐFileShareInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

@@ -24,10 +24,11 @@ type FileInput struct {
 }
 
 type FileUpdateInput struct {
-	Name    string         `json:"name" validate:"omitempty,filename,min=1,max=255"`
-	OwnerID string         `json:"ownerId" validate:"omitempty,alphanum,len=20"`
-	Tags    []string       `json:"tags" validate:"omitempty,dive,alphanum,len=20"`
-	File    graphql.Upload `json:"file" validate:"omitempty"`
+	Name      string           `json:"name" validate:"omitempty,filename,min=1,max=255"`
+	OwnerID   string           `json:"ownerId" validate:"omitempty,alphanum,len=20"`
+	Tags      []string         `json:"tags" validate:"omitempty,dive,alphanum,len=20"`
+	SharedFor []FileShareInput `validate:"omitempty,dive"`
+	File      graphql.Upload   `json:"file" validate:"omitempty"`
 }
 
 type FileTag struct {
