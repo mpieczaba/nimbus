@@ -33,3 +33,9 @@ type FileTag struct {
 	FileID string `json:"fileId" gorm:"type:varchar(20);not null"`
 	TagID  string `json:"tagId" gorm:"type:varchar(20);not null"`
 }
+
+type FileShare struct {
+	FileID      string `json:"fileId" gorm:"type:varchar(20);not null"`
+	UserID      string `json:"userId" gorm:"type:varchar(20);not null"`
+	Permissions int    `json:"permissions" gorm:"type:int;not null"`
+}

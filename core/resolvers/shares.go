@@ -21,3 +21,13 @@ func (r *tagShareResolver) User(ctx context.Context, obj *models.TagShare) (*mod
 
 	return &user, nil
 }
+
+func (r *fileShareResolver) User(ctx context.Context, obj *models.FileShare) (*models.User, error) {
+	var user models.User
+
+	if err := r.DB.Where("id = ?", obj.UserID).First(&user).Error; err != nil {
+		return &user, gqlerror.Errorf("Internal database error occurred while getting user!")
+	}
+
+	return &user, nil
+}

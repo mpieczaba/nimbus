@@ -39,3 +39,7 @@ type tagResolver struct{ *Resolver }
 func (r *Resolver) TagShare() generated.TagShareResolver { return &tagShareResolver{r} }
 
 type tagShareResolver struct{ *Resolver }
+
+func (r *Resolver) FileShare() generated.FileShareResolver { return &fileShareResolver{r} }
+
+type fileShareResolver struct{ *Resolver }

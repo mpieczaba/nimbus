@@ -193,3 +193,13 @@ func (r *fileResolver) Tags(ctx context.Context, obj *models.File) ([]*models.Ta
 
 	return tags, nil
 }
+
+func (r *fileResolver) SharedFor(ctx context.Context, obj *models.File) ([]*models.FileShare, error) {
+	var fileShares []*models.FileShare
+
+	if err := r.DB.Where("file_id = ?", obj.ID).Find(&fileShares).Error; err != nil {
+		return fileShares, gqlerror.Errorf("Internal database error occurred while getting file shares!")
+	}
+
+	return fileShares, nil
+}

@@ -6,8 +6,14 @@ type File {
     size: Int!
     owner: User!
     tags: [Tag!]!
+    sharedFor: [FileShare!]!
     createdAt: Time!
     updatedAt: Time!
+}
+
+type FileShare {
+    user: User!
+    permissions: Int!
 }
 
 input FileInput {
