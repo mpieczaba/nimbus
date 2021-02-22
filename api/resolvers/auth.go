@@ -2,19 +2,16 @@ package resolvers
 
 import (
 	"context"
-	"os"
-	"time"
 
-	"github.com/mpieczaba/nimbus/core/models"
+	"github.com/mpieczaba/nimbus/auth"
 
-	"github.com/form3tech-oss/jwt-go"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // Mutation
 
-func (r *mutationResolver) Login(ctx context.Context, username string, password string) (*models.AuthPayload, error) {
+func (r *mutationResolver) Login(ctx context.Context, username string, password string) (*auth.AuthPayload, error) {
 	userLogin, err := r.UserStore.GetUserByUsername(username)
 
 	if err != nil {
@@ -27,21 +24,11 @@ func (r *mutationResolver) Login(ctx context.Context, username string, password 
 	}
 
 	// Create jwt token
-	t := jwt.New(jwt.SigningMethodHS256)
-
-	claims := t.Claims.(jwt.MapClaims)
-
-	claims["id"] = userLogin.ID
-	claims["username"] = userLogin.Username
-	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
-	token, err := t.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	token, err := auth.NewToken(userLogin)
 
 	if err != nil {
 		return nil, gqlerror.Errorf("Internal server error!")
 	}
 
-	authPayload := models.AuthPayload{Token: token}
-
-	return &authPayload, nil
+	return &auth.AuthPayload{Token: token}, nil
 }

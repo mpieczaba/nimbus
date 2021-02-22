@@ -13,6 +13,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/mpieczaba/nimbus/auth"
 	"github.com/mpieczaba/nimbus/core/models"
 	"github.com/mpieczaba/nimbus/user"
 	gqlparser "github.com/vektah/gqlparser/v2"
@@ -127,7 +128,7 @@ type FileShareResolver interface {
 	User(ctx context.Context, obj *models.FileShare) (*user.User, error)
 }
 type MutationResolver interface {
-	Login(ctx context.Context, username string, password string) (*models.AuthPayload, error)
+	Login(ctx context.Context, username string, password string) (*auth.AuthPayload, error)
 	UserCreate(ctx context.Context, input user.UserInput) (*user.User, error)
 	UserUpdate(ctx context.Context, input user.UserUpdateInput) (*user.User, error)
 	UserDelete(ctx context.Context) (*user.User, error)
@@ -1032,7 +1033,7 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _AuthPayload_token(ctx context.Context, field graphql.CollectedField, obj *models.AuthPayload) (ret graphql.Marshaler) {
+func (ec *executionContext) _AuthPayload_token(ctx context.Context, field graphql.CollectedField, obj *auth.AuthPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1521,9 +1522,9 @@ func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.AuthPayload)
+	res := resTmp.(*auth.AuthPayload)
 	fc.Result = res
-	return ec.marshalOAuthPayload2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐAuthPayload(ctx, field.Selections, res)
+	return ec.marshalOAuthPayload2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋauthᚐAuthPayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_userCreate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4028,7 +4029,7 @@ func (ec *executionContext) unmarshalInputUserUpdateInput(ctx context.Context, o
 
 var authPayloadImplementors = []string{"AuthPayload"}
 
-func (ec *executionContext) _AuthPayload(ctx context.Context, sel ast.SelectionSet, obj *models.AuthPayload) graphql.Marshaler {
+func (ec *executionContext) _AuthPayload(ctx context.Context, sel ast.SelectionSet, obj *auth.AuthPayload) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, authPayloadImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -5423,7 +5424,7 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) marshalOAuthPayload2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐAuthPayload(ctx context.Context, sel ast.SelectionSet, v *models.AuthPayload) graphql.Marshaler {
+func (ec *executionContext) marshalOAuthPayload2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋauthᚐAuthPayload(ctx context.Context, sel ast.SelectionSet, v *auth.AuthPayload) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
