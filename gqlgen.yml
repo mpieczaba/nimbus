@@ -10,5 +10,13 @@ resolver:
   package: resolvers
   type: Resolver
 
+models:
+  User:
+    model: github.com/mpieczaba/nimbus/user.User
+  UserInput:
+    model: github.com/mpieczaba/nimbus/user.UserInput
+  UserUpdateInput:
+    model: github.com/mpieczaba/nimbus/user.UserUpdateInput
+
 autobind:
   - "github.com/mpieczaba/nimbus/core/models"

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mpieczaba/nimbus/core/models"
+	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/rs/xid"
@@ -13,135 +14,91 @@ import (
 
 // Query
 
-func (r *queryResolver) Me(ctx context.Context) (*models.User, error) {
-	var user models.User
-
+func (r *queryResolver) Me(ctx context.Context) (*user.User, error) {
 	claims, err := utils.Auth(r.Ctx)
 
 	if err != nil {
-		return &user, err
+		return nil, err
 	}
 
-	id := claims["id"].(string)
-
-	if err := r.DB.Where("id = ?", id).First(&user).Error; err != nil {
-		return &user, gqlerror.Errorf("User not found!")
-	}
-
-	return &user, nil
+	return r.UserStore.GetUserById(claims["id"].(string))
 }
 
-func (r *queryResolver) User(ctx context.Context, id string) (*models.User, error) {
-	var user models.User
-
-	if err := r.DB.Where("id = ?", id).First(&user).Error; err != nil {
-		return &user, gqlerror.Errorf("User with id `" + id + "` not found!")
-	}
-
-	return &user, nil
+func (r *queryResolver) User(ctx context.Context, id string) (*user.User, error) {
+	return r.UserStore.GetUserById(id)
 }
 
-func (r *queryResolver) Users(ctx context.Context) ([]*models.User, error) {
-	var users []*models.User
-
-	if err := r.DB.Find(&users).Error; err != nil {
-		return nil, gqlerror.Errorf("Internal database error occurred while getting all users!")
-	}
-
-	return users, nil
+func (r *queryResolver) Users(ctx context.Context) ([]*user.User, error) {
+	return r.UserStore.GetAllUsers()
 }
 
 // Mutation
 
-func (r *mutationResolver) UserCreate(ctx context.Context, input models.UserInput) (*models.User, error) {
-	var user models.User
-
+func (r *mutationResolver) UserCreate(ctx context.Context, input user.UserInput) (*user.User, error) {
 	if err := r.Validator.Validate(input); err != nil {
-		return &user, err
+		return nil, err
 	}
-
-	id := xid.New()
 
 	pass, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 
 	if err != nil {
-		return &user, gqlerror.Errorf("Cannot parse password!")
+		return nil, gqlerror.Errorf("Cannot parse password!")
 	}
 
-	user = models.User{
-		ID:       id.String(),
+	return r.UserStore.SaveUser(&user.User{
+		ID:       xid.New().String(),
 		Username: input.Username,
 		Password: string(pass),
-	}
-
-	if err := r.DB.Save(&user).Error; err != nil {
-		return &user, gqlerror.Errorf("Incorrect form data or user already exists!")
-	}
-
-	return &user, nil
+	})
 }
 
-func (r *mutationResolver) UserUpdate(ctx context.Context, input models.UserUpdateInput) (*models.User, error) {
-	var user models.User
-
+func (r *mutationResolver) UserUpdate(ctx context.Context, input user.UserUpdateInput) (*user.User, error) {
 	if err := r.Validator.Validate(input); err != nil {
-		return &user, err
+		return nil, err
 	}
 
 	claims, err := utils.Auth(r.Ctx)
 
 	if err != nil {
-		return &user, err
+		return nil, err
 	}
 
-	id := claims["id"].(string)
+	userToUpdate, err := r.UserStore.GetUserById(claims["id"].(string))
 
-	if err := r.DB.Where("id = ?", id).First(&user).Error; err != nil {
-		return &user, gqlerror.Errorf("User not found!")
+	if err != nil {
+		return nil, err
 	}
 
 	if input.Username != "" {
-		user.Username = input.Username
+		userToUpdate.Username = input.Username
 	}
 
 	if input.Password != "" {
 		pass, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 
 		if err != nil {
-			return &user, gqlerror.Errorf("Cannot parse password!")
+			return nil, gqlerror.Errorf("Cannot parse password!")
 		}
 
-		user.Password = string(pass)
+		userToUpdate.Password = string(pass)
 	}
 
-	if err := r.DB.Save(&user).Error; err != nil {
-		return &user, gqlerror.Errorf("Incorrect form data or user already exists!")
-	}
-
-	return &user, nil
+	return r.UserStore.SaveUser(userToUpdate)
 }
 
-func (r *mutationResolver) UserDelete(ctx context.Context) (*models.User, error) {
-	var user models.User
-
+func (r *mutationResolver) UserDelete(ctx context.Context) (*user.User, error) {
 	claims, err := utils.Auth(r.Ctx)
 
 	if err != nil {
-		return &user, err
+		return nil, err
 	}
 
-	id := claims["id"].(string)
-
-	if err := r.DB.Where("id = ?", id).First(&user).Delete(&user).Error; err != nil {
-		return &user, gqlerror.Errorf("User not found!")
-	}
-
-	return &user, nil
+	return r.UserStore.DeleteUser(claims["id"].(string))
 }
 
 // Field resolver
 
-func (r *userResolver) Files(ctx context.Context, obj *models.User) ([]*models.File, error) {
+func (r *userResolver) Files(ctx context.Context, obj *user.User) ([]*models.File, error) {
 	var files []*models.File
 
 	if err := r.DB.Where("owner_id = ?", obj.ID).Find(&files).Error; err != nil {

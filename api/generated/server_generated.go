@@ -14,6 +14,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/mpieczaba/nimbus/core/models"
+	"github.com/mpieczaba/nimbus/user"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -79,9 +80,9 @@ type ComplexityRoot struct {
 		TagCreate  func(childComplexity int, input models.TagInput) int
 		TagDelete  func(childComplexity int, id string) int
 		TagUpdate  func(childComplexity int, id string, input models.TagUpdateInput) int
-		UserCreate func(childComplexity int, input models.UserInput) int
+		UserCreate func(childComplexity int, input user.UserInput) int
 		UserDelete func(childComplexity int) int
-		UserUpdate func(childComplexity int, input models.UserUpdateInput) int
+		UserUpdate func(childComplexity int, input user.UserUpdateInput) int
 	}
 
 	Query struct {
@@ -118,18 +119,18 @@ type ComplexityRoot struct {
 }
 
 type FileResolver interface {
-	Owner(ctx context.Context, obj *models.File) (*models.User, error)
+	Owner(ctx context.Context, obj *models.File) (*user.User, error)
 	Tags(ctx context.Context, obj *models.File) ([]*models.Tag, error)
 	SharedFor(ctx context.Context, obj *models.File) ([]*models.FileShare, error)
 }
 type FileShareResolver interface {
-	User(ctx context.Context, obj *models.FileShare) (*models.User, error)
+	User(ctx context.Context, obj *models.FileShare) (*user.User, error)
 }
 type MutationResolver interface {
 	Login(ctx context.Context, username string, password string) (*models.AuthPayload, error)
-	UserCreate(ctx context.Context, input models.UserInput) (*models.User, error)
-	UserUpdate(ctx context.Context, input models.UserUpdateInput) (*models.User, error)
-	UserDelete(ctx context.Context) (*models.User, error)
+	UserCreate(ctx context.Context, input user.UserInput) (*user.User, error)
+	UserUpdate(ctx context.Context, input user.UserUpdateInput) (*user.User, error)
+	UserDelete(ctx context.Context) (*user.User, error)
 	FileCreate(ctx context.Context, input models.FileInput) (*models.File, error)
 	FileUpdate(ctx context.Context, id string, input models.FileUpdateInput) (*models.File, error)
 	FileDelete(ctx context.Context, id string) (*models.File, error)
@@ -138,23 +139,23 @@ type MutationResolver interface {
 	TagDelete(ctx context.Context, id string) (*models.Tag, error)
 }
 type QueryResolver interface {
-	Me(ctx context.Context) (*models.User, error)
-	User(ctx context.Context, id string) (*models.User, error)
-	Users(ctx context.Context) ([]*models.User, error)
+	Me(ctx context.Context) (*user.User, error)
+	User(ctx context.Context, id string) (*user.User, error)
+	Users(ctx context.Context) ([]*user.User, error)
 	File(ctx context.Context, id string) (*models.File, error)
 	Files(ctx context.Context) ([]*models.File, error)
 	Tag(ctx context.Context, id string) (*models.Tag, error)
 	Tags(ctx context.Context) ([]*models.Tag, error)
 }
 type TagResolver interface {
-	Owner(ctx context.Context, obj *models.Tag) (*models.User, error)
+	Owner(ctx context.Context, obj *models.Tag) (*user.User, error)
 	SharedFor(ctx context.Context, obj *models.Tag) ([]*models.TagShare, error)
 }
 type TagShareResolver interface {
-	User(ctx context.Context, obj *models.TagShare) (*models.User, error)
+	User(ctx context.Context, obj *models.TagShare) (*user.User, error)
 }
 type UserResolver interface {
-	Files(ctx context.Context, obj *models.User) ([]*models.File, error)
+	Files(ctx context.Context, obj *user.User) ([]*models.File, error)
 }
 
 type executableSchema struct {
@@ -357,7 +358,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UserCreate(childComplexity, args["input"].(models.UserInput)), true
+		return e.complexity.Mutation.UserCreate(childComplexity, args["input"].(user.UserInput)), true
 
 	case "Mutation.userDelete":
 		if e.complexity.Mutation.UserDelete == nil {
@@ -376,7 +377,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UserUpdate(childComplexity, args["input"].(models.UserUpdateInput)), true
+		return e.complexity.Mutation.UserUpdate(childComplexity, args["input"].(user.UserUpdateInput)), true
 
 	case "Query.file":
 		if e.complexity.Query.File == nil {
@@ -906,10 +907,10 @@ func (ec *executionContext) field_Mutation_tagUpdate_args(ctx context.Context, r
 func (ec *executionContext) field_Mutation_userCreate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 models.UserInput
+	var arg0 user.UserInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUserInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUserInput(ctx, tmp)
+		arg0, err = ec.unmarshalNUserInput2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -921,10 +922,10 @@ func (ec *executionContext) field_Mutation_userCreate_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_userUpdate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 models.UserUpdateInput
+	var arg0 user.UserUpdateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUserUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUserUpdateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNUserUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserUpdateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1271,9 +1272,9 @@ func (ec *executionContext) _File_owner(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.User)
+	res := resTmp.(*user.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _File_tags(ctx context.Context, field graphql.CollectedField, obj *models.File) (ret graphql.Marshaler) {
@@ -1446,9 +1447,9 @@ func (ec *executionContext) _FileShare_user(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.User)
+	res := resTmp.(*user.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FileShare_permissions(ctx context.Context, field graphql.CollectedField, obj *models.FileShare) (ret graphql.Marshaler) {
@@ -1550,7 +1551,7 @@ func (ec *executionContext) _Mutation_userCreate(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UserCreate(rctx, args["input"].(models.UserInput))
+		return ec.resolvers.Mutation().UserCreate(rctx, args["input"].(user.UserInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1559,9 +1560,9 @@ func (ec *executionContext) _Mutation_userCreate(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.User)
+	res := resTmp.(*user.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_userUpdate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1589,7 +1590,7 @@ func (ec *executionContext) _Mutation_userUpdate(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UserUpdate(rctx, args["input"].(models.UserUpdateInput))
+		return ec.resolvers.Mutation().UserUpdate(rctx, args["input"].(user.UserUpdateInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1598,9 +1599,9 @@ func (ec *executionContext) _Mutation_userUpdate(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.User)
+	res := resTmp.(*user.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_userDelete(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1630,9 +1631,9 @@ func (ec *executionContext) _Mutation_userDelete(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.User)
+	res := resTmp.(*user.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_fileCreate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1899,9 +1900,9 @@ func (ec *executionContext) _Query_me(ctx context.Context, field graphql.Collect
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.User)
+	res := resTmp.(*user.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1941,9 +1942,9 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.User)
+	res := resTmp.(*user.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_users(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1976,9 +1977,9 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.User)
+	res := resTmp.([]*user.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_file(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2303,9 +2304,9 @@ func (ec *executionContext) _Tag_owner(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.User)
+	res := resTmp.(*user.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Tag_sharedFor(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
@@ -2443,9 +2444,9 @@ func (ec *executionContext) _TagShare_user(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.User)
+	res := resTmp.(*user.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TagShare_permissions(ctx context.Context, field graphql.CollectedField, obj *models.TagShare) (ret graphql.Marshaler) {
@@ -2483,7 +2484,7 @@ func (ec *executionContext) _TagShare_permissions(ctx context.Context, field gra
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2518,7 +2519,7 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_username(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_username(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2553,7 +2554,7 @@ func (ec *executionContext) _User_username(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_files(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_files(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2588,7 +2589,7 @@ func (ec *executionContext) _User_files(ctx context.Context, field graphql.Colle
 	return ec.marshalNFile2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐFileᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_createdAt(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_createdAt(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2623,7 +2624,7 @@ func (ec *executionContext) _User_createdAt(ctx context.Context, field graphql.C
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_updatedAt(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_updatedAt(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3961,8 +3962,8 @@ func (ec *executionContext) unmarshalInputTagUpdateInput(ctx context.Context, ob
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj interface{}) (models.UserInput, error) {
-	var it models.UserInput
+func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj interface{}) (user.UserInput, error) {
+	var it user.UserInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -3989,8 +3990,8 @@ func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj int
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUserUpdateInput(ctx context.Context, obj interface{}) (models.UserUpdateInput, error) {
-	var it models.UserUpdateInput
+func (ec *executionContext) unmarshalInputUserUpdateInput(ctx context.Context, obj interface{}) (user.UserUpdateInput, error) {
+	var it user.UserUpdateInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -4476,7 +4477,7 @@ func (ec *executionContext) _TagShare(ctx context.Context, sel ast.SelectionSet,
 
 var userImplementors = []string{"User"}
 
-func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *models.User) graphql.Marshaler {
+func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *user.User) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -5132,11 +5133,11 @@ func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋg
 	return res
 }
 
-func (ec *executionContext) marshalNUser2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx context.Context, sel ast.SelectionSet, v user.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*user.User) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -5160,7 +5161,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbus
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx, sel, v[i])
+			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -5173,7 +5174,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbus
 	return ret
 }
 
-func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx context.Context, sel ast.SelectionSet, v *user.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -5183,12 +5184,12 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋ
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUserInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUserInput(ctx context.Context, v interface{}) (models.UserInput, error) {
+func (ec *executionContext) unmarshalNUserInput2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserInput(ctx context.Context, v interface{}) (user.UserInput, error) {
 	res, err := ec.unmarshalInputUserInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUserUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUserUpdateInput(ctx context.Context, v interface{}) (models.UserUpdateInput, error) {
+func (ec *executionContext) unmarshalNUserUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserUpdateInput(ctx context.Context, v interface{}) (user.UserUpdateInput, error) {
 	res, err := ec.unmarshalInputUserUpdateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -5593,7 +5594,7 @@ func (ec *executionContext) marshalOUpload2githubᚗcomᚋ99designsᚋgqlgenᚋg
 	return graphql.MarshalUpload(v)
 }
 
-func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋcoreᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx context.Context, sel ast.SelectionSet, v *user.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
