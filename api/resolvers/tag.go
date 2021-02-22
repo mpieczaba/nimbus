@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mpieczaba/nimbus/core/models"
+	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/rs/xid"
@@ -98,7 +99,7 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input model
 
 	if input.OwnerID != "" {
 		// Check if owner does exist
-		if err := r.DB.Where("id = ?", input.OwnerID).First(&models.User{}).Error; err != nil {
+		if err := r.DB.Where("id = ?", input.OwnerID).First(&user.User{}).Error; err != nil {
 			return nil, gqlerror.Errorf("Owner not found!")
 		}
 
@@ -148,8 +149,8 @@ func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*models.Ta
 
 // Field resolver
 
-func (r *tagResolver) Owner(ctx context.Context, obj *models.Tag) (*models.User, error) {
-	var owner models.User
+func (r *tagResolver) Owner(ctx context.Context, obj *models.Tag) (*user.User, error) {
+	var owner user.User
 
 	if err := r.DB.Where("id = ?", obj.OwnerID).First(&owner).Error; err != nil {
 		return &owner, gqlerror.Errorf("Owner not found!")
