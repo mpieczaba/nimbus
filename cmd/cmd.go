@@ -3,8 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-
-	"github.com/mpieczaba/nimbus/core"
 )
 
 func Execute() {
@@ -14,7 +12,7 @@ func Execute() {
 
 	switch os.Args[1] {
 	case "start":
-		app := core.NewApp()
+		app := NewApp()
 
 		app.Start()
 	default:

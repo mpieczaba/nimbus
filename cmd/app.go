@@ -1,13 +1,17 @@
-package core
+package cmd
 
 import (
 	"os"
 
+	"github.com/mpieczaba/nimbus/api/generated"
+	"github.com/mpieczaba/nimbus/api/resolvers"
 	"github.com/mpieczaba/nimbus/core/models"
-	"github.com/mpieczaba/nimbus/core/routes"
 	"github.com/mpieczaba/nimbus/database"
 	"github.com/mpieczaba/nimbus/utils"
+	"github.com/mpieczaba/nimbus/validators"
 
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -40,8 +44,29 @@ func (app *App) Start() {
 		return c.SendString("Nimbus - extensible storage system with quick access to data")
 	})
 
-	// GraphQL api endpoint and playground
-	routes.GraphQL(app.http, app.db)
+	// Set up GraphQL api endpoint
+	app.http.All("/graphql", func(c *fiber.Ctx) error {
+		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{
+			Ctx:       c,
+			DB:        app.db,
+			Validator: validators.New(),
+		}}))
+
+		gqlHandler := srv.Handler()
+
+		gqlHandler(c.Context())
+
+		return nil
+	})
+
+	// Set up GraphQL playground
+	app.http.Get("/playground", func(c *fiber.Ctx) error {
+		gqlPlayground := playground.Handler("GraphQL playground", "/graphql")
+
+		gqlPlayground(c.Context())
+
+		return nil
+	})
 
 	if err := app.http.Listen(":" + os.Getenv("PORT")); err != nil {
 		panic(err)
