@@ -49,8 +49,6 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input models.FileInpu
 		return &file, err
 	}
 
-	ownerID := claims["id"].(string)
-
 	id := xid.New()
 
 	// Write file in data directory
@@ -80,7 +78,7 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input models.FileInpu
 		MimeType:  input.File.ContentType,
 		Extension: filepath.Ext(input.File.Filename),
 		Size:      input.File.Size,
-		OwnerID:   ownerID,
+		OwnerID:   claims["id"].(string),
 	}
 
 	if err := r.DB.Save(&file).Error; err != nil {
@@ -103,10 +101,8 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input mode
 		return &file, err
 	}
 
-	ownerID := claims["id"].(string)
-
 	// Query file to update
-	if err := r.DB.Where("id = ? AND owner_id = ?", id, ownerID).First(&file).Error; err != nil {
+	if err := r.DB.Where("id = ? AND owner_id = ?", id, claims["id"].(string)).First(&file).Error; err != nil {
 		return &file, gqlerror.Errorf("File with id `" + id + "` not found!")
 	}
 
@@ -116,8 +112,8 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input mode
 
 	if input.OwnerID != "" {
 		// Check if owner does exist
-		if err := r.DB.Where("id = ?", input.OwnerID).First(&user.User{}).Error; err != nil {
-			return nil, gqlerror.Errorf("Owner not found!")
+		if _, err := r.UserStore.GetUserById(input.OwnerID); err != nil {
+			return nil, err
 		}
 
 		file.OwnerID = input.OwnerID
@@ -168,9 +164,7 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*models.F
 		return &file, err
 	}
 
-	ownerID := claims["id"].(string)
-
-	if err := r.DB.Where("id = ? AND owner_id = ?", id, ownerID).First(&file).Delete(&file).Error; err != nil {
+	if err := r.DB.Where("id = ? AND owner_id = ?", id, claims["id"].(string)).First(&file).Delete(&file).Error; err != nil {
 		return &file, gqlerror.Errorf("File with id `" + id + "` not found!")
 	}
 
@@ -199,13 +193,7 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*models.F
 // Field resolver
 
 func (r *fileResolver) Owner(ctx context.Context, obj *models.File) (*user.User, error) {
-	var owner user.User
-
-	if err := r.DB.Where("id = ?", obj.OwnerID).First(&owner).Error; err != nil {
-		return &owner, gqlerror.Errorf("Owner not found!")
-	}
-
-	return &owner, nil
+	return r.UserStore.GetUserById(obj.OwnerID)
 }
 
 func (r *fileResolver) Tags(ctx context.Context, obj *models.File) ([]*models.Tag, error) {

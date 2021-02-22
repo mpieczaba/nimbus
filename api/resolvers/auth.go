@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/mpieczaba/nimbus/core/models"
-	"github.com/mpieczaba/nimbus/user"
 
 	"github.com/form3tech-oss/jwt-go"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -16,9 +15,9 @@ import (
 // Mutation
 
 func (r *mutationResolver) Login(ctx context.Context, username string, password string) (*models.AuthPayload, error) {
-	var userLogin user.User
+	userLogin, err := r.UserStore.GetUserByUsername(username)
 
-	if err := r.DB.Set("gorm:auto_preload", true).Where("username = ?", username).First(&userLogin).Error; err != nil {
+	if err != nil {
 		return nil, gqlerror.Errorf("Incorrect username or password!")
 	}
 

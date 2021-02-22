@@ -17,38 +17,48 @@ func NewStore(db *gorm.DB) *Store {
 	return store
 }
 
-func (store *Store) GetUserById(id string) (*User, error) {
+func (s *Store) GetUserById(id string) (*User, error) {
 	var user User
 
-	if err := store.db.Where("id = ?", id).First(&user).Error; err != nil {
+	if err := s.db.Where("id = ?", id).First(&user).Error; err != nil {
 		return nil, gqlerror.Errorf("User not found!")
 	}
 
 	return &user, nil
 }
 
-func (store *Store) GetAllUsers() ([]*User, error) {
+func (s *Store) GetUserByUsername(username string) (*User, error) {
+	var user User
+
+	if err := s.db.Where("username = ?", username).First(&user).Error; err != nil {
+		return nil, gqlerror.Errorf("User not found!")
+	}
+
+	return &user, nil
+}
+
+func (s *Store) GetAllUsers() ([]*User, error) {
 	var users []*User
 
-	if err := store.db.Find(&users).Error; err != nil {
+	if err := s.db.Find(&users).Error; err != nil {
 		return nil, gqlerror.Errorf("Internal database error occurred while getting all users!")
 	}
 
 	return users, nil
 }
 
-func (store *Store) SaveUser(user *User) (*User, error) {
-	if err := store.db.Save(user).Error; err != nil {
+func (s *Store) SaveUser(user *User) (*User, error) {
+	if err := s.db.Save(user).Error; err != nil {
 		return nil, gqlerror.Errorf("Incorrect form data or user already exists!")
 	}
 
 	return user, nil
 }
 
-func (store *Store) DeleteUser(id string) (*User, error) {
+func (s *Store) DeleteUser(id string) (*User, error) {
 	var user User
 
-	if err := store.db.Where("id = ?", id).First(&user).Delete(&user).Error; err != nil {
+	if err := s.db.Where("id = ?", id).First(&user).Delete(&user).Error; err != nil {
 		return nil, gqlerror.Errorf("User not found!")
 	}
 

@@ -48,8 +48,6 @@ func (r *mutationResolver) TagCreate(ctx context.Context, input models.TagInput)
 		return &tag, err
 	}
 
-	ownerID := claims["id"].(string)
-
 	id := xid.New()
 
 	if len(input.SharedFor) > 0 {
@@ -64,7 +62,7 @@ func (r *mutationResolver) TagCreate(ctx context.Context, input models.TagInput)
 	tag = models.Tag{
 		ID:      id.String(),
 		Name:    input.Name,
-		OwnerID: ownerID,
+		OwnerID: claims["id"].(string),
 	}
 
 	if err := r.DB.Save(&tag).Error; err != nil {
@@ -87,9 +85,7 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input model
 		return &tag, err
 	}
 
-	ownerID := claims["id"].(string)
-
-	if err := r.DB.Where("id = ? AND owner_id = ?", id, ownerID).First(&tag).Error; err != nil {
+	if err := r.DB.Where("id = ? AND owner_id = ?", id, claims["id"].(string)).First(&tag).Error; err != nil {
 		return &tag, gqlerror.Errorf("Tag not found or you are not the owner!")
 	}
 
@@ -99,8 +95,8 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input model
 
 	if input.OwnerID != "" {
 		// Check if owner does exist
-		if err := r.DB.Where("id = ?", input.OwnerID).First(&user.User{}).Error; err != nil {
-			return nil, gqlerror.Errorf("Owner not found!")
+		if _, err := r.UserStore.GetUserById(input.OwnerID); err != nil {
+			return nil, err
 		}
 
 		tag.OwnerID = input.OwnerID
@@ -131,9 +127,7 @@ func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*models.Ta
 		return &tag, err
 	}
 
-	ownerID := claims["id"].(string)
-
-	if err := r.DB.Where("id = ? AND owner_id = ?", id, ownerID).First(&tag).Delete(&tag).Error; err != nil {
+	if err := r.DB.Where("id = ? AND owner_id = ?", id, claims["id"].(string)).First(&tag).Delete(&tag).Error; err != nil {
 		return &tag, gqlerror.Errorf("Tag not found or you are not the owner!")
 	}
 
@@ -150,13 +144,7 @@ func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*models.Ta
 // Field resolver
 
 func (r *tagResolver) Owner(ctx context.Context, obj *models.Tag) (*user.User, error) {
-	var owner user.User
-
-	if err := r.DB.Where("id = ?", obj.OwnerID).First(&owner).Error; err != nil {
-		return &owner, gqlerror.Errorf("Owner not found!")
-	}
-
-	return &owner, nil
+	return r.UserStore.GetUserById(obj.OwnerID)
 }
 
 func (r *tagResolver) SharedFor(ctx context.Context, obj *models.Tag) ([]*models.TagShare, error) {
