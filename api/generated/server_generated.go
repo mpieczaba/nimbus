@@ -597,11 +597,11 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "core/schema/auth.graphql", Input: `type AuthPayload {
+	{Name: "api/schema/auth.graphql", Input: `type AuthPayload {
     token: String!
 }
 `, BuiltIn: false},
-	{Name: "core/schema/file.graphql", Input: `type File {
+	{Name: "api/schema/file.graphql", Input: `type File {
     id: ID!
     name: String!
     mimeType: String!
@@ -639,7 +639,7 @@ input FileShareInput {
     permissions: Int!
 }
 `, BuiltIn: false},
-	{Name: "core/schema/mutation.graphql", Input: `type Mutation {
+	{Name: "api/schema/mutation.graphql", Input: `type Mutation {
     # Auth
 
     """Sign in user with username and password"""
@@ -679,7 +679,7 @@ input FileShareInput {
     tagDelete(id: ID!): Tag
 }
 `, BuiltIn: false},
-	{Name: "core/schema/query.graphql", Input: `type Query {
+	{Name: "api/schema/query.graphql", Input: `type Query {
     # User
 
     """Get currently authenticated user"""
@@ -708,7 +708,7 @@ input FileShareInput {
     tags: [Tag!]!
 }
 `, BuiltIn: false},
-	{Name: "core/schema/schema.graphql", Input: `schema {
+	{Name: "api/schema/schema.graphql", Input: `schema {
     query: Query
     mutation: Mutation
 }
@@ -716,7 +716,7 @@ input FileShareInput {
 scalar Time
 scalar Upload
 `, BuiltIn: false},
-	{Name: "core/schema/tag.graphql", Input: `type Tag {
+	{Name: "api/schema/tag.graphql", Input: `type Tag {
     id: ID!
     name: String!
     owner: User!
@@ -746,7 +746,7 @@ input TagShareInput {
     permissions: Int!
 }
 `, BuiltIn: false},
-	{Name: "core/schema/user.graphql", Input: `type User {
+	{Name: "api/schema/user.graphql", Input: `type User {
     id: ID!
     username: String!
     files: [File!]!

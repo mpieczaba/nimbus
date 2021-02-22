@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"github.com/mpieczaba/nimbus/core/generated"
-	"github.com/mpieczaba/nimbus/core/resolvers"
-	"github.com/mpieczaba/nimbus/core/validators"
+	"github.com/mpieczaba/nimbus/api/generated"
+	"github.com/mpieczaba/nimbus/api/resolvers"
+	"github.com/mpieczaba/nimbus/validators"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/mpieczaba/nimbus/core/models"
-	"github.com/mpieczaba/nimbus/core/utils"
+	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/rs/xid"
 	"github.com/vektah/gqlparser/v2/gqlerror"

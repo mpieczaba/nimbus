@@ -1,6 +1,6 @@
 package models
 
-import "github.com/mpieczaba/nimbus/core/database"
+import "github.com/mpieczaba/nimbus/database"
 
 type User struct {
 	database.Model

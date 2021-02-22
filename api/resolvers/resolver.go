@@ -3,8 +3,8 @@ package resolvers
 //go:generate go run github.com/99designs/gqlgen
 
 import (
-	"github.com/mpieczaba/nimbus/core/generated"
-	"github.com/mpieczaba/nimbus/core/validators"
+	"github.com/mpieczaba/nimbus/api/generated"
+	"github.com/mpieczaba/nimbus/validators"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"

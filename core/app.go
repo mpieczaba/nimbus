@@ -3,10 +3,10 @@ package core
 import (
 	"os"
 
-	"github.com/mpieczaba/nimbus/core/database"
 	"github.com/mpieczaba/nimbus/core/models"
 	"github.com/mpieczaba/nimbus/core/routes"
-	"github.com/mpieczaba/nimbus/core/utils"
+	"github.com/mpieczaba/nimbus/database"
+	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"

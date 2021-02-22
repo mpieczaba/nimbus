@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/mpieczaba/nimbus/core/database"
+	"github.com/mpieczaba/nimbus/database"
 
 	"github.com/99designs/gqlgen/graphql"
 )
