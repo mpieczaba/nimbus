@@ -17,10 +17,10 @@ func NewStore(db *gorm.DB) *Store {
 	return store
 }
 
-func (s *Store) GetFileById(id string) (*File, error) {
+func (s *Store) GetFile(query interface{}, args ...interface{}) (*File, error) {
 	var file File
 
-	if err := s.db.Where("id = ?", id).First(&file).Error; err != nil {
+	if err := s.db.Where(query, args).First(&file).Error; err != nil {
 		return nil, gqlerror.Errorf("File not found!")
 	}
 

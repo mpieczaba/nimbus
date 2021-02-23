@@ -16,7 +16,7 @@ import (
 // Query
 
 func (r *queryResolver) File(ctx context.Context, id string) (*file.File, error) {
-	return r.FileStore.GetFileById(id)
+	return r.FileStore.GetFile("id = ?", id)
 }
 
 func (r *queryResolver) Files(ctx context.Context) ([]*file.File, error) {
@@ -101,7 +101,7 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 
 	if input.OwnerID != "" {
 		// Check if owner does exist
-		if _, err := r.UserStore.GetUserById(input.OwnerID); err != nil {
+		if _, err := r.UserStore.GetUser("id = ?", input.OwnerID); err != nil {
 			return nil, err
 		}
 
@@ -182,7 +182,7 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.Fil
 // Field resolver
 
 func (r *fileResolver) Owner(ctx context.Context, obj *file.File) (*user.User, error) {
-	return r.UserStore.GetUserById(obj.OwnerID)
+	return r.UserStore.GetUser("id = ?", obj.OwnerID)
 }
 
 func (r *fileResolver) Tags(ctx context.Context, obj *file.File) ([]*models.Tag, error) {

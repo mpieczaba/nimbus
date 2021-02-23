@@ -95,7 +95,7 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input model
 
 	if input.OwnerID != "" {
 		// Check if owner does exist
-		if _, err := r.UserStore.GetUserById(input.OwnerID); err != nil {
+		if _, err := r.UserStore.GetUser("id = ?", input.OwnerID); err != nil {
 			return nil, err
 		}
 
@@ -144,7 +144,7 @@ func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*models.Ta
 // Field resolver
 
 func (r *tagResolver) Owner(ctx context.Context, obj *models.Tag) (*user.User, error) {
-	return r.UserStore.GetUserById(obj.OwnerID)
+	return r.UserStore.GetUser("id = ?", obj.OwnerID)
 }
 
 func (r *tagResolver) SharedFor(ctx context.Context, obj *models.Tag) ([]*models.TagShare, error) {

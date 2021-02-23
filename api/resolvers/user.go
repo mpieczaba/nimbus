@@ -21,11 +21,11 @@ func (r *queryResolver) Me(ctx context.Context) (*user.User, error) {
 		return nil, err
 	}
 
-	return r.UserStore.GetUserById(claims["id"].(string))
+	return r.UserStore.GetUser("id = ?", claims["id"].(string))
 }
 
 func (r *queryResolver) User(ctx context.Context, id string) (*user.User, error) {
-	return r.UserStore.GetUserById(id)
+	return r.UserStore.GetUser("id = ?", id)
 }
 
 func (r *queryResolver) Users(ctx context.Context) ([]*user.User, error) {
@@ -63,7 +63,7 @@ func (r *mutationResolver) UserUpdate(ctx context.Context, input user.UserUpdate
 		return nil, err
 	}
 
-	userToUpdate, err := r.UserStore.GetUserById(claims["id"].(string))
+	userToUpdate, err := r.UserStore.GetUser("id = ?", claims["id"].(string))
 
 	if err != nil {
 		return nil, err
