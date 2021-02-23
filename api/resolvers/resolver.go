@@ -4,6 +4,7 @@ package resolvers
 
 import (
 	"github.com/mpieczaba/nimbus/api/generated"
+	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/validators"
 
@@ -15,6 +16,7 @@ type Resolver struct {
 	Ctx       *fiber.Ctx
 	DB        *gorm.DB
 	UserStore *user.Store
+	FileStore *file.Store
 	Validator *validators.Validator
 }
 

@@ -16,23 +16,11 @@ import (
 // Query
 
 func (r *queryResolver) File(ctx context.Context, id string) (*file.File, error) {
-	var queryFile file.File
-
-	if err := r.DB.Where("id = ?", id).First(&queryFile).Error; err != nil {
-		return &queryFile, gqlerror.Errorf("File with id `" + id + "` not found!")
-	}
-
-	return &queryFile, nil
+	return r.FileStore.GetFileById(id)
 }
 
 func (r *queryResolver) Files(ctx context.Context) ([]*file.File, error) {
-	var files []*file.File
-
-	if err := r.DB.Find(&files).Error; err != nil {
-		return nil, gqlerror.Errorf("Internal database error occurred while getting all files!")
-	}
-
-	return files, nil
+	return r.FileStore.GetAllFiles()
 }
 
 // Mutation

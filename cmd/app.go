@@ -52,6 +52,7 @@ func (app *App) Start() {
 			Ctx:       c,
 			DB:        app.db,
 			UserStore: user.NewStore(app.db),
+			FileStore: file.NewStore(app.db),
 			Validator: validators.New(),
 		}}))
 
