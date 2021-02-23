@@ -19,6 +19,16 @@ models:
     model: github.com/mpieczaba/nimbus/user.UserInput
   UserUpdateInput:
     model: github.com/mpieczaba/nimbus/user.UserUpdateInput
+  File:
+    model: github.com/mpieczaba/nimbus/file.File
+  FileInput:
+    model: github.com/mpieczaba/nimbus/file.FileInput
+  FileUpdateInput:
+    model: github.com/mpieczaba/nimbus/file.FileUpdateInput
+  FileShare:
+    model: github.com/mpieczaba/nimbus/file.FileShare
+  FileShareInput:
+    model: github.com/mpieczaba/nimbus/file.FileShareInput
 
 autobind:
   - "github.com/mpieczaba/nimbus/core/models"

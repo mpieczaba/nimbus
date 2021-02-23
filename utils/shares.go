@@ -1,6 +1,9 @@
 package utils
 
-import "github.com/mpieczaba/nimbus/core/models"
+import (
+	"github.com/mpieczaba/nimbus/core/models"
+	"github.com/mpieczaba/nimbus/file"
+)
 
 func TagShareInputsToTagShares(tagID string, tagShareInputs []models.TagShareInput) []models.TagShare {
 	var tagShares []models.TagShare
@@ -16,11 +19,11 @@ func TagShareInputsToTagShares(tagID string, tagShareInputs []models.TagShareInp
 	return tagShares
 }
 
-func FileShareInputsToFileShares(fileID string, fileShareInputs []models.FileShareInput) []models.FileShare {
-	var fileShares []models.FileShare
+func FileShareInputsToFileShares(fileID string, fileShareInputs []file.FileShareInput) []file.FileShare {
+	var fileShares []file.FileShare
 
 	for _, fileShareInput := range fileShareInputs {
-		fileShares = append(fileShares, models.FileShare{
+		fileShares = append(fileShares, file.FileShare{
 			FileID:      fileID,
 			UserID:      fileShareInput.UserID,
 			Permissions: fileShareInput.Permissions,

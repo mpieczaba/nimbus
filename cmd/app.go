@@ -7,6 +7,7 @@ import (
 	"github.com/mpieczaba/nimbus/api/resolvers"
 	"github.com/mpieczaba/nimbus/core/models"
 	"github.com/mpieczaba/nimbus/database"
+	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/utils"
 	"github.com/mpieczaba/nimbus/validators"
@@ -37,7 +38,7 @@ func (app *App) Start() {
 	// Connect to database
 	app.db = database.Connect()
 
-	app.db.AutoMigrate(user.User{}, models.File{}, models.Tag{}, models.FileTag{}, models.TagShare{}, models.FileShare{})
+	app.db.AutoMigrate(user.User{}, file.File{}, models.Tag{}, file.FileTag{}, models.TagShare{}, file.FileShare{})
 
 	app.http = fiber.New()
 

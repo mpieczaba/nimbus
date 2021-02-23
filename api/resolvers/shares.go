@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mpieczaba/nimbus/core/models"
+	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/user"
 )
 
@@ -15,6 +16,6 @@ func (r *tagShareResolver) User(ctx context.Context, obj *models.TagShare) (*use
 	return r.UserStore.GetUserById(obj.UserID)
 }
 
-func (r *fileShareResolver) User(ctx context.Context, obj *models.FileShare) (*user.User, error) {
+func (r *fileShareResolver) User(ctx context.Context, obj *file.FileShare) (*user.User, error) {
 	return r.UserStore.GetUserById(obj.UserID)
 }

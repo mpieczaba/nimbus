@@ -3,7 +3,7 @@ package resolvers
 import (
 	"context"
 
-	"github.com/mpieczaba/nimbus/core/models"
+	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/utils"
 
@@ -98,8 +98,8 @@ func (r *mutationResolver) UserDelete(ctx context.Context) (*user.User, error) {
 
 // Field resolver
 
-func (r *userResolver) Files(ctx context.Context, obj *user.User) ([]*models.File, error) {
-	var files []*models.File
+func (r *userResolver) Files(ctx context.Context, obj *user.User) ([]*file.File, error) {
+	var files []*file.File
 
 	if err := r.DB.Where("owner_id = ?", obj.ID).Find(&files).Error; err != nil {
 		return files, gqlerror.Errorf("Internal database error occurred while getting user files!")
