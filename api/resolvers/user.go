@@ -3,7 +3,7 @@ package resolvers
 import (
 	"context"
 
-	"github.com/mpieczaba/nimbus/core/models"
+	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/utils"
 
@@ -21,11 +21,11 @@ func (r *queryResolver) Me(ctx context.Context) (*user.User, error) {
 		return nil, err
 	}
 
-	return r.UserStore.GetUserById(claims["id"].(string))
+	return r.UserStore.GetUser("id = ?", claims["id"].(string))
 }
 
 func (r *queryResolver) User(ctx context.Context, id string) (*user.User, error) {
-	return r.UserStore.GetUserById(id)
+	return r.UserStore.GetUser("id = ?", id)
 }
 
 func (r *queryResolver) Users(ctx context.Context) ([]*user.User, error) {
@@ -63,7 +63,7 @@ func (r *mutationResolver) UserUpdate(ctx context.Context, input user.UserUpdate
 		return nil, err
 	}
 
-	userToUpdate, err := r.UserStore.GetUserById(claims["id"].(string))
+	userToUpdate, err := r.UserStore.GetUser("id = ?", claims["id"].(string))
 
 	if err != nil {
 		return nil, err
@@ -93,17 +93,11 @@ func (r *mutationResolver) UserDelete(ctx context.Context) (*user.User, error) {
 		return nil, err
 	}
 
-	return r.UserStore.DeleteUser(claims["id"].(string))
+	return r.UserStore.DeleteUser("id = ?", claims["id"].(string))
 }
 
 // Field resolver
 
-func (r *userResolver) Files(ctx context.Context, obj *user.User) ([]*models.File, error) {
-	var files []*models.File
-
-	if err := r.DB.Where("owner_id = ?", obj.ID).Find(&files).Error; err != nil {
-		return files, gqlerror.Errorf("Internal database error occurred while getting user files!")
-	}
-
-	return files, nil
+func (r *userResolver) Files(ctx context.Context, obj *user.User) ([]*file.File, error) {
+	return r.FileStore.GetAllFilesWithCondition("owner_id = ?", obj.ID)
 }
