@@ -39,23 +39,23 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 	id := xid.New()
 
 	// Write file in data directory
-	if err := utils.WriteFile(id.String(), input.File.File); err != nil {
+	if err = utils.WriteFile(id.String(), input.File.File); err != nil {
 		return nil, gqlerror.Errorf("Cannot save file!")
 	}
 
 	// Save file tags
 	fileTags := utils.TagIDsToFileTags(id.String(), input.Tags)
 
-	if err := r.DB.Save(&fileTags).Error; err != nil {
-		return nil, gqlerror.Errorf("Cannot save file tags!")
+	if _, err = r.FileStore.SaveFileTags(fileTags); err != nil {
+		return nil, err
 	}
 
 	if len(input.SharedFor) > 0 {
 		// Save file shares
 		fileShares := utils.FileShareInputsToFileShares(id.String(), input.SharedFor)
 
-		if err := r.DB.Save(&fileShares).Error; err != nil {
-			return nil, gqlerror.Errorf("Cannot save file shares!")
+		if _, err = r.FileStore.SaveFileShares(fileShares); err != nil {
+			return nil, err
 		}
 	}
 
@@ -92,19 +92,19 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 
 	if input.OwnerID != "" {
 		// Check if owner does exist
-		if _, err := r.UserStore.GetUser(input.OwnerID); err != nil {
+		if _, err = r.UserStore.GetUser(input.OwnerID); err != nil {
 			return nil, err
 		}
 
 		fileToUpdate.OwnerID = input.OwnerID
 	}
 
-	if input.Tags[0] != "" {
+	if len(input.Tags) > 0 {
 		// Update file tags
 		fileTags := utils.TagIDsToFileTags(fileToUpdate.ID, input.Tags)
 
-		if err := r.DB.Save(&fileTags).Error; err != nil {
-			return nil, gqlerror.Errorf("Cannot update file tags!")
+		if _, err = r.FileStore.SaveFileTags(fileTags); err != nil {
+			return nil, err
 		}
 	}
 
@@ -112,14 +112,14 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 		// Update file shares
 		fileShares := utils.FileShareInputsToFileShares(fileToUpdate.ID, input.SharedFor)
 
-		if err := r.DB.Save(&fileShares).Error; err != nil {
-			return nil, gqlerror.Errorf("Cannot update file shares!")
+		if _, err = r.FileStore.SaveFileShares(fileShares); err != nil {
+			return nil, err
 		}
 	}
 
 	if input.File.File != nil {
 		// Write file in data directory
-		if err := utils.WriteFile(fileToUpdate.ID, input.File.File); err != nil {
+		if err = utils.WriteFile(fileToUpdate.ID, input.File.File); err != nil {
 			return nil, gqlerror.Errorf("Cannot save file!")
 		}
 
@@ -145,21 +145,17 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.Fil
 	}
 
 	// Delete file tags
-	var fileTags []file.FileTag
-
-	if err := r.DB.Where("file_id = ?", id).Find(&fileTags).Delete(&fileTags).Error; err != nil {
-		return nil, gqlerror.Errorf("Cannot delete file tags!")
+	if _, err = r.FileStore.DeleteFileTags("file_id = ?", id); err != nil {
+		return nil, err
 	}
 
 	// Delete file shares
-	var fileShares []file.FileShare
-
-	if err := r.DB.Where("file_id = ?", id).Find(&fileShares).Delete(&fileShares).Error; err != nil {
-		return nil, gqlerror.Errorf("Cannot delete file shares!")
+	if _, err = r.FileStore.DeleteFileShares("file_id = ?", id); err != nil {
+		return nil, err
 	}
 
 	// Delete file in data directory
-	if err := utils.RemoveFile(id); err != nil {
+	if err = utils.RemoveFile(id); err != nil {
 		return nil, gqlerror.Errorf("Cannot delete file!")
 	}
 
@@ -185,11 +181,5 @@ func (r *fileResolver) Tags(ctx context.Context, obj *file.File) ([]*models.Tag,
 }
 
 func (r *fileResolver) SharedFor(ctx context.Context, obj *file.File) ([]*file.FileShare, error) {
-	var fileShares []*file.FileShare
-
-	if err := r.DB.Where("file_id = ?", obj.ID).Find(&fileShares).Error; err != nil {
-		return fileShares, gqlerror.Errorf("Internal database error occurred while getting file shares!")
-	}
-
-	return fileShares, nil
+	return r.FileStore.GetAllFileShares("file_id = ?", obj.ID)
 }
