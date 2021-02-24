@@ -29,6 +29,13 @@ models:
     model: github.com/mpieczaba/nimbus/file.FileShare
   FileShareInput:
     model: github.com/mpieczaba/nimbus/file.FileShareInput
-
-autobind:
-  - "github.com/mpieczaba/nimbus/core/models"
+  Tag:
+    model: github.com/mpieczaba/nimbus/tag.Tag
+  TagInput:
+    model: github.com/mpieczaba/nimbus/tag.TagInput
+  TagUpdateInput:
+    model: github.com/mpieczaba/nimbus/tag.TagUpdateInput
+  TagShare:
+    model: github.com/mpieczaba/nimbus/tag.TagShare
+  TagShareInput:
+    model: github.com/mpieczaba/nimbus/tag.TagShareInput

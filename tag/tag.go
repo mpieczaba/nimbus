@@ -1,4 +1,4 @@
-package models
+package tag
 
 import "github.com/mpieczaba/nimbus/database"
 

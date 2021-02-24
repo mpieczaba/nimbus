@@ -4,8 +4,8 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/mpieczaba/nimbus/core/models"
 	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/tag"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/utils"
 
@@ -168,8 +168,8 @@ func (r *fileResolver) Owner(ctx context.Context, obj *file.File) (*user.User, e
 	return r.UserStore.GetUser(obj.OwnerID)
 }
 
-func (r *fileResolver) Tags(ctx context.Context, obj *file.File) ([]*models.Tag, error) {
-	var tags []*models.Tag
+func (r *fileResolver) Tags(ctx context.Context, obj *file.File) ([]*tag.Tag, error) {
+	var tags []*tag.Tag
 
 	tagsIDs := r.DB.Select("tag_id").Where("file_id = ?", obj.ID).Table("file_tags")
 
