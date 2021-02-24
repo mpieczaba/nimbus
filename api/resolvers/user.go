@@ -93,17 +93,11 @@ func (r *mutationResolver) UserDelete(ctx context.Context) (*user.User, error) {
 		return nil, err
 	}
 
-	return r.UserStore.DeleteUser(claims["id"].(string))
+	return r.UserStore.DeleteUser("id = ?", claims["id"].(string))
 }
 
 // Field resolver
 
 func (r *userResolver) Files(ctx context.Context, obj *user.User) ([]*file.File, error) {
-	var files []*file.File
-
-	if err := r.DB.Where("owner_id = ?", obj.ID).Find(&files).Error; err != nil {
-		return files, gqlerror.Errorf("Internal database error occurred while getting user files!")
-	}
-
-	return files, nil
+	return r.FileStore.GetAllFilesWithCondition("owner_id = ?", obj.ID)
 }
