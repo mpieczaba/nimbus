@@ -14,23 +14,11 @@ import (
 // Query
 
 func (r *queryResolver) Tag(ctx context.Context, id string) (*tag.Tag, error) {
-	var tagToQuery tag.Tag
-
-	if err := r.DB.Where("id = ?", id).First(&tagToQuery).Error; err != nil {
-		return &tagToQuery, gqlerror.Errorf("Tag with id `" + id + "` not found!")
-	}
-
-	return &tagToQuery, nil
+	return r.TagStore.GetTag("id = ?", id)
 }
 
 func (r *queryResolver) Tags(ctx context.Context) ([]*tag.Tag, error) {
-	var tags []*tag.Tag
-
-	if err := r.DB.Find(&tags).Error; err != nil {
-		return nil, gqlerror.Errorf("Internal database error occurred while getting all tags!")
-	}
-
-	return tags, nil
+	return r.TagStore.GetAllTags()
 }
 
 // Mutation
@@ -73,20 +61,20 @@ func (r *mutationResolver) TagCreate(ctx context.Context, input tag.TagInput) (*
 }
 
 func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.TagUpdateInput) (*tag.Tag, error) {
-	var tagToUpdate tag.Tag
-
 	if err := r.Validator.Validate(input); err != nil {
-		return &tagToUpdate, err
+		return nil, err
 	}
 
 	claims, err := utils.Auth(r.Ctx)
 
 	if err != nil {
-		return &tagToUpdate, err
+		return nil, err
 	}
 
-	if err := r.DB.Where("id = ? AND owner_id = ?", id, claims["id"].(string)).First(&tagToUpdate).Error; err != nil {
-		return &tagToUpdate, gqlerror.Errorf("Tag not found or you are not the owner!")
+	tagToUpdate, err := r.TagStore.GetTag("id = ? AND owner_id = ?", id, claims["id"].(string))
+
+	if err != nil {
+		return nil, err
 	}
 
 	if input.Name != "" {
@@ -107,15 +95,15 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.T
 		tagShares := utils.TagShareInputsToTagShares(tagToUpdate.ID, input.SharedFor)
 
 		if err := r.DB.Save(&tagShares).Error; err != nil {
-			return &tagToUpdate, gqlerror.Errorf("Cannot update tag shares!")
+			return nil, gqlerror.Errorf("Cannot update tag shares!")
 		}
 	}
 
 	if err := r.DB.Save(&tagToUpdate).Error; err != nil {
-		return &tagToUpdate, gqlerror.Errorf("Incorrect form data or tag already exists!")
+		return nil, gqlerror.Errorf("Incorrect form data or tag already exists!")
 	}
 
-	return &tagToUpdate, nil
+	return tagToUpdate, nil
 }
 
 func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*tag.Tag, error) {

@@ -5,6 +5,7 @@ package resolvers
 import (
 	"github.com/mpieczaba/nimbus/api/generated"
 	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/tag"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/validators"
 
@@ -17,6 +18,7 @@ type Resolver struct {
 	DB        *gorm.DB
 	UserStore *user.Store
 	FileStore *file.Store
+	TagStore  *tag.Store
 	Validator *validators.Validator
 }
 

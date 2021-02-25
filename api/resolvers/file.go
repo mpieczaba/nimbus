@@ -169,15 +169,9 @@ func (r *fileResolver) Owner(ctx context.Context, obj *file.File) (*user.User, e
 }
 
 func (r *fileResolver) Tags(ctx context.Context, obj *file.File) ([]*tag.Tag, error) {
-	var tags []*tag.Tag
-
 	tagsIDs := r.DB.Select("tag_id").Where("file_id = ?", obj.ID).Table("file_tags")
 
-	if err := r.DB.Where("id IN (?)", tagsIDs).Find(&tags).Error; err != nil {
-		return tags, gqlerror.Errorf("Internal database error occurred while getting file tags!")
-	}
-
-	return tags, nil
+	return r.TagStore.GetAllTagsWithCondition("id IN (?)", tagsIDs)
 }
 
 func (r *fileResolver) SharedFor(ctx context.Context, obj *file.File) ([]*file.FileShare, error) {
