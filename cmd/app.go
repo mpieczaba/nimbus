@@ -50,7 +50,6 @@ func (app *App) Start() {
 	app.http.All("/graphql", func(c *fiber.Ctx) error {
 		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{
 			Ctx:       c,
-			DB:        app.db,
 			UserStore: user.NewStore(app.db),
 			FileStore: file.NewStore(app.db),
 			TagStore:  tag.NewStore(app.db),

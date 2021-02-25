@@ -8,7 +8,6 @@ import (
 	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/rs/xid"
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // Query
@@ -40,8 +39,8 @@ func (r *mutationResolver) TagCreate(ctx context.Context, input tag.TagInput) (*
 		// Save tag shares
 		tagShares := utils.TagShareInputsToTagShares(id.String(), input.SharedFor)
 
-		if err := r.DB.Save(&tagShares).Error; err != nil {
-			return nil, gqlerror.Errorf("Cannot save tag shares!")
+		if _, err = r.TagStore.SaveTagShares(tagShares); err != nil {
+			return nil, err
 		}
 	}
 
@@ -75,7 +74,7 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.T
 
 	if input.OwnerID != "" {
 		// Check if owner does exist
-		if _, err := r.UserStore.GetUser("id = ?", input.OwnerID); err != nil {
+		if _, err = r.UserStore.GetUser("id = ?", input.OwnerID); err != nil {
 			return nil, err
 		}
 
@@ -86,8 +85,8 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.T
 		// Update tag shares
 		tagShares := utils.TagShareInputsToTagShares(tagToUpdate.ID, input.SharedFor)
 
-		if err := r.DB.Save(&tagShares).Error; err != nil {
-			return nil, gqlerror.Errorf("Cannot update tag shares!")
+		if _, err = r.TagStore.SaveTagShares(tagShares); err != nil {
+			return nil, err
 		}
 	}
 
@@ -108,10 +107,8 @@ func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*tag.Tag, 
 	}
 
 	// Delete tag shares
-	var tagShares []tag.TagShare
-
-	if err := r.DB.Where("tag_id = ?", id).Find(&tagShares).Delete(&tagShares).Error; err != nil {
-		return nil, gqlerror.Errorf("Cannot delete tag shares!")
+	if _, err = r.TagStore.DeleteTagShares("tag_id = ?", id); err != nil {
+		return nil, err
 	}
 
 	return tagToDelete, nil
@@ -124,11 +121,5 @@ func (r *tagResolver) Owner(ctx context.Context, obj *tag.Tag) (*user.User, erro
 }
 
 func (r *tagResolver) SharedFor(ctx context.Context, obj *tag.Tag) ([]*tag.TagShare, error) {
-	var tagShares []*tag.TagShare
-
-	if err := r.DB.Where("tag_id = ?", obj.ID).Find(&tagShares).Error; err != nil {
-		return tagShares, gqlerror.Errorf("Internal database error occurred while getting tag shares!")
-	}
-
-	return tagShares, nil
+	return r.TagStore.GetAllTagShares("tag_id = ?", obj.ID)
 }

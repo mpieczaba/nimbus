@@ -64,3 +64,31 @@ func (s *Store) DeleteTag(query interface{}, args ...interface{}) (*Tag, error) 
 
 	return &tag, nil
 }
+
+func (s *Store) GetAllTagShares(query interface{}, args ...interface{}) ([]*TagShare, error) {
+	var tagShares []*TagShare
+
+	if err := s.db.Where(query, args).Find(&tagShares).Error; err != nil {
+		return nil, gqlerror.Errorf("Internal database error occurred while getting tag shares!")
+	}
+
+	return tagShares, nil
+}
+
+func (s *Store) SaveTagShares(tagShares []*TagShare) ([]*TagShare, error) {
+	if err := s.db.Save(&tagShares).Error; err != nil {
+		return nil, gqlerror.Errorf("Cannot save tag shares!")
+	}
+
+	return tagShares, nil
+}
+
+func (s *Store) DeleteTagShares(query interface{}, args ...interface{}) ([]*TagShare, error) {
+	var tagShares []*TagShare
+
+	if err := s.db.Where(query, args).Find(&tagShares).Delete(&tagShares).Error; err != nil {
+		return nil, gqlerror.Errorf("Cannot delete tag shares!")
+	}
+
+	return tagShares, nil
+}

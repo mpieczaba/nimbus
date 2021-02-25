@@ -5,11 +5,11 @@ import (
 	"github.com/mpieczaba/nimbus/tag"
 )
 
-func TagShareInputsToTagShares(tagID string, tagShareInputs []tag.TagShareInput) []tag.TagShare {
-	var tagShares []tag.TagShare
+func TagShareInputsToTagShares(tagID string, tagShareInputs []tag.TagShareInput) []*tag.TagShare {
+	var tagShares []*tag.TagShare
 
 	for _, tagShareInput := range tagShareInputs {
-		tagShares = append(tagShares, tag.TagShare{
+		tagShares = append(tagShares, &tag.TagShare{
 			TagID:       tagID,
 			UserID:      tagShareInput.UserID,
 			Permissions: tagShareInput.Permissions,

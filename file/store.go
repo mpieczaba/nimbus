@@ -110,3 +110,7 @@ func (s *Store) DeleteFileShares(query interface{}, args ...interface{}) ([]*Fil
 
 	return fileShares, nil
 }
+
+func (s *Store) GetTagIDs(query interface{}, args ...interface{}) *gorm.DB {
+	return s.db.Select("tag_id").Where(query, args).Table("file_tags")
+}

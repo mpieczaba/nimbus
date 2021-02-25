@@ -10,12 +10,10 @@ import (
 	"github.com/mpieczaba/nimbus/validators"
 
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 )
 
 type Resolver struct {
 	Ctx       *fiber.Ctx
-	DB        *gorm.DB
 	UserStore *user.Store
 	FileStore *file.Store
 	TagStore  *tag.Store
