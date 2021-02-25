@@ -3,49 +3,34 @@ package resolvers
 import (
 	"context"
 
-	"github.com/mpieczaba/nimbus/core/models"
+	"github.com/mpieczaba/nimbus/tag"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/rs/xid"
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // Query
 
-func (r *queryResolver) Tag(ctx context.Context, id string) (*models.Tag, error) {
-	var tag models.Tag
-
-	if err := r.DB.Where("id = ?", id).First(&tag).Error; err != nil {
-		return &tag, gqlerror.Errorf("Tag with id `" + id + "` not found!")
-	}
-
-	return &tag, nil
+func (r *queryResolver) Tag(ctx context.Context, id string) (*tag.Tag, error) {
+	return r.TagStore.GetTag("id = ?", id)
 }
 
-func (r *queryResolver) Tags(ctx context.Context) ([]*models.Tag, error) {
-	var tags []*models.Tag
-
-	if err := r.DB.Find(&tags).Error; err != nil {
-		return nil, gqlerror.Errorf("Internal database error occurred while getting all tags!")
-	}
-
-	return tags, nil
+func (r *queryResolver) Tags(ctx context.Context) ([]*tag.Tag, error) {
+	return r.TagStore.GetAllTags()
 }
 
 // Mutation
 
-func (r *mutationResolver) TagCreate(ctx context.Context, input models.TagInput) (*models.Tag, error) {
-	var tag models.Tag
-
+func (r *mutationResolver) TagCreate(ctx context.Context, input tag.TagInput) (*tag.Tag, error) {
 	if err := r.Validator.Validate(input); err != nil {
-		return &tag, err
+		return nil, err
 	}
 
 	claims, err := utils.Auth(r.Ctx)
 
 	if err != nil {
-		return &tag, err
+		return nil, err
 	}
 
 	id := xid.New()
@@ -54,105 +39,87 @@ func (r *mutationResolver) TagCreate(ctx context.Context, input models.TagInput)
 		// Save tag shares
 		tagShares := utils.TagShareInputsToTagShares(id.String(), input.SharedFor)
 
-		if err := r.DB.Save(&tagShares).Error; err != nil {
-			return &tag, gqlerror.Errorf("Cannot save tag shares!")
+		if _, err = r.TagStore.SaveTagShares(tagShares); err != nil {
+			return nil, err
 		}
 	}
 
-	tag = models.Tag{
+	return r.TagStore.SaveTag(&tag.Tag{
 		ID:      id.String(),
 		Name:    input.Name,
 		OwnerID: claims["id"].(string),
-	}
-
-	if err := r.DB.Save(&tag).Error; err != nil {
-		return &tag, gqlerror.Errorf("Incorrect form data or tag already exists!")
-	}
-
-	return &tag, nil
+	})
 }
 
-func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input models.TagUpdateInput) (*models.Tag, error) {
-	var tag models.Tag
-
+func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.TagUpdateInput) (*tag.Tag, error) {
 	if err := r.Validator.Validate(input); err != nil {
-		return &tag, err
+		return nil, err
 	}
 
 	claims, err := utils.Auth(r.Ctx)
 
 	if err != nil {
-		return &tag, err
+		return nil, err
 	}
 
-	if err := r.DB.Where("id = ? AND owner_id = ?", id, claims["id"].(string)).First(&tag).Error; err != nil {
-		return &tag, gqlerror.Errorf("Tag not found or you are not the owner!")
+	tagToUpdate, err := r.TagStore.GetTag("id = ? AND owner_id = ?", id, claims["id"].(string))
+
+	if err != nil {
+		return nil, err
 	}
 
 	if input.Name != "" {
-		tag.Name = input.Name
+		tagToUpdate.Name = input.Name
 	}
 
 	if input.OwnerID != "" {
 		// Check if owner does exist
-		if _, err := r.UserStore.GetUser("id = ?", input.OwnerID); err != nil {
+		if _, err = r.UserStore.GetUser("id = ?", input.OwnerID); err != nil {
 			return nil, err
 		}
 
-		tag.OwnerID = input.OwnerID
+		tagToUpdate.OwnerID = input.OwnerID
 	}
 
 	if len(input.SharedFor) > 0 {
 		// Update tag shares
-		tagShares := utils.TagShareInputsToTagShares(tag.ID, input.SharedFor)
+		tagShares := utils.TagShareInputsToTagShares(tagToUpdate.ID, input.SharedFor)
 
-		if err := r.DB.Save(&tagShares).Error; err != nil {
-			return &tag, gqlerror.Errorf("Cannot update tag shares!")
+		if _, err = r.TagStore.SaveTagShares(tagShares); err != nil {
+			return nil, err
 		}
 	}
 
-	if err := r.DB.Save(&tag).Error; err != nil {
-		return &tag, gqlerror.Errorf("Incorrect form data or tag already exists!")
-	}
-
-	return &tag, nil
+	return r.TagStore.SaveTag(tagToUpdate)
 }
 
-func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*models.Tag, error) {
-	var tag models.Tag
-
+func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*tag.Tag, error) {
 	claims, err := utils.Auth(r.Ctx)
 
 	if err != nil {
-		return &tag, err
+		return nil, err
 	}
 
-	if err := r.DB.Where("id = ? AND owner_id = ?", id, claims["id"].(string)).First(&tag).Delete(&tag).Error; err != nil {
-		return &tag, gqlerror.Errorf("Tag not found or you are not the owner!")
+	tagToDelete, err := r.TagStore.DeleteTag("id = ? AND owner_id = ?", id, claims["id"].(string))
+
+	if err != nil {
+		return nil, err
 	}
 
 	// Delete tag shares
-	var tagShares []models.TagShare
-
-	if err := r.DB.Where("tag_id = ?", id).Find(&tagShares).Delete(&tagShares).Error; err != nil {
-		return &tag, gqlerror.Errorf("Cannot delete tag shares!")
+	if _, err = r.TagStore.DeleteTagShares("tag_id = ?", id); err != nil {
+		return nil, err
 	}
 
-	return &tag, nil
+	return tagToDelete, nil
 }
 
 // Field resolver
 
-func (r *tagResolver) Owner(ctx context.Context, obj *models.Tag) (*user.User, error) {
+func (r *tagResolver) Owner(ctx context.Context, obj *tag.Tag) (*user.User, error) {
 	return r.UserStore.GetUser("id = ?", obj.OwnerID)
 }
 
-func (r *tagResolver) SharedFor(ctx context.Context, obj *models.Tag) ([]*models.TagShare, error) {
-	var tagShares []*models.TagShare
-
-	if err := r.DB.Where("tag_id = ?", obj.ID).Find(&tagShares).Error; err != nil {
-		return tagShares, gqlerror.Errorf("Internal database error occurred while getting tag shares!")
-	}
-
-	return tagShares, nil
+func (r *tagResolver) SharedFor(ctx context.Context, obj *tag.Tag) ([]*tag.TagShare, error) {
+	return r.TagStore.GetAllTagShares("tag_id = ?", obj.ID)
 }

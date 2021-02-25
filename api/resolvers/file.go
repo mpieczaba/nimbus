@@ -4,8 +4,8 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/mpieczaba/nimbus/core/models"
 	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/tag"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/utils"
 
@@ -168,16 +168,8 @@ func (r *fileResolver) Owner(ctx context.Context, obj *file.File) (*user.User, e
 	return r.UserStore.GetUser(obj.OwnerID)
 }
 
-func (r *fileResolver) Tags(ctx context.Context, obj *file.File) ([]*models.Tag, error) {
-	var tags []*models.Tag
-
-	tagsIDs := r.DB.Select("tag_id").Where("file_id = ?", obj.ID).Table("file_tags")
-
-	if err := r.DB.Where("id IN (?)", tagsIDs).Find(&tags).Error; err != nil {
-		return tags, gqlerror.Errorf("Internal database error occurred while getting file tags!")
-	}
-
-	return tags, nil
+func (r *fileResolver) Tags(ctx context.Context, obj *file.File) ([]*tag.Tag, error) {
+	return r.TagStore.GetAllTagsWithCondition("id IN (?)", r.FileStore.GetTagIDs("file_id = ?", obj.ID))
 }
 
 func (r *fileResolver) SharedFor(ctx context.Context, obj *file.File) ([]*file.FileShare, error) {

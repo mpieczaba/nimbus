@@ -1,15 +1,15 @@
 package utils
 
 import (
-	"github.com/mpieczaba/nimbus/core/models"
 	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/tag"
 )
 
-func TagShareInputsToTagShares(tagID string, tagShareInputs []models.TagShareInput) []models.TagShare {
-	var tagShares []models.TagShare
+func TagShareInputsToTagShares(tagID string, tagShareInputs []tag.TagShareInput) []*tag.TagShare {
+	var tagShares []*tag.TagShare
 
 	for _, tagShareInput := range tagShareInputs {
-		tagShares = append(tagShares, models.TagShare{
+		tagShares = append(tagShares, &tag.TagShare{
 			TagID:       tagID,
 			UserID:      tagShareInput.UserID,
 			Permissions: tagShareInput.Permissions,

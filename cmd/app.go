@@ -5,9 +5,9 @@ import (
 
 	"github.com/mpieczaba/nimbus/api/generated"
 	"github.com/mpieczaba/nimbus/api/resolvers"
-	"github.com/mpieczaba/nimbus/core/models"
 	"github.com/mpieczaba/nimbus/database"
 	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/tag"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/utils"
 	"github.com/mpieczaba/nimbus/validators"
@@ -38,7 +38,7 @@ func (app *App) Start() {
 	// Connect to database
 	app.db = database.Connect()
 
-	app.db.AutoMigrate(user.User{}, file.File{}, models.Tag{}, file.FileTag{}, models.TagShare{}, file.FileShare{})
+	app.db.AutoMigrate(user.User{}, file.File{}, tag.Tag{}, file.FileTag{}, tag.TagShare{}, file.FileShare{})
 
 	app.http = fiber.New()
 
@@ -50,9 +50,9 @@ func (app *App) Start() {
 	app.http.All("/graphql", func(c *fiber.Ctx) error {
 		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{
 			Ctx:       c,
-			DB:        app.db,
 			UserStore: user.NewStore(app.db),
 			FileStore: file.NewStore(app.db),
+			TagStore:  tag.NewStore(app.db),
 			Validator: validators.New(),
 		}}))
 
