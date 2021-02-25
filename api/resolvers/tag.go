@@ -24,16 +24,14 @@ func (r *queryResolver) Tags(ctx context.Context) ([]*tag.Tag, error) {
 // Mutation
 
 func (r *mutationResolver) TagCreate(ctx context.Context, input tag.TagInput) (*tag.Tag, error) {
-	var tagToCreate tag.Tag
-
 	if err := r.Validator.Validate(input); err != nil {
-		return &tagToCreate, err
+		return nil, err
 	}
 
 	claims, err := utils.Auth(r.Ctx)
 
 	if err != nil {
-		return &tagToCreate, err
+		return nil, err
 	}
 
 	id := xid.New()
@@ -43,21 +41,15 @@ func (r *mutationResolver) TagCreate(ctx context.Context, input tag.TagInput) (*
 		tagShares := utils.TagShareInputsToTagShares(id.String(), input.SharedFor)
 
 		if err := r.DB.Save(&tagShares).Error; err != nil {
-			return &tagToCreate, gqlerror.Errorf("Cannot save tag shares!")
+			return nil, gqlerror.Errorf("Cannot save tag shares!")
 		}
 	}
 
-	tagToCreate = tag.Tag{
+	return r.TagStore.SaveTag(&tag.Tag{
 		ID:      id.String(),
 		Name:    input.Name,
 		OwnerID: claims["id"].(string),
-	}
-
-	if err := r.DB.Save(&tagToCreate).Error; err != nil {
-		return &tagToCreate, gqlerror.Errorf("Incorrect form data or tag already exists!")
-	}
-
-	return &tagToCreate, nil
+	})
 }
 
 func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.TagUpdateInput) (*tag.Tag, error) {
@@ -99,34 +91,30 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.T
 		}
 	}
 
-	if err := r.DB.Save(&tagToUpdate).Error; err != nil {
-		return nil, gqlerror.Errorf("Incorrect form data or tag already exists!")
-	}
-
-	return tagToUpdate, nil
+	return r.TagStore.SaveTag(tagToUpdate)
 }
 
 func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*tag.Tag, error) {
-	var tagToDelete tag.Tag
-
 	claims, err := utils.Auth(r.Ctx)
 
 	if err != nil {
-		return &tagToDelete, err
+		return nil, err
 	}
 
-	if err := r.DB.Where("id = ? AND owner_id = ?", id, claims["id"].(string)).First(&tagToDelete).Delete(&tagToDelete).Error; err != nil {
-		return &tagToDelete, gqlerror.Errorf("Tag not found or you are not the owner!")
+	tagToDelete, err := r.TagStore.DeleteTag("id = ? AND owner_id = ?", id, claims["id"].(string))
+
+	if err != nil {
+		return nil, err
 	}
 
 	// Delete tag shares
 	var tagShares []tag.TagShare
 
 	if err := r.DB.Where("tag_id = ?", id).Find(&tagShares).Delete(&tagShares).Error; err != nil {
-		return &tagToDelete, gqlerror.Errorf("Cannot delete tag shares!")
+		return nil, gqlerror.Errorf("Cannot delete tag shares!")
 	}
 
-	return &tagToDelete, nil
+	return tagToDelete, nil
 }
 
 // Field resolver

@@ -46,3 +46,21 @@ func (s *Store) GetAllTagsWithCondition(query interface{}, args ...interface{}) 
 
 	return tags, nil
 }
+
+func (s *Store) SaveTag(tag *Tag) (*Tag, error) {
+	if err := s.db.Save(tag).Error; err != nil {
+		return nil, gqlerror.Errorf("Incorrect form data or tag already exists!")
+	}
+
+	return tag, nil
+}
+
+func (s *Store) DeleteTag(query interface{}, args ...interface{}) (*Tag, error) {
+	var tag Tag
+
+	if err := s.db.Where(query, args).First(&tag).Delete(&tag).Error; err != nil {
+		return nil, gqlerror.Errorf("Tag not found!")
+	}
+
+	return &tag, nil
+}
