@@ -51,10 +51,12 @@ func (app *App) Start() {
 	// Set up GraphQL api endpoint
 	app.http.All("/graphql", func(c *fiber.Ctx) error {
 		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{
-			Ctx:        c,
-			UserStore:  user.NewStore(app.db),
-			FileStore:  file.NewStore(app.db),
-			TagStore:   tag.NewStore(app.db),
+			Ctx: c,
+			Store: &resolvers.Store{
+				User: user.NewStore(app.db),
+				File: file.NewStore(app.db),
+				Tag:  tag.NewStore(app.db),
+			},
 			Filesystem: fs,
 			Validator:  validators.New(),
 		}}))

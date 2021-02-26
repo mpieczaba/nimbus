@@ -16,11 +16,11 @@ import (
 // Query
 
 func (r *queryResolver) File(ctx context.Context, id string) (*file.File, error) {
-	return r.FileStore.GetFile("id = ?", id)
+	return r.Store.File.GetFile("id = ?", id)
 }
 
 func (r *queryResolver) Files(ctx context.Context) ([]*file.File, error) {
-	return r.FileStore.GetAllFiles()
+	return r.Store.File.GetAllFiles()
 }
 
 // Mutation
@@ -46,7 +46,7 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 	// Save file tags
 	fileTags := utils.TagIDsToFileTags(id.String(), input.Tags)
 
-	if _, err = r.FileStore.SaveFileTags(fileTags); err != nil {
+	if _, err = r.Store.File.SaveFileTags(fileTags); err != nil {
 		return nil, err
 	}
 
@@ -54,12 +54,12 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 		// Save file shares
 		fileShares := utils.FileShareInputsToFileShares(id.String(), input.SharedFor)
 
-		if _, err = r.FileStore.SaveFileShares(fileShares); err != nil {
+		if _, err = r.Store.File.SaveFileShares(fileShares); err != nil {
 			return nil, err
 		}
 	}
 
-	return r.FileStore.SaveFile(&file.File{
+	return r.Store.File.SaveFile(&file.File{
 		ID:        id.String(),
 		Name:      input.Name,
 		MimeType:  input.File.ContentType,
@@ -80,7 +80,7 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 		return nil, err
 	}
 
-	fileToUpdate, err := r.FileStore.GetFile("id = ? AND owner_id = ?", id, claims["id"].(string))
+	fileToUpdate, err := r.Store.File.GetFile("id = ? AND owner_id = ?", id, claims["id"].(string))
 
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 
 	if input.OwnerID != "" {
 		// Check if owner does exist
-		if _, err = r.UserStore.GetUser(input.OwnerID); err != nil {
+		if _, err = r.Store.User.GetUser(input.OwnerID); err != nil {
 			return nil, err
 		}
 
@@ -103,7 +103,7 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 		// Update file tags
 		fileTags := utils.TagIDsToFileTags(fileToUpdate.ID, input.Tags)
 
-		if _, err = r.FileStore.SaveFileTags(fileTags); err != nil {
+		if _, err = r.Store.File.SaveFileTags(fileTags); err != nil {
 			return nil, err
 		}
 	}
@@ -112,7 +112,7 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 		// Update file shares
 		fileShares := utils.FileShareInputsToFileShares(fileToUpdate.ID, input.SharedFor)
 
-		if _, err = r.FileStore.SaveFileShares(fileShares); err != nil {
+		if _, err = r.Store.File.SaveFileShares(fileShares); err != nil {
 			return nil, err
 		}
 	}
@@ -128,7 +128,7 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 		fileToUpdate.Size = input.File.Size
 	}
 
-	return r.FileStore.SaveFile(fileToUpdate)
+	return r.Store.File.SaveFile(fileToUpdate)
 }
 
 func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.File, error) {
@@ -138,19 +138,19 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.Fil
 		return nil, err
 	}
 
-	fileToDelete, err := r.FileStore.DeleteFile("id = ? AND owner_id = ?", id, claims["id"].(string))
+	fileToDelete, err := r.Store.File.DeleteFile("id = ? AND owner_id = ?", id, claims["id"].(string))
 
 	if err != nil {
 		return nil, err
 	}
 
 	// Delete file tags
-	if _, err = r.FileStore.DeleteFileTags("file_id = ?", id); err != nil {
+	if _, err = r.Store.File.DeleteFileTags("file_id = ?", id); err != nil {
 		return nil, err
 	}
 
 	// Delete file shares
-	if _, err = r.FileStore.DeleteFileShares("file_id = ?", id); err != nil {
+	if _, err = r.Store.File.DeleteFileShares("file_id = ?", id); err != nil {
 		return nil, err
 	}
 
@@ -165,13 +165,13 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.Fil
 // Field resolver
 
 func (r *fileResolver) Owner(ctx context.Context, obj *file.File) (*user.User, error) {
-	return r.UserStore.GetUser(obj.OwnerID)
+	return r.Store.User.GetUser(obj.OwnerID)
 }
 
 func (r *fileResolver) Tags(ctx context.Context, obj *file.File) ([]*tag.Tag, error) {
-	return r.TagStore.GetAllTagsWithCondition("id IN (?)", r.FileStore.GetTagIDs("file_id = ?", obj.ID))
+	return r.Store.Tag.GetAllTagsWithCondition("id IN (?)", r.Store.File.GetTagIDs("file_id = ?", obj.ID))
 }
 
 func (r *fileResolver) SharedFor(ctx context.Context, obj *file.File) ([]*file.FileShare, error) {
-	return r.FileStore.GetAllFileShares("file_id = ?", obj.ID)
+	return r.Store.File.GetAllFileShares("file_id = ?", obj.ID)
 }

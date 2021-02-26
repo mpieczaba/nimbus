@@ -13,11 +13,11 @@ import (
 // Query
 
 func (r *queryResolver) Tag(ctx context.Context, id string) (*tag.Tag, error) {
-	return r.TagStore.GetTag("id = ?", id)
+	return r.Store.Tag.GetTag("id = ?", id)
 }
 
 func (r *queryResolver) Tags(ctx context.Context) ([]*tag.Tag, error) {
-	return r.TagStore.GetAllTags()
+	return r.Store.Tag.GetAllTags()
 }
 
 // Mutation
@@ -39,12 +39,12 @@ func (r *mutationResolver) TagCreate(ctx context.Context, input tag.TagInput) (*
 		// Save tag shares
 		tagShares := utils.TagShareInputsToTagShares(id.String(), input.SharedFor)
 
-		if _, err = r.TagStore.SaveTagShares(tagShares); err != nil {
+		if _, err = r.Store.Tag.SaveTagShares(tagShares); err != nil {
 			return nil, err
 		}
 	}
 
-	return r.TagStore.SaveTag(&tag.Tag{
+	return r.Store.Tag.SaveTag(&tag.Tag{
 		ID:      id.String(),
 		Name:    input.Name,
 		OwnerID: claims["id"].(string),
@@ -62,7 +62,7 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.T
 		return nil, err
 	}
 
-	tagToUpdate, err := r.TagStore.GetTag("id = ? AND owner_id = ?", id, claims["id"].(string))
+	tagToUpdate, err := r.Store.Tag.GetTag("id = ? AND owner_id = ?", id, claims["id"].(string))
 
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.T
 
 	if input.OwnerID != "" {
 		// Check if owner does exist
-		if _, err = r.UserStore.GetUser("id = ?", input.OwnerID); err != nil {
+		if _, err = r.Store.User.GetUser("id = ?", input.OwnerID); err != nil {
 			return nil, err
 		}
 
@@ -85,12 +85,12 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.T
 		// Update tag shares
 		tagShares := utils.TagShareInputsToTagShares(tagToUpdate.ID, input.SharedFor)
 
-		if _, err = r.TagStore.SaveTagShares(tagShares); err != nil {
+		if _, err = r.Store.Tag.SaveTagShares(tagShares); err != nil {
 			return nil, err
 		}
 	}
 
-	return r.TagStore.SaveTag(tagToUpdate)
+	return r.Store.Tag.SaveTag(tagToUpdate)
 }
 
 func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*tag.Tag, error) {
@@ -100,14 +100,14 @@ func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*tag.Tag, 
 		return nil, err
 	}
 
-	tagToDelete, err := r.TagStore.DeleteTag("id = ? AND owner_id = ?", id, claims["id"].(string))
+	tagToDelete, err := r.Store.Tag.DeleteTag("id = ? AND owner_id = ?", id, claims["id"].(string))
 
 	if err != nil {
 		return nil, err
 	}
 
 	// Delete tag shares
-	if _, err = r.TagStore.DeleteTagShares("tag_id = ?", id); err != nil {
+	if _, err = r.Store.Tag.DeleteTagShares("tag_id = ?", id); err != nil {
 		return nil, err
 	}
 
@@ -117,9 +117,9 @@ func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*tag.Tag, 
 // Field resolver
 
 func (r *tagResolver) Owner(ctx context.Context, obj *tag.Tag) (*user.User, error) {
-	return r.UserStore.GetUser("id = ?", obj.OwnerID)
+	return r.Store.User.GetUser("id = ?", obj.OwnerID)
 }
 
 func (r *tagResolver) SharedFor(ctx context.Context, obj *tag.Tag) ([]*tag.TagShare, error) {
-	return r.TagStore.GetAllTagShares("tag_id = ?", obj.ID)
+	return r.Store.Tag.GetAllTagShares("tag_id = ?", obj.ID)
 }

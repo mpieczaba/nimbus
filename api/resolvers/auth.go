@@ -12,7 +12,7 @@ import (
 // Mutation
 
 func (r *mutationResolver) Login(ctx context.Context, username string, password string) (*auth.AuthPayload, error) {
-	userLogin, err := r.UserStore.GetUser("username = ?", username)
+	userLogin, err := r.Store.User.GetUser("username = ?", username)
 
 	if err != nil {
 		return nil, gqlerror.Errorf("Incorrect username or password!")

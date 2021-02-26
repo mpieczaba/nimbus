@@ -21,15 +21,15 @@ func (r *queryResolver) Me(ctx context.Context) (*user.User, error) {
 		return nil, err
 	}
 
-	return r.UserStore.GetUser("id = ?", claims["id"].(string))
+	return r.Store.User.GetUser("id = ?", claims["id"].(string))
 }
 
 func (r *queryResolver) User(ctx context.Context, id string) (*user.User, error) {
-	return r.UserStore.GetUser("id = ?", id)
+	return r.Store.User.GetUser("id = ?", id)
 }
 
 func (r *queryResolver) Users(ctx context.Context) ([]*user.User, error) {
-	return r.UserStore.GetAllUsers()
+	return r.Store.User.GetAllUsers()
 }
 
 // Mutation
@@ -45,7 +45,7 @@ func (r *mutationResolver) UserCreate(ctx context.Context, input user.UserInput)
 		return nil, gqlerror.Errorf("Cannot parse password!")
 	}
 
-	return r.UserStore.SaveUser(&user.User{
+	return r.Store.User.SaveUser(&user.User{
 		ID:       xid.New().String(),
 		Username: input.Username,
 		Password: string(pass),
@@ -63,7 +63,7 @@ func (r *mutationResolver) UserUpdate(ctx context.Context, input user.UserUpdate
 		return nil, err
 	}
 
-	userToUpdate, err := r.UserStore.GetUser("id = ?", claims["id"].(string))
+	userToUpdate, err := r.Store.User.GetUser("id = ?", claims["id"].(string))
 
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (r *mutationResolver) UserUpdate(ctx context.Context, input user.UserUpdate
 		userToUpdate.Password = string(pass)
 	}
 
-	return r.UserStore.SaveUser(userToUpdate)
+	return r.Store.User.SaveUser(userToUpdate)
 }
 
 func (r *mutationResolver) UserDelete(ctx context.Context) (*user.User, error) {
@@ -93,11 +93,11 @@ func (r *mutationResolver) UserDelete(ctx context.Context) (*user.User, error) {
 		return nil, err
 	}
 
-	return r.UserStore.DeleteUser("id = ?", claims["id"].(string))
+	return r.Store.User.DeleteUser("id = ?", claims["id"].(string))
 }
 
 // Field resolver
 
 func (r *userResolver) Files(ctx context.Context, obj *user.User) ([]*file.File, error) {
-	return r.FileStore.GetAllFilesWithCondition("owner_id = ?", obj.ID)
+	return r.Store.File.GetAllFilesWithCondition("owner_id = ?", obj.ID)
 }

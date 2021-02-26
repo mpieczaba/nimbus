@@ -13,11 +13,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+type Store struct {
+	User *user.Store
+	File *file.Store
+	Tag  *tag.Store
+}
+
 type Resolver struct {
 	Ctx        *fiber.Ctx
-	UserStore  *user.Store
-	FileStore  *file.Store
-	TagStore   *tag.Store
+	Store      *Store
 	Filesystem *filesystem.Filesystem
 	Validator  *validators.Validator
 }
