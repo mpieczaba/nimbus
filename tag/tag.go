@@ -1,6 +1,6 @@
-package models
+package tag
 
-import "github.com/mpieczaba/nimbus/core/database"
+import "github.com/mpieczaba/nimbus/database"
 
 type Tag struct {
 	database.Model

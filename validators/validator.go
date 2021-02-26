@@ -3,7 +3,7 @@ package validators
 import (
 	"fmt"
 
-	"github.com/mpieczaba/nimbus/core/utils"
+	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/go-playground/validator/v10"
 )

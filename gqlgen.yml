@@ -1,14 +1,41 @@
 schema:
-  - "core/schema/**/*.graphql"
+  - "api/schema/**/*.graphql"
 
 exec:
-  filename: core/generated/server_generated.go
+  filename: api/generated/server_generated.go
   package: generated
 
 resolver:
-  filename: core/resolvers/resolver.go
+  filename: api/resolvers/resolver.go
   package: resolvers
   type: Resolver
 
-autobind:
-  - "github.com/mpieczaba/nimbus/core/models"
+models:
+  AuthPayload:
+    model: github.com/mpieczaba/nimbus/auth.AuthPayload
+  User:
+    model: github.com/mpieczaba/nimbus/user.User
+  UserInput:
+    model: github.com/mpieczaba/nimbus/user.UserInput
+  UserUpdateInput:
+    model: github.com/mpieczaba/nimbus/user.UserUpdateInput
+  File:
+    model: github.com/mpieczaba/nimbus/file.File
+  FileInput:
+    model: github.com/mpieczaba/nimbus/file.FileInput
+  FileUpdateInput:
+    model: github.com/mpieczaba/nimbus/file.FileUpdateInput
+  FileShare:
+    model: github.com/mpieczaba/nimbus/file.FileShare
+  FileShareInput:
+    model: github.com/mpieczaba/nimbus/file.FileShareInput
+  Tag:
+    model: github.com/mpieczaba/nimbus/tag.Tag
+  TagInput:
+    model: github.com/mpieczaba/nimbus/tag.TagInput
+  TagUpdateInput:
+    model: github.com/mpieczaba/nimbus/tag.TagUpdateInput
+  TagShare:
+    model: github.com/mpieczaba/nimbus/tag.TagShare
+  TagShareInput:
+    model: github.com/mpieczaba/nimbus/tag.TagShareInput

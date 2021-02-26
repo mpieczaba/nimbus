@@ -3,17 +3,27 @@ package resolvers
 //go:generate go run github.com/99designs/gqlgen
 
 import (
-	"github.com/mpieczaba/nimbus/core/generated"
-	"github.com/mpieczaba/nimbus/core/validators"
+	"github.com/mpieczaba/nimbus/api/generated"
+	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/filesystem"
+	"github.com/mpieczaba/nimbus/tag"
+	"github.com/mpieczaba/nimbus/user"
+	"github.com/mpieczaba/nimbus/validators"
 
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 )
 
+type Store struct {
+	User *user.Store
+	File *file.Store
+	Tag  *tag.Store
+}
+
 type Resolver struct {
-	Ctx       *fiber.Ctx
-	DB        *gorm.DB
-	Validator *validators.Validator
+	Ctx        *fiber.Ctx
+	Store      *Store
+	Filesystem *filesystem.Filesystem
+	Validator  *validators.Validator
 }
 
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
