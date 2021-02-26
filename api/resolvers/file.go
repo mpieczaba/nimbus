@@ -39,7 +39,7 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 	id := xid.New()
 
 	// Write file in data directory
-	if err = utils.WriteFile(id.String(), input.File.File); err != nil {
+	if err = r.Filesystem.WriteFile(id.String(), input.File.File); err != nil {
 		return nil, gqlerror.Errorf("Cannot save file!")
 	}
 
@@ -119,7 +119,7 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 
 	if input.File.File != nil {
 		// Write file in data directory
-		if err = utils.WriteFile(fileToUpdate.ID, input.File.File); err != nil {
+		if err = r.Filesystem.WriteFile(fileToUpdate.ID, input.File.File); err != nil {
 			return nil, gqlerror.Errorf("Cannot save file!")
 		}
 
@@ -155,7 +155,7 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.Fil
 	}
 
 	// Delete file in data directory
-	if err = utils.RemoveFile(id); err != nil {
+	if err = r.Filesystem.RemoveFile(id); err != nil {
 		return nil, gqlerror.Errorf("Cannot delete file!")
 	}
 

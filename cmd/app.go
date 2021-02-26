@@ -7,9 +7,9 @@ import (
 	"github.com/mpieczaba/nimbus/api/resolvers"
 	"github.com/mpieczaba/nimbus/database"
 	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/filesystem"
 	"github.com/mpieczaba/nimbus/tag"
 	"github.com/mpieczaba/nimbus/user"
-	"github.com/mpieczaba/nimbus/utils"
 	"github.com/mpieczaba/nimbus/validators"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -30,8 +30,10 @@ func NewApp() *App {
 }
 
 func (app *App) Start() {
+	fs := filesystem.NewFilesystem()
+
 	// Create data directory if it does not exist
-	if err := utils.CreateDataDirectory(); err != nil {
+	if err := fs.CreateDataDirectory(); err != nil {
 		panic(err)
 	}
 
@@ -49,11 +51,12 @@ func (app *App) Start() {
 	// Set up GraphQL api endpoint
 	app.http.All("/graphql", func(c *fiber.Ctx) error {
 		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{
-			Ctx:       c,
-			UserStore: user.NewStore(app.db),
-			FileStore: file.NewStore(app.db),
-			TagStore:  tag.NewStore(app.db),
-			Validator: validators.New(),
+			Ctx:        c,
+			UserStore:  user.NewStore(app.db),
+			FileStore:  file.NewStore(app.db),
+			TagStore:   tag.NewStore(app.db),
+			Filesystem: fs,
+			Validator:  validators.New(),
 		}}))
 
 		gqlHandler := srv.Handler()

@@ -5,6 +5,7 @@ package resolvers
 import (
 	"github.com/mpieczaba/nimbus/api/generated"
 	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/filesystem"
 	"github.com/mpieczaba/nimbus/tag"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/validators"
@@ -13,11 +14,12 @@ import (
 )
 
 type Resolver struct {
-	Ctx       *fiber.Ctx
-	UserStore *user.Store
-	FileStore *file.Store
-	TagStore  *tag.Store
-	Validator *validators.Validator
+	Ctx        *fiber.Ctx
+	UserStore  *user.Store
+	FileStore  *file.Store
+	TagStore   *tag.Store
+	Filesystem *filesystem.Filesystem
+	Validator  *validators.Validator
 }
 
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
