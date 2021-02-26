@@ -1,4 +1,4 @@
-package utils
+package filesystem
 
 import (
 	"strings"
@@ -6,25 +6,25 @@ import (
 )
 
 func TestWriteFile(t *testing.T) {
-	err := WriteFile("test", strings.NewReader("test"))
+	fs := NewFilesystem()
 
-	if err != nil {
+	if err := fs.WriteFile("test", strings.NewReader("test")); err != nil {
 		t.Errorf("File should be created!")
 	}
 }
 
 func TestReadFile(t *testing.T) {
-	_, err := ReadFile("test")
+	fs := NewFilesystem()
 
-	if err != nil {
+	if _, err := fs.ReadFile("test"); err != nil {
 		t.Errorf("File should be read!")
 	}
 }
 
 func TestRemoveFile(t *testing.T) {
-	err := RemoveFile("test")
+	fs := NewFilesystem()
 
-	if err != nil {
+	if err := fs.RemoveFile("test"); err != nil {
 		t.Errorf("File should be removed!")
 	}
 }
