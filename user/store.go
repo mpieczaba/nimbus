@@ -20,7 +20,7 @@ func NewStore(db *gorm.DB) *Store {
 func (s *Store) GetUser(query interface{}, args ...interface{}) (*User, error) {
 	var user User
 
-	if err := s.db.Where(query, args).First(&user).Error; err != nil {
+	if err := s.db.Where(query, args...).First(&user).Error; err != nil {
 		return nil, gqlerror.Errorf("User not found!")
 	}
 
@@ -48,7 +48,7 @@ func (s *Store) SaveUser(user *User) (*User, error) {
 func (s *Store) DeleteUser(query interface{}, args ...interface{}) (*User, error) {
 	var user User
 
-	if err := s.db.Where(query, args).First(&user).Delete(&user).Error; err != nil {
+	if err := s.db.Where(query, args...).First(&user).Delete(&user).Error; err != nil {
 		return nil, gqlerror.Errorf("User not found!")
 	}
 

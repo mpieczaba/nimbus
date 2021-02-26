@@ -20,7 +20,7 @@ func NewStore(db *gorm.DB) *Store {
 func (s *Store) GetTag(query interface{}, args ...interface{}) (*Tag, error) {
 	var tag Tag
 
-	if err := s.db.Where(query, args).First(&tag).Error; err != nil {
+	if err := s.db.Where(query, args...).First(&tag).Error; err != nil {
 		return nil, gqlerror.Errorf("Tag not found!")
 	}
 
@@ -40,7 +40,7 @@ func (s *Store) GetAllTags() ([]*Tag, error) {
 func (s *Store) GetAllTagsWithCondition(query interface{}, args ...interface{}) ([]*Tag, error) {
 	var tags []*Tag
 
-	if err := s.db.Where(query, args).Find(&tags).Error; err != nil {
+	if err := s.db.Where(query, args...).Find(&tags).Error; err != nil {
 		return nil, gqlerror.Errorf("Internal database error occurred while getting all tags!")
 	}
 
@@ -58,7 +58,7 @@ func (s *Store) SaveTag(tag *Tag) (*Tag, error) {
 func (s *Store) DeleteTag(query interface{}, args ...interface{}) (*Tag, error) {
 	var tag Tag
 
-	if err := s.db.Where(query, args).First(&tag).Delete(&tag).Error; err != nil {
+	if err := s.db.Where(query, args...).First(&tag).Delete(&tag).Error; err != nil {
 		return nil, gqlerror.Errorf("Tag not found!")
 	}
 
@@ -68,7 +68,7 @@ func (s *Store) DeleteTag(query interface{}, args ...interface{}) (*Tag, error) 
 func (s *Store) GetAllTagShares(query interface{}, args ...interface{}) ([]*TagShare, error) {
 	var tagShares []*TagShare
 
-	if err := s.db.Where(query, args).Find(&tagShares).Error; err != nil {
+	if err := s.db.Where(query, args...).Find(&tagShares).Error; err != nil {
 		return nil, gqlerror.Errorf("Internal database error occurred while getting tag shares!")
 	}
 
@@ -86,7 +86,7 @@ func (s *Store) SaveTagShares(tagShares []*TagShare) ([]*TagShare, error) {
 func (s *Store) DeleteTagShares(query interface{}, args ...interface{}) ([]*TagShare, error) {
 	var tagShares []*TagShare
 
-	if err := s.db.Where(query, args).Find(&tagShares).Delete(&tagShares).Error; err != nil {
+	if err := s.db.Where(query, args...).Find(&tagShares).Delete(&tagShares).Error; err != nil {
 		return nil, gqlerror.Errorf("Cannot delete tag shares!")
 	}
 
