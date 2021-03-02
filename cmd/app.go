@@ -9,6 +9,7 @@ import (
 	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/filesystem"
 	"github.com/mpieczaba/nimbus/tag"
+	"github.com/mpieczaba/nimbus/tag/tag_share"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/validators"
 
@@ -40,7 +41,7 @@ func (app *App) Start() {
 	// Connect to database
 	app.db = database.Connect()
 
-	app.db.AutoMigrate(user.User{}, file.File{}, tag.Tag{}, file.FileTag{}, tag.TagShare{}, file.FileShare{})
+	app.db.AutoMigrate(user.User{}, file.File{}, tag.Tag{}, file.FileTag{}, tag_share.TagShare{}, file.FileShare{})
 
 	app.http = fiber.New()
 
@@ -53,9 +54,10 @@ func (app *App) Start() {
 		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{
 			Ctx: c,
 			Store: &resolvers.Store{
-				User: user.NewStore(app.db),
-				File: file.NewStore(app.db),
-				Tag:  tag.NewStore(app.db),
+				User:     user.NewStore(app.db),
+				File:     file.NewStore(app.db),
+				Tag:      tag.NewStore(app.db),
+				TagShare: tag_share.NewStore(app.db),
 			},
 			Filesystem: fs,
 			Validator:  validators.New(),

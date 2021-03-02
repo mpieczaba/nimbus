@@ -1,0 +1,16 @@
+type TagShare {
+    id: ID!
+    tag: Tag!
+    user: User!
+    permissions: Int!
+}
+
+input TagShareInput {
+    tagId: ID!
+    userId: ID!
+    permissions: Int!
+}
+
+input TagShareUpdateInput {
+    permissions: Int!
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/filesystem"
 	"github.com/mpieczaba/nimbus/tag"
+	"github.com/mpieczaba/nimbus/tag/tag_share"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/validators"
 
@@ -14,9 +15,10 @@ import (
 )
 
 type Store struct {
-	User *user.Store
-	File *file.Store
-	Tag  *tag.Store
+	User     *user.Store
+	File     *file.Store
+	Tag      *tag.Store
+	TagShare *tag_share.Store
 }
 
 type Resolver struct {

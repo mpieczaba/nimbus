@@ -7,23 +7,11 @@ type Tag {
     updatedAt: Time!
 }
 
-type TagShare {
-    user: User!
-    permissions: Int!
-}
-
 input TagInput {
     name: String!
-    sharedFor: [TagShareInput!]
 }
 
 input TagUpdateInput {
     name: String
     ownerId: ID
-    sharedFor: [TagShareInput!]
-}
-
-input TagShareInput {
-    userId: ID!
-    permissions: Int!
 }

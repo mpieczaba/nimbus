@@ -36,4 +36,15 @@ type Mutation {
 
     """Delete tag with id"""
     tagDelete(id: ID!): Tag
+
+    # Tag share
+
+    """Create tag share with TagShareInput"""
+    tagShareCreate(input: TagShareInput!): TagShare
+
+    """Update tag share with id and TagShareUpdateInput"""
+    tagShareUpdate(id: ID!, input: TagShareUpdateInput!): TagShare
+
+    """Delete tag share with id"""
+    tagShareDelete(id: ID!): TagShare
 }

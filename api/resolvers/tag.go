@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mpieczaba/nimbus/tag"
+	"github.com/mpieczaba/nimbus/tag/tag_share"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/utils"
 
@@ -33,19 +34,8 @@ func (r *mutationResolver) TagCreate(ctx context.Context, input tag.TagInput) (*
 		return nil, err
 	}
 
-	id := xid.New()
-
-	if len(input.SharedFor) > 0 {
-		// Save tag shares
-		tagShares := utils.TagShareInputsToTagShares(id.String(), input.SharedFor)
-
-		if _, err = r.Store.Tag.SaveTagShares(tagShares); err != nil {
-			return nil, err
-		}
-	}
-
 	return r.Store.Tag.SaveTag(&tag.Tag{
-		ID:      id.String(),
+		ID:      xid.New().String(),
 		Name:    input.Name,
 		OwnerID: claims["id"].(string),
 	})
@@ -81,15 +71,6 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.T
 		tagToUpdate.OwnerID = input.OwnerID
 	}
 
-	if len(input.SharedFor) > 0 {
-		// Update tag shares
-		tagShares := utils.TagShareInputsToTagShares(tagToUpdate.ID, input.SharedFor)
-
-		if _, err = r.Store.Tag.SaveTagShares(tagShares); err != nil {
-			return nil, err
-		}
-	}
-
 	return r.Store.Tag.SaveTag(tagToUpdate)
 }
 
@@ -107,7 +88,7 @@ func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*tag.Tag, 
 	}
 
 	// Delete tag shares
-	if _, err = r.Store.Tag.DeleteTagShares("tag_id = ?", id); err != nil {
+	if _, err = r.Store.TagShare.DeleteTagShares("tag_id = ?", id); err != nil {
 		return nil, err
 	}
 
@@ -120,6 +101,6 @@ func (r *tagResolver) Owner(ctx context.Context, obj *tag.Tag) (*user.User, erro
 	return r.Store.User.GetUser("id = ?", obj.OwnerID)
 }
 
-func (r *tagResolver) SharedFor(ctx context.Context, obj *tag.Tag) ([]*tag.TagShare, error) {
-	return r.Store.Tag.GetAllTagShares("tag_id = ?", obj.ID)
+func (r *tagResolver) SharedFor(ctx context.Context, obj *tag.Tag) ([]*tag_share.TagShare, error) {
+	return r.Store.TagShare.GetAllTagShares("tag_id = ?", obj.ID)
 }

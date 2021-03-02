@@ -36,6 +36,8 @@ models:
   TagUpdateInput:
     model: github.com/mpieczaba/nimbus/tag.TagUpdateInput
   TagShare:
-    model: github.com/mpieczaba/nimbus/tag.TagShare
+    model: github.com/mpieczaba/nimbus/tag/tag_share.TagShare
   TagShareInput:
-    model: github.com/mpieczaba/nimbus/tag.TagShareInput
+    model: github.com/mpieczaba/nimbus/tag/tag_share.TagShareInput
+  TagShareUpdateInput:
+    model: github.com/mpieczaba/nimbus/tag/tag_share.TagShareUpdateInput
