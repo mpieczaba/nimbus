@@ -15,6 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/mpieczaba/nimbus/auth"
 	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/file/file_share"
 	"github.com/mpieczaba/nimbus/tag"
 	"github.com/mpieczaba/nimbus/tag/tag_share"
 	"github.com/mpieczaba/nimbus/user"
@@ -71,24 +72,29 @@ type ComplexityRoot struct {
 	}
 
 	FileShare struct {
+		File        func(childComplexity int) int
+		ID          func(childComplexity int) int
 		Permissions func(childComplexity int) int
 		User        func(childComplexity int) int
 	}
 
 	Mutation struct {
-		FileCreate     func(childComplexity int, input file.FileInput) int
-		FileDelete     func(childComplexity int, id string) int
-		FileUpdate     func(childComplexity int, id string, input file.FileUpdateInput) int
-		Login          func(childComplexity int, username string, password string) int
-		TagCreate      func(childComplexity int, input tag.TagInput) int
-		TagDelete      func(childComplexity int, id string) int
-		TagShareCreate func(childComplexity int, input tag_share.TagShareInput) int
-		TagShareDelete func(childComplexity int, id string) int
-		TagShareUpdate func(childComplexity int, id string, input tag_share.TagShareUpdateInput) int
-		TagUpdate      func(childComplexity int, id string, input tag.TagUpdateInput) int
-		UserCreate     func(childComplexity int, input user.UserInput) int
-		UserDelete     func(childComplexity int) int
-		UserUpdate     func(childComplexity int, input user.UserUpdateInput) int
+		FileCreate      func(childComplexity int, input file.FileInput) int
+		FileDelete      func(childComplexity int, id string) int
+		FileShareCreate func(childComplexity int, input file_share.FileShareInput) int
+		FileShareDelete func(childComplexity int, id string) int
+		FileShareUpdate func(childComplexity int, id string, input file_share.FileShareUpdateInput) int
+		FileUpdate      func(childComplexity int, id string, input file.FileUpdateInput) int
+		Login           func(childComplexity int, username string, password string) int
+		TagCreate       func(childComplexity int, input tag.TagInput) int
+		TagDelete       func(childComplexity int, id string) int
+		TagShareCreate  func(childComplexity int, input tag_share.TagShareInput) int
+		TagShareDelete  func(childComplexity int, id string) int
+		TagShareUpdate  func(childComplexity int, id string, input tag_share.TagShareUpdateInput) int
+		TagUpdate       func(childComplexity int, id string, input tag.TagUpdateInput) int
+		UserCreate      func(childComplexity int, input user.UserInput) int
+		UserDelete      func(childComplexity int) int
+		UserUpdate      func(childComplexity int, input user.UserUpdateInput) int
 	}
 
 	Query struct {
@@ -129,10 +135,11 @@ type ComplexityRoot struct {
 type FileResolver interface {
 	Owner(ctx context.Context, obj *file.File) (*user.User, error)
 	Tags(ctx context.Context, obj *file.File) ([]*tag.Tag, error)
-	SharedFor(ctx context.Context, obj *file.File) ([]*file.FileShare, error)
+	SharedFor(ctx context.Context, obj *file.File) ([]*file_share.FileShare, error)
 }
 type FileShareResolver interface {
-	User(ctx context.Context, obj *file.FileShare) (*user.User, error)
+	File(ctx context.Context, obj *file_share.FileShare) (*file.File, error)
+	User(ctx context.Context, obj *file_share.FileShare) (*user.User, error)
 }
 type MutationResolver interface {
 	Login(ctx context.Context, username string, password string) (*auth.AuthPayload, error)
@@ -142,6 +149,9 @@ type MutationResolver interface {
 	FileCreate(ctx context.Context, input file.FileInput) (*file.File, error)
 	FileUpdate(ctx context.Context, id string, input file.FileUpdateInput) (*file.File, error)
 	FileDelete(ctx context.Context, id string) (*file.File, error)
+	FileShareCreate(ctx context.Context, input file_share.FileShareInput) (*file_share.FileShare, error)
+	FileShareUpdate(ctx context.Context, id string, input file_share.FileShareUpdateInput) (*file_share.FileShare, error)
+	FileShareDelete(ctx context.Context, id string) (*file_share.FileShare, error)
 	TagCreate(ctx context.Context, input tag.TagInput) (*tag.Tag, error)
 	TagUpdate(ctx context.Context, id string, input tag.TagUpdateInput) (*tag.Tag, error)
 	TagDelete(ctx context.Context, id string) (*tag.Tag, error)
@@ -262,6 +272,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.File.UpdatedAt(childComplexity), true
 
+	case "FileShare.file":
+		if e.complexity.FileShare.File == nil {
+			break
+		}
+
+		return e.complexity.FileShare.File(childComplexity), true
+
+	case "FileShare.id":
+		if e.complexity.FileShare.ID == nil {
+			break
+		}
+
+		return e.complexity.FileShare.ID(childComplexity), true
+
 	case "FileShare.permissions":
 		if e.complexity.FileShare.Permissions == nil {
 			break
@@ -299,6 +323,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.FileDelete(childComplexity, args["id"].(string)), true
+
+	case "Mutation.fileShareCreate":
+		if e.complexity.Mutation.FileShareCreate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_fileShareCreate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.FileShareCreate(childComplexity, args["input"].(file_share.FileShareInput)), true
+
+	case "Mutation.fileShareDelete":
+		if e.complexity.Mutation.FileShareDelete == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_fileShareDelete_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.FileShareDelete(childComplexity, args["id"].(string)), true
+
+	case "Mutation.fileShareUpdate":
+		if e.complexity.Mutation.FileShareUpdate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_fileShareUpdate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.FileShareUpdate(childComplexity, args["id"].(string), args["input"].(file_share.FileShareUpdateInput)), true
 
 	case "Mutation.fileUpdate":
 		if e.complexity.Mutation.FileUpdate == nil {
@@ -677,15 +737,9 @@ var sources = []*ast.Source{
     updatedAt: Time!
 }
 
-type FileShare {
-    user: User!
-    permissions: Int!
-}
-
 input FileInput {
     name: String!
     tags: [ID!]!
-    sharedFor: [FileShareInput!]
     file: Upload!
 }
 
@@ -693,13 +747,24 @@ input FileUpdateInput {
     name: String
     ownerId: ID
     tags: [ID!]
-    sharedFor: [FileShareInput!]
     file: Upload
+}
+`, BuiltIn: false},
+	{Name: "api/schema/file_share.graphql", Input: `type FileShare {
+    id: ID!
+    file: File!
+    user: User!
+    permissions: Int!
 }
 
 input FileShareInput {
+    fileId: ID!
     userId: ID!
     permissions: Int!
+}
+
+input FileShareUpdateInput {
+    permissions: ID!
 }
 `, BuiltIn: false},
 	{Name: "api/schema/mutation.graphql", Input: `type Mutation {
@@ -729,6 +794,17 @@ input FileShareInput {
 
     """Delete file with id"""
     fileDelete(id: ID!): File
+
+    # File share
+
+    """Create file share with FileShareInput"""
+    fileShareCreate(input: FileShareInput!): FileShare
+
+    """Update file share with id and FileShareUpdateInput"""
+    fileShareUpdate(id: ID!, input: FileShareUpdateInput!): FileShare
+
+    """Delete file share with id"""
+    fileShareDelete(id: ID!): FileShare
 
     # Tag
 
@@ -877,6 +953,60 @@ func (ec *executionContext) field_Mutation_fileDelete_args(ctx context.Context, 
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_fileShareCreate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 file_share.FileShareInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNFileShareInput2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShareInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_fileShareDelete_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_fileShareUpdate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 file_share.FileShareUpdateInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNFileShareUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShareUpdateInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -1474,9 +1604,9 @@ func (ec *executionContext) _File_sharedFor(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*file.FileShare)
+	res := resTmp.([]*file_share.FileShare)
 	fc.Result = res
-	return ec.marshalNFileShare2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚐFileShareᚄ(ctx, field.Selections, res)
+	return ec.marshalNFileShare2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShareᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _File_createdAt(ctx context.Context, field graphql.CollectedField, obj *file.File) (ret graphql.Marshaler) {
@@ -1549,7 +1679,77 @@ func (ec *executionContext) _File_updatedAt(ctx context.Context, field graphql.C
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _FileShare_user(ctx context.Context, field graphql.CollectedField, obj *file.FileShare) (ret graphql.Marshaler) {
+func (ec *executionContext) _FileShare_id(ctx context.Context, field graphql.CollectedField, obj *file_share.FileShare) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FileShare",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FileShare_file(ctx context.Context, field graphql.CollectedField, obj *file_share.FileShare) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FileShare",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.FileShare().File(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*file.File)
+	fc.Result = res
+	return ec.marshalNFile2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚐFile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FileShare_user(ctx context.Context, field graphql.CollectedField, obj *file_share.FileShare) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1584,7 +1784,7 @@ func (ec *executionContext) _FileShare_user(ctx context.Context, field graphql.C
 	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _FileShare_permissions(ctx context.Context, field graphql.CollectedField, obj *file.FileShare) (ret graphql.Marshaler) {
+func (ec *executionContext) _FileShare_permissions(ctx context.Context, field graphql.CollectedField, obj *file_share.FileShare) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1883,6 +2083,123 @@ func (ec *executionContext) _Mutation_fileDelete(ctx context.Context, field grap
 	res := resTmp.(*file.File)
 	fc.Result = res
 	return ec.marshalOFile2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚐFile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_fileShareCreate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_fileShareCreate_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().FileShareCreate(rctx, args["input"].(file_share.FileShareInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*file_share.FileShare)
+	fc.Result = res
+	return ec.marshalOFileShare2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShare(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_fileShareUpdate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_fileShareUpdate_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().FileShareUpdate(rctx, args["id"].(string), args["input"].(file_share.FileShareUpdateInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*file_share.FileShare)
+	fc.Result = res
+	return ec.marshalOFileShare2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShare(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_fileShareDelete(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_fileShareDelete_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().FileShareDelete(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*file_share.FileShare)
+	fc.Result = res
+	return ec.marshalOFileShare2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShare(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_tagCreate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4087,14 +4404,6 @@ func (ec *executionContext) unmarshalInputFileInput(ctx context.Context, obj int
 			if err != nil {
 				return it, err
 			}
-		case "sharedFor":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sharedFor"))
-			it.SharedFor, err = ec.unmarshalOFileShareInput2ᚕgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚐFileShareInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "file":
 			var err error
 
@@ -4109,12 +4418,20 @@ func (ec *executionContext) unmarshalInputFileInput(ctx context.Context, obj int
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputFileShareInput(ctx context.Context, obj interface{}) (file.FileShareInput, error) {
-	var it file.FileShareInput
+func (ec *executionContext) unmarshalInputFileShareInput(ctx context.Context, obj interface{}) (file_share.FileShareInput, error) {
+	var it file_share.FileShareInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
 		switch k {
+		case "fileId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fileId"))
+			it.FileID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "userId":
 			var err error
 
@@ -4128,6 +4445,26 @@ func (ec *executionContext) unmarshalInputFileShareInput(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permissions"))
 			it.Permissions, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputFileShareUpdateInput(ctx context.Context, obj interface{}) (file_share.FileShareUpdateInput, error) {
+	var it file_share.FileShareUpdateInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "permissions":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permissions"))
+			it.Permissions, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4164,14 +4501,6 @@ func (ec *executionContext) unmarshalInputFileUpdateInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
 			it.Tags, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "sharedFor":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sharedFor"))
-			it.SharedFor, err = ec.unmarshalOFileShareInput2ᚕgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚐFileShareInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4485,7 +4814,7 @@ func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj
 
 var fileShareImplementors = []string{"FileShare"}
 
-func (ec *executionContext) _FileShare(ctx context.Context, sel ast.SelectionSet, obj *file.FileShare) graphql.Marshaler {
+func (ec *executionContext) _FileShare(ctx context.Context, sel ast.SelectionSet, obj *file_share.FileShare) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, fileShareImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -4494,6 +4823,25 @@ func (ec *executionContext) _FileShare(ctx context.Context, sel ast.SelectionSet
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FileShare")
+		case "id":
+			out.Values[i] = ec._FileShare_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "file":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._FileShare_file(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "user":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -4553,6 +4901,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_fileUpdate(ctx, field)
 		case "fileDelete":
 			out.Values[i] = ec._Mutation_fileDelete(ctx, field)
+		case "fileShareCreate":
+			out.Values[i] = ec._Mutation_fileShareCreate(ctx, field)
+		case "fileShareUpdate":
+			out.Values[i] = ec._Mutation_fileShareUpdate(ctx, field)
+		case "fileShareDelete":
+			out.Values[i] = ec._Mutation_fileShareDelete(ctx, field)
 		case "tagCreate":
 			out.Values[i] = ec._Mutation_tagCreate(ctx, field)
 		case "tagUpdate":
@@ -5203,7 +5557,7 @@ func (ec *executionContext) unmarshalNFileInput2githubᚗcomᚋmpieczabaᚋnimbu
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNFileShare2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚐFileShareᚄ(ctx context.Context, sel ast.SelectionSet, v []*file.FileShare) graphql.Marshaler {
+func (ec *executionContext) marshalNFileShare2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShareᚄ(ctx context.Context, sel ast.SelectionSet, v []*file_share.FileShare) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -5227,7 +5581,7 @@ func (ec *executionContext) marshalNFileShare2ᚕᚖgithubᚗcomᚋmpieczabaᚋn
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNFileShare2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚐFileShare(ctx, sel, v[i])
+			ret[i] = ec.marshalNFileShare2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShare(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -5240,7 +5594,7 @@ func (ec *executionContext) marshalNFileShare2ᚕᚖgithubᚗcomᚋmpieczabaᚋn
 	return ret
 }
 
-func (ec *executionContext) marshalNFileShare2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚐFileShare(ctx context.Context, sel ast.SelectionSet, v *file.FileShare) graphql.Marshaler {
+func (ec *executionContext) marshalNFileShare2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShare(ctx context.Context, sel ast.SelectionSet, v *file_share.FileShare) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -5250,14 +5604,34 @@ func (ec *executionContext) marshalNFileShare2ᚖgithubᚗcomᚋmpieczabaᚋnimb
 	return ec._FileShare(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNFileShareInput2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚐFileShareInput(ctx context.Context, v interface{}) (file.FileShareInput, error) {
+func (ec *executionContext) unmarshalNFileShareInput2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShareInput(ctx context.Context, v interface{}) (file_share.FileShareInput, error) {
 	res, err := ec.unmarshalInputFileShareInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNFileShareUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShareUpdateInput(ctx context.Context, v interface{}) (file_share.FileShareUpdateInput, error) {
+	res, err := ec.unmarshalInputFileShareUpdateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNFileUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚐFileUpdateInput(ctx context.Context, v interface{}) (file.FileUpdateInput, error) {
 	res, err := ec.unmarshalInputFileUpdateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalIntID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalIntID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
@@ -5826,28 +6200,11 @@ func (ec *executionContext) marshalOFile2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋ
 	return ec._File(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOFileShareInput2ᚕgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚐFileShareInputᚄ(ctx context.Context, v interface{}) ([]file.FileShareInput, error) {
+func (ec *executionContext) marshalOFileShare2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShare(ctx context.Context, sel ast.SelectionSet, v *file_share.FileShare) graphql.Marshaler {
 	if v == nil {
-		return nil, nil
+		return graphql.Null
 	}
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]file.FileShareInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNFileShareInput2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚐFileShareInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
+	return ec._FileShare(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {

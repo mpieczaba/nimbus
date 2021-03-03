@@ -11,15 +11,9 @@ type File {
     updatedAt: Time!
 }
 
-type FileShare {
-    user: User!
-    permissions: Int!
-}
-
 input FileInput {
     name: String!
     tags: [ID!]!
-    sharedFor: [FileShareInput!]
     file: Upload!
 }
 
@@ -27,11 +21,5 @@ input FileUpdateInput {
     name: String
     ownerId: ID
     tags: [ID!]
-    sharedFor: [FileShareInput!]
     file: Upload
-}
-
-input FileShareInput {
-    userId: ID!
-    permissions: Int!
 }

@@ -65,16 +65,6 @@ func (s *Store) DeleteFile(query interface{}, args ...interface{}) (*File, error
 	return &file, nil
 }
 
-func (s *Store) GetAllFileShares(query interface{}, args ...interface{}) ([]*FileShare, error) {
-	var fileShares []*FileShare
-
-	if err := s.db.Where(query, args...).Find(&fileShares).Error; err != nil {
-		return nil, gqlerror.Errorf("Internal database error occurred while getting file shares!")
-	}
-
-	return fileShares, nil
-}
-
 func (s *Store) SaveFileTags(fileTags []*FileTag) ([]*FileTag, error) {
 	if err := s.db.Save(&fileTags).Error; err != nil {
 		return nil, gqlerror.Errorf("Cannot save file tags!")
@@ -91,24 +81,6 @@ func (s *Store) DeleteFileTags(query interface{}, args ...interface{}) ([]*FileT
 	}
 
 	return fileTags, nil
-}
-
-func (s *Store) SaveFileShares(fileShares []*FileShare) ([]*FileShare, error) {
-	if err := s.db.Save(&fileShares).Error; err != nil {
-		return nil, gqlerror.Errorf("Cannot save file shares!")
-	}
-
-	return fileShares, nil
-}
-
-func (s *Store) DeleteFileShares(query interface{}, args ...interface{}) ([]*FileShare, error) {
-	var fileShares []*FileShare
-
-	if err := s.db.Where(query, args...).Find(&fileShares).Delete(&fileShares).Error; err != nil {
-		return nil, gqlerror.Errorf("Cannot delete file shares!")
-	}
-
-	return fileShares, nil
 }
 
 func (s *Store) GetTagIDs(query interface{}, args ...interface{}) *gorm.DB {

@@ -1,0 +1,16 @@
+type FileShare {
+    id: ID!
+    file: File!
+    user: User!
+    permissions: Int!
+}
+
+input FileShareInput {
+    fileId: ID!
+    userId: ID!
+    permissions: Int!
+}
+
+input FileShareUpdateInput {
+    permissions: ID!
+}

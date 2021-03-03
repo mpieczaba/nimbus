@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/file/file_share"
 	"github.com/mpieczaba/nimbus/tag"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/utils"
@@ -48,15 +49,6 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 
 	if _, err = r.Store.File.SaveFileTags(fileTags); err != nil {
 		return nil, err
-	}
-
-	if len(input.SharedFor) > 0 {
-		// Save file shares
-		fileShares := utils.FileShareInputsToFileShares(id.String(), input.SharedFor)
-
-		if _, err = r.Store.File.SaveFileShares(fileShares); err != nil {
-			return nil, err
-		}
 	}
 
 	return r.Store.File.SaveFile(&file.File{
@@ -108,15 +100,6 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 		}
 	}
 
-	if len(input.SharedFor) > 0 {
-		// Update file shares
-		fileShares := utils.FileShareInputsToFileShares(fileToUpdate.ID, input.SharedFor)
-
-		if _, err = r.Store.File.SaveFileShares(fileShares); err != nil {
-			return nil, err
-		}
-	}
-
 	if input.File.File != nil {
 		// Write file in data directory
 		if err = r.Filesystem.WriteFile(fileToUpdate.ID, input.File.File); err != nil {
@@ -150,7 +133,7 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.Fil
 	}
 
 	// Delete file shares
-	if _, err = r.Store.File.DeleteFileShares("file_id = ?", id); err != nil {
+	if _, err = r.Store.FileShare.DeleteFileShares("file_id = ?", id); err != nil {
 		return nil, err
 	}
 
@@ -172,6 +155,6 @@ func (r *fileResolver) Tags(ctx context.Context, obj *file.File) ([]*tag.Tag, er
 	return r.Store.Tag.GetAllTagsWithCondition("id IN (?)", r.Store.File.GetTagIDs("file_id = ?", obj.ID))
 }
 
-func (r *fileResolver) SharedFor(ctx context.Context, obj *file.File) ([]*file.FileShare, error) {
-	return r.Store.File.GetAllFileShares("file_id = ?", obj.ID)
+func (r *fileResolver) SharedFor(ctx context.Context, obj *file.File) ([]*file_share.FileShare, error) {
+	return r.Store.FileShare.GetAllFileShares("file_id = ?", obj.ID)
 }

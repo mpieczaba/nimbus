@@ -2,7 +2,6 @@ package tag
 
 import (
 	"github.com/mpieczaba/nimbus/database"
-	"github.com/mpieczaba/nimbus/tag/tag_share"
 )
 
 type Tag struct {
@@ -13,12 +12,10 @@ type Tag struct {
 }
 
 type TagInput struct {
-	Name      string                    `json:"name" validate:"required,tagname,min=3,max=64"`
-	SharedFor []tag_share.TagShareInput `validate:"omitempty,dive"`
+	Name string `json:"name" validate:"required,tagname,min=3,max=64"`
 }
 
 type TagUpdateInput struct {
-	Name      string                    `json:"name" validate:"omitempty,tagname,min=3,max=64"`
-	OwnerID   string                    `json:"ownerId" validate:"omitempty,alphanum,len=20"`
-	SharedFor []tag_share.TagShareInput `validate:"omitempty,dive"`
+	Name    string `json:"name" validate:"omitempty,tagname,min=3,max=64"`
+	OwnerID string `json:"ownerId" validate:"omitempty,alphanum,len=20"`
 }

@@ -5,6 +5,7 @@ package resolvers
 import (
 	"github.com/mpieczaba/nimbus/api/generated"
 	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/file/file_share"
 	"github.com/mpieczaba/nimbus/filesystem"
 	"github.com/mpieczaba/nimbus/tag"
 	"github.com/mpieczaba/nimbus/tag/tag_share"
@@ -15,10 +16,11 @@ import (
 )
 
 type Store struct {
-	User     *user.Store
-	File     *file.Store
-	Tag      *tag.Store
-	TagShare *tag_share.Store
+	User      *user.Store
+	File      *file.Store
+	FileShare *file_share.Store
+	Tag       *tag.Store
+	TagShare  *tag_share.Store
 }
 
 type Resolver struct {
