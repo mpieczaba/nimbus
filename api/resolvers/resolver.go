@@ -4,6 +4,7 @@ package resolvers
 
 import (
 	"github.com/mpieczaba/nimbus/api/generated"
+	"github.com/mpieczaba/nimbus/auth"
 	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/file/file_share"
 	"github.com/mpieczaba/nimbus/filesystem"
@@ -11,8 +12,6 @@ import (
 	"github.com/mpieczaba/nimbus/tag/tag_share"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/validators"
-
-	"github.com/gofiber/fiber/v2"
 )
 
 type Store struct {
@@ -24,8 +23,8 @@ type Store struct {
 }
 
 type Resolver struct {
-	Ctx        *fiber.Ctx
 	Store      *Store
+	Auth       *auth.Auth
 	Filesystem *filesystem.Filesystem
 	Validator  *validators.Validator
 }

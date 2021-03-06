@@ -5,6 +5,7 @@ import (
 
 	"github.com/mpieczaba/nimbus/api/generated"
 	"github.com/mpieczaba/nimbus/api/resolvers"
+	"github.com/mpieczaba/nimbus/auth"
 	"github.com/mpieczaba/nimbus/database"
 	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/file/file_share"
@@ -53,7 +54,6 @@ func (app *App) Start() {
 	// Set up GraphQL api endpoint
 	app.http.All("/graphql", func(c *fiber.Ctx) error {
 		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{
-			Ctx: c,
 			Store: &resolvers.Store{
 				User:      user.NewStore(app.db),
 				File:      file.NewStore(app.db),
@@ -61,6 +61,7 @@ func (app *App) Start() {
 				Tag:       tag.NewStore(app.db),
 				TagShare:  tag_share.NewStore(app.db),
 			},
+			Auth:       auth.NewAuth(c),
 			Filesystem: fs,
 			Validator:  validators.New(),
 		}}))

@@ -6,7 +6,6 @@ import (
 	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/file/file_share"
 	"github.com/mpieczaba/nimbus/user"
-	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/rs/xid"
 )
@@ -18,7 +17,7 @@ func (r *mutationResolver) FileShareCreate(ctx context.Context, input file_share
 		return nil, err
 	}
 
-	claims, err := utils.Auth(r.Ctx)
+	claims, err := r.Auth.GetClaims()
 
 	if err != nil {
 		return nil, err
@@ -44,7 +43,7 @@ func (r *mutationResolver) FileShareUpdate(ctx context.Context, id string, input
 		return nil, err
 	}
 
-	claims, err := utils.Auth(r.Ctx)
+	claims, err := r.Auth.GetClaims()
 
 	if err != nil {
 		return nil, err
@@ -71,7 +70,7 @@ func (r *mutationResolver) FileShareUpdate(ctx context.Context, id string, input
 }
 
 func (r *mutationResolver) FileShareDelete(ctx context.Context, id string) (*file_share.FileShare, error) {
-	claims, err := utils.Auth(r.Ctx)
+	claims, err := r.Auth.GetClaims()
 
 	if err != nil {
 		return nil, err

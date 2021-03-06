@@ -24,7 +24,7 @@ func (r *mutationResolver) Login(ctx context.Context, username string, password 
 	}
 
 	// Create jwt token
-	token, err := auth.NewToken(userLogin)
+	token, err := r.Auth.NewToken(userLogin)
 
 	if err != nil {
 		return nil, gqlerror.Errorf("Internal server error!")

@@ -5,7 +5,6 @@ import (
 
 	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/user"
-	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/rs/xid"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -15,7 +14,7 @@ import (
 // Query
 
 func (r *queryResolver) Me(ctx context.Context) (*user.User, error) {
-	claims, err := utils.Auth(r.Ctx)
+	claims, err := r.Auth.GetClaims()
 
 	if err != nil {
 		return nil, err
@@ -57,7 +56,7 @@ func (r *mutationResolver) UserUpdate(ctx context.Context, input user.UserUpdate
 		return nil, err
 	}
 
-	claims, err := utils.Auth(r.Ctx)
+	claims, err := r.Auth.GetClaims()
 
 	if err != nil {
 		return nil, err
@@ -87,7 +86,7 @@ func (r *mutationResolver) UserUpdate(ctx context.Context, input user.UserUpdate
 }
 
 func (r *mutationResolver) UserDelete(ctx context.Context) (*user.User, error) {
-	claims, err := utils.Auth(r.Ctx)
+	claims, err := r.Auth.GetClaims()
 
 	if err != nil {
 		return nil, err

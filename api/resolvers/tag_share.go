@@ -6,7 +6,6 @@ import (
 	"github.com/mpieczaba/nimbus/tag"
 	"github.com/mpieczaba/nimbus/tag/tag_share"
 	"github.com/mpieczaba/nimbus/user"
-	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/rs/xid"
 )
@@ -18,7 +17,7 @@ func (r *mutationResolver) TagShareCreate(ctx context.Context, input tag_share.T
 		return nil, err
 	}
 
-	claims, err := utils.Auth(r.Ctx)
+	claims, err := r.Auth.GetClaims()
 
 	if err != nil {
 		return nil, err
@@ -44,7 +43,7 @@ func (r *mutationResolver) TagShareUpdate(ctx context.Context, id string, input 
 		return nil, err
 	}
 
-	claims, err := utils.Auth(r.Ctx)
+	claims, err := r.Auth.GetClaims()
 
 	if err != nil {
 		return nil, err
@@ -71,7 +70,7 @@ func (r *mutationResolver) TagShareUpdate(ctx context.Context, id string, input 
 }
 
 func (r *mutationResolver) TagShareDelete(ctx context.Context, id string) (*tag_share.TagShare, error) {
-	claims, err := utils.Auth(r.Ctx)
+	claims, err := r.Auth.GetClaims()
 
 	if err != nil {
 		return nil, err

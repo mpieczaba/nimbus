@@ -31,7 +31,7 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 		return nil, err
 	}
 
-	claims, err := utils.Auth(r.Ctx)
+	claims, err := r.Auth.GetClaims()
 
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 		return nil, err
 	}
 
-	claims, err := utils.Auth(r.Ctx)
+	claims, err := r.Auth.GetClaims()
 
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 }
 
 func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.File, error) {
-	claims, err := utils.Auth(r.Ctx)
+	claims, err := r.Auth.GetClaims()
 
 	if err != nil {
 		return nil, err
