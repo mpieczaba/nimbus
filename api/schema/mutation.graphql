@@ -37,6 +37,11 @@ type Mutation {
     """Delete file share with id"""
     fileShareDelete(id: ID!): FileShare
 
+    # File tag
+
+    """Delete file tag with id"""
+    fileTagDelete(fileId: ID!, tagId: ID!): FileTag
+
     # Tag
 
     """Create tag with TagInput"""

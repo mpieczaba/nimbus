@@ -1,0 +1,4 @@
+    type FileTag {
+        fileId: ID!
+        tagId: ID!
+    }

@@ -137,7 +137,7 @@ func (r *fileResolver) Owner(ctx context.Context, obj *file.File) (*user.User, e
 }
 
 func (r *fileResolver) Tags(ctx context.Context, obj *file.File) ([]*tag.Tag, error) {
-	return r.Store.Tag.GetAllTagsWithCondition("id IN (?)", r.Store.File.GetTagIDs("file_id = ?", obj.ID))
+	return r.Store.Tag.GetAllTagsWithCondition("id IN (?)", r.Store.FileTag.GetTagIDs("file_id = ?", obj.ID))
 }
 
 func (r *fileResolver) SharedFor(ctx context.Context, obj *file.File) ([]*file_share.FileShare, error) {

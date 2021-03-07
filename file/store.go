@@ -72,25 +72,3 @@ func (s *Store) DeleteFile(query interface{}, args ...interface{}) (*File, error
 
 	return &file, nil
 }
-
-func (s *Store) SaveFileTags(fileTags []*FileTag) ([]*FileTag, error) {
-	if err := s.db.Save(&fileTags).Error; err != nil {
-		return nil, gqlerror.Errorf("Cannot save file tags!")
-	}
-
-	return fileTags, nil
-}
-
-func (s *Store) DeleteFileTags(query interface{}, args ...interface{}) ([]*FileTag, error) {
-	var fileTags []*FileTag
-
-	if err := s.db.Where(query, args...).Find(&fileTags).Delete(&fileTags).Error; err != nil {
-		return nil, gqlerror.Errorf("Cannot delete file tags!")
-	}
-
-	return fileTags, nil
-}
-
-func (s *Store) GetTagIDs(query interface{}, args ...interface{}) *gorm.DB {
-	return s.db.Select("tag_id").Where(query, args...).Table("file_tags")
-}

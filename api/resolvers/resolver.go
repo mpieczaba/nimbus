@@ -7,6 +7,7 @@ import (
 	"github.com/mpieczaba/nimbus/auth"
 	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/file/file_share"
+	"github.com/mpieczaba/nimbus/file/file_tag"
 	"github.com/mpieczaba/nimbus/filesystem"
 	"github.com/mpieczaba/nimbus/tag"
 	"github.com/mpieczaba/nimbus/tag/tag_share"
@@ -18,6 +19,7 @@ type Store struct {
 	User      *user.Store
 	File      *file.Store
 	FileShare *file_share.Store
+	FileTag   *file_tag.Store
 	Tag       *tag.Store
 	TagShare  *tag_share.Store
 }

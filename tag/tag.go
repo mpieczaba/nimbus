@@ -2,7 +2,7 @@ package tag
 
 import (
 	"github.com/mpieczaba/nimbus/database"
-	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/file/file_tag"
 )
 
 type Tag struct {
@@ -10,7 +10,7 @@ type Tag struct {
 	ID      string `json:"id"  gorm:"type:varchar(20);primaryKey;not null"`
 	Name    string `json:"name" gorm:"type:varchar(64);unique;not null"`
 	OwnerID string `json:"ownerId" gorm:"type:varchar(20);not null"`
-	Files   []file.FileTag
+	Files   []file_tag.FileTag
 }
 
 type TagInput struct {

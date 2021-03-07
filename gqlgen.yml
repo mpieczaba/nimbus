@@ -31,6 +31,8 @@ models:
     model: github.com/mpieczaba/nimbus/file/file_share.FileShareInput
   FileShareUpdateInput:
     model: github.com/mpieczaba/nimbus/file/file_share.FileShareUpdateInput
+  FileTag:
+    model: github.com/mpieczaba/nimbus/file/file_tag.FileTag
   Tag:
     model: github.com/mpieczaba/nimbus/tag.Tag
   TagInput:

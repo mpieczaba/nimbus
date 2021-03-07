@@ -1,14 +1,14 @@
 package utils
 
 import (
-	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/file/file_tag"
 )
 
-func TagIDsToFileTags(tagIDs []string) []file.FileTag {
-	var fileTags []file.FileTag
+func TagIDsToFileTags(tagIDs []string) []file_tag.FileTag {
+	var fileTags []file_tag.FileTag
 
 	for _, tagID := range tagIDs {
-		fileTags = append(fileTags, file.FileTag{
+		fileTags = append(fileTags, file_tag.FileTag{
 			TagID: tagID,
 		})
 	}
