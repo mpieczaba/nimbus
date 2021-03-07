@@ -33,7 +33,7 @@ func (r *mutationResolver) TagCreate(ctx context.Context, input tag.TagInput) (*
 		return nil, err
 	}
 
-	return r.Store.Tag.SaveTag(&tag.Tag{
+	return r.Store.Tag.CreateTag(&tag.Tag{
 		ID:      xid.New().String(),
 		Name:    input.Name,
 		OwnerID: claims["id"].(string),
@@ -70,7 +70,7 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.T
 		tagToUpdate.OwnerID = input.OwnerID
 	}
 
-	return r.Store.Tag.SaveTag(tagToUpdate)
+	return r.Store.Tag.UpdateTag(tagToUpdate)
 }
 
 func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*tag.Tag, error) {

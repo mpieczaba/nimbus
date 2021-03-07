@@ -7,12 +7,13 @@ import (
 
 type File struct {
 	database.Model
-	ID        string `json:"id"  gorm:"type:varchar(20);primaryKey;not null"`
-	Name      string `json:"name" gorm:"type:varchar(255);not null"`
-	MimeType  string `json:"mimeType" gorm:"type:varchar(127);not null"`
-	Extension string `json:"extension" gorm:"type:varchar(10);not null"`
-	Size      int64  `json:"size" gorm:"type:bigint"`
-	OwnerID   string `json:"ownerId" gorm:"type:varchar(20);not null"`
+	ID        string    `json:"id"  gorm:"type:varchar(20);primaryKey;not null"`
+	Name      string    `json:"name" gorm:"type:varchar(255);not null"`
+	MimeType  string    `json:"mimeType" gorm:"type:varchar(127);not null"`
+	Extension string    `json:"extension" gorm:"type:varchar(10);not null"`
+	Size      int64     `json:"size" gorm:"type:bigint"`
+	OwnerID   string    `json:"ownerId" gorm:"type:varchar(20);not null"`
+	Tags      []FileTag `json:"tags"`
 }
 
 type FileInput struct {
@@ -29,6 +30,6 @@ type FileUpdateInput struct {
 }
 
 type FileTag struct {
-	FileID string `json:"fileId" gorm:"type:varchar(20);not null"`
-	TagID  string `json:"tagId" gorm:"type:varchar(20);not null"`
+	FileID string `json:"fileId" gorm:"foreignKey;not null"`
+	TagID  string `json:"tagId" gorm:"foreignKey;not null"`
 }

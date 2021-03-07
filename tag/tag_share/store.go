@@ -37,9 +37,17 @@ func (s *Store) GetAllTagShares(query interface{}, args ...interface{}) ([]*TagS
 	return tagShares, nil
 }
 
-func (s *Store) SaveTagShare(tagShare *TagShare) (*TagShare, error) {
+func (s *Store) CreateTagShare(tagShare *TagShare) (*TagShare, error) {
 	if err := s.db.Save(tagShare).Error; err != nil {
-		return nil, gqlerror.Errorf("Cannot save tag share!")
+		return nil, gqlerror.Errorf("Cannot create tag share!")
+	}
+
+	return tagShare, nil
+}
+
+func (s *Store) UpdateTagShare(tagShare *TagShare) (*TagShare, error) {
+	if err := s.db.Save(tagShare).Error; err != nil {
+		return nil, gqlerror.Errorf("Cannot update tag share!")
 	}
 
 	return tagShare, nil

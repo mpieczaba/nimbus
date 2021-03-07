@@ -44,20 +44,14 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 		return nil, gqlerror.Errorf("Cannot save file!")
 	}
 
-	// Save file tags
-	fileTags := utils.TagIDsToFileTags(id.String(), input.Tags)
-
-	if _, err = r.Store.File.SaveFileTags(fileTags); err != nil {
-		return nil, err
-	}
-
-	return r.Store.File.SaveFile(&file.File{
+	return r.Store.File.CreateFile(&file.File{
 		ID:        id.String(),
 		Name:      input.Name,
 		MimeType:  input.File.ContentType,
 		Extension: filepath.Ext(input.File.Filename),
 		Size:      input.File.Size,
 		OwnerID:   claims["id"].(string),
+		Tags:      utils.TagIDsToFileTags(input.Tags),
 	})
 }
 
@@ -93,11 +87,7 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 
 	if len(input.Tags) > 0 {
 		// Update file tags
-		fileTags := utils.TagIDsToFileTags(fileToUpdate.ID, input.Tags)
-
-		if _, err = r.Store.File.SaveFileTags(fileTags); err != nil {
-			return nil, err
-		}
+		fileToUpdate.Tags = utils.TagIDsToFileTags(input.Tags)
 	}
 
 	if input.File.File != nil {
@@ -111,7 +101,7 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 		fileToUpdate.Size = input.File.Size
 	}
 
-	return r.Store.File.SaveFile(fileToUpdate)
+	return r.Store.File.UpdateFile(fileToUpdate)
 }
 
 func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.File, error) {
@@ -124,11 +114,6 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.Fil
 	fileToDelete, err := r.Store.File.DeleteFile("id = ? AND owner_id = ?", id, claims["id"].(string))
 
 	if err != nil {
-		return nil, err
-	}
-
-	// Delete file tags
-	if _, err = r.Store.File.DeleteFileTags("file_id = ?", id); err != nil {
 		return nil, err
 	}
 

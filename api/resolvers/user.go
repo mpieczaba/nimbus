@@ -44,7 +44,7 @@ func (r *mutationResolver) UserCreate(ctx context.Context, input user.UserInput)
 		return nil, gqlerror.Errorf("Cannot parse password!")
 	}
 
-	return r.Store.User.SaveUser(&user.User{
+	return r.Store.User.CreateUser(&user.User{
 		ID:       xid.New().String(),
 		Username: input.Username,
 		Password: string(pass),
@@ -82,7 +82,7 @@ func (r *mutationResolver) UserUpdate(ctx context.Context, input user.UserUpdate
 		userToUpdate.Password = string(pass)
 	}
 
-	return r.Store.User.SaveUser(userToUpdate)
+	return r.Store.User.UpdateUser(userToUpdate)
 }
 
 func (r *mutationResolver) UserDelete(ctx context.Context) (*user.User, error) {

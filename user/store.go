@@ -37,7 +37,15 @@ func (s *Store) GetAllUsers() ([]*User, error) {
 	return users, nil
 }
 
-func (s *Store) SaveUser(user *User) (*User, error) {
+func (s *Store) CreateUser(user *User) (*User, error) {
+	if err := s.db.Create(user).Error; err != nil {
+		return nil, gqlerror.Errorf("Incorrect form data or user already exists!")
+	}
+
+	return user, nil
+}
+
+func (s *Store) UpdateUser(user *User) (*User, error) {
 	if err := s.db.Save(user).Error; err != nil {
 		return nil, gqlerror.Errorf("Incorrect form data or user already exists!")
 	}

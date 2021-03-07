@@ -30,7 +30,7 @@ func (r *mutationResolver) FileShareCreate(ctx context.Context, input file_share
 		return nil, err
 	}
 
-	return r.Store.FileShare.SaveFileShare(&file_share.FileShare{
+	return r.Store.FileShare.CreateFileShare(&file_share.FileShare{
 		ID:          xid.New().String(),
 		FileID:      input.FileID,
 		UserID:      input.UserID,
@@ -66,7 +66,7 @@ func (r *mutationResolver) FileShareUpdate(ctx context.Context, id string, input
 		fileShareToUpdate.Permissions = input.Permissions
 	}
 
-	return r.Store.FileShare.SaveFileShare(fileShareToUpdate)
+	return r.Store.FileShare.UpdateFileShare(fileShareToUpdate)
 }
 
 func (r *mutationResolver) FileShareDelete(ctx context.Context, id string) (*file_share.FileShare, error) {

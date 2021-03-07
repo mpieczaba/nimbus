@@ -37,9 +37,17 @@ func (s *Store) GetAllFileShares(query interface{}, args ...interface{}) ([]*Fil
 	return fileShares, nil
 }
 
-func (s *Store) SaveFileShare(fileShare *FileShare) (*FileShare, error) {
-	if err := s.db.Save(fileShare).Error; err != nil {
+func (s *Store) CreateFileShare(fileShare *FileShare) (*FileShare, error) {
+	if err := s.db.Create(fileShare).Error; err != nil {
 		return nil, gqlerror.Errorf("Cannot save file share!")
+	}
+
+	return fileShare, nil
+}
+
+func (s *Store) UpdateFileShare(fileShare *FileShare) (*FileShare, error) {
+	if err := s.db.Save(fileShare).Error; err != nil {
+		return nil, gqlerror.Errorf("Cannot update file share!")
 	}
 
 	return fileShare, nil

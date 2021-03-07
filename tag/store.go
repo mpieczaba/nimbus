@@ -47,7 +47,15 @@ func (s *Store) GetAllTagsWithCondition(query interface{}, args ...interface{}) 
 	return tags, nil
 }
 
-func (s *Store) SaveTag(tag *Tag) (*Tag, error) {
+func (s *Store) CreateTag(tag *Tag) (*Tag, error) {
+	if err := s.db.Create(tag).Error; err != nil {
+		return nil, gqlerror.Errorf("Incorrect form data or tag already exists!")
+	}
+
+	return tag, nil
+}
+
+func (s *Store) UpdateTag(tag *Tag) (*Tag, error) {
 	if err := s.db.Save(tag).Error; err != nil {
 		return nil, gqlerror.Errorf("Incorrect form data or tag already exists!")
 	}

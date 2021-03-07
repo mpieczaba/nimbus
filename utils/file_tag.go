@@ -4,13 +4,12 @@ import (
 	"github.com/mpieczaba/nimbus/file"
 )
 
-func TagIDsToFileTags(fileId string, tagIDs []string) []*file.FileTag {
-	var fileTags []*file.FileTag
+func TagIDsToFileTags(tagIDs []string) []file.FileTag {
+	var fileTags []file.FileTag
 
 	for _, tagID := range tagIDs {
-		fileTags = append(fileTags, &file.FileTag{
-			FileID: fileId,
-			TagID:  tagID,
+		fileTags = append(fileTags, file.FileTag{
+			TagID: tagID,
 		})
 	}
 

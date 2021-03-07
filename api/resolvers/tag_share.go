@@ -30,7 +30,7 @@ func (r *mutationResolver) TagShareCreate(ctx context.Context, input tag_share.T
 		return nil, err
 	}
 
-	return r.Store.TagShare.SaveTagShare(&tag_share.TagShare{
+	return r.Store.TagShare.CreateTagShare(&tag_share.TagShare{
 		ID:          xid.New().String(),
 		TagID:       input.TagID,
 		UserID:      input.UserID,
@@ -66,7 +66,7 @@ func (r *mutationResolver) TagShareUpdate(ctx context.Context, id string, input 
 		tagShareToUpdate.Permissions = input.Permissions
 	}
 
-	return r.Store.TagShare.SaveTagShare(tagShareToUpdate)
+	return r.Store.TagShare.UpdateTagShare(tagShareToUpdate)
 }
 
 func (r *mutationResolver) TagShareDelete(ctx context.Context, id string) (*tag_share.TagShare, error) {
