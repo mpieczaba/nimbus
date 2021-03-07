@@ -1,12 +1,16 @@
 package user
 
-import "github.com/mpieczaba/nimbus/database"
+import (
+	"github.com/mpieczaba/nimbus/database"
+	"github.com/mpieczaba/nimbus/file/file_share"
+)
 
 type User struct {
 	database.Model
-	ID       string `json:"id"  gorm:"type:varchar(20);primaryKey;not null"`
-	Username string `json:"username" gorm:"type:varchar(64);unique;not null"`
-	Password string `gorm:"type:varchar(128);not null"`
+	ID         string `json:"id"  gorm:"type:varchar(20);primaryKey;not null"`
+	Username   string `json:"username" gorm:"type:varchar(64);unique;not null"`
+	Password   string `gorm:"type:varchar(128);not null"`
+	FileShares []file_share.FileShare
 }
 
 type UserInput struct {

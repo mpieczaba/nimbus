@@ -53,22 +53,12 @@ func (s *Store) UpdateFileShare(fileShare *FileShare) (*FileShare, error) {
 	return fileShare, nil
 }
 
-func (s *Store) DeleteFileShare(id string) (*FileShare, error) {
+func (s *Store) DeleteFileShare(query interface{}, args ...interface{}) (*FileShare, error) {
 	var fileShare FileShare
 
-	if err := s.db.Where("id = ?", id).Find(&fileShare).Delete(&fileShare).Error; err != nil {
+	if err := s.db.Where(query, args...).Find(&fileShare).Delete(&fileShare).Error; err != nil {
 		return nil, gqlerror.Errorf("Cannot delete file share!")
 	}
 
 	return &fileShare, nil
-}
-
-func (s *Store) DeleteFileShares(query interface{}, args ...interface{}) ([]*FileShare, error) {
-	var fileShares []*FileShare
-
-	if err := s.db.Where(query, args...).Find(&fileShares).Delete(&fileShares).Error; err != nil {
-		return nil, gqlerror.Errorf("Cannot delete file shares!")
-	}
-
-	return fileShares, nil
 }

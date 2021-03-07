@@ -56,7 +56,7 @@ func (s *Store) UpdateUser(user *User) (*User, error) {
 func (s *Store) DeleteUser(query interface{}, args ...interface{}) (*User, error) {
 	var user User
 
-	if err := s.db.Where(query, args...).First(&user).Delete(&user).Error; err != nil {
+	if err := s.db.Where(query, args...).First(&user).Select("FileShares").Delete(&user).Error; err != nil {
 		return nil, gqlerror.Errorf("User not found!")
 	}
 

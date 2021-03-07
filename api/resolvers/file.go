@@ -45,13 +45,14 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 	}
 
 	return r.Store.File.CreateFile(&file.File{
-		ID:        id.String(),
-		Name:      input.Name,
-		MimeType:  input.File.ContentType,
-		Extension: filepath.Ext(input.File.Filename),
-		Size:      input.File.Size,
-		OwnerID:   claims["id"].(string),
-		Tags:      utils.TagIDsToFileTags(input.Tags),
+		ID:         id.String(),
+		Name:       input.Name,
+		MimeType:   input.File.ContentType,
+		Extension:  filepath.Ext(input.File.Filename),
+		Size:       input.File.Size,
+		OwnerID:    claims["id"].(string),
+		Tags:       utils.TagIDsToFileTags(input.Tags),
+		FileShares: utils.FileShareInputsToFileShares(input.SharedFor),
 	})
 }
 
@@ -90,6 +91,11 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 		fileToUpdate.Tags = utils.TagIDsToFileTags(input.Tags)
 	}
 
+	if len(input.SharedFor) > 0 {
+		// Update file shares
+		fileToUpdate.FileShares = utils.FileShareInputsToFileShares(input.SharedFor)
+	}
+
 	if input.File.File != nil {
 		// Write file in data directory
 		if err = r.Filesystem.WriteFile(fileToUpdate.ID, input.File.File); err != nil {
@@ -114,11 +120,6 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.Fil
 	fileToDelete, err := r.Store.File.DeleteFile("id = ? AND owner_id = ?", id, claims["id"].(string))
 
 	if err != nil {
-		return nil, err
-	}
-
-	// Delete file shares
-	if _, err = r.Store.FileShare.DeleteFileShares("file_id = ?", id); err != nil {
 		return nil, err
 	}
 

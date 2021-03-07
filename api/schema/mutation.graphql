@@ -28,14 +28,8 @@ type Mutation {
 
     # File share
 
-    """Create file share with FileShareInput"""
-    fileShareCreate(input: FileShareInput!): FileShare
-
-    """Update file share with id and FileShareUpdateInput"""
-    fileShareUpdate(id: ID!, input: FileShareUpdateInput!): FileShare
-
     """Delete file share with id"""
-    fileShareDelete(id: ID!): FileShare
+    fileShareDelete(fileId: ID!, userId: ID!): FileShare
 
     # File tag
 
