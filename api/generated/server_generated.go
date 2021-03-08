@@ -730,14 +730,20 @@ input FileUpdateInput {
 `, BuiltIn: false},
 	{Name: "api/schema/file_share.graphql", Input: `type FileShare {
     user: User!
-    permissions: Int!
+    permissions: FileSharePermissions!
     createdAt: Time!
     updatedAt: Time!
 }
 
 input FileShareInput {
     userId: ID!
-    permissions: Int!
+    permissions: FileSharePermissions!
+}
+
+enum FileSharePermissions {
+    CoOwner
+    Editor
+    Viewer
 }
 `, BuiltIn: false},
 	{Name: "api/schema/file_tag.graphql", Input: `    type FileTag {
@@ -1675,9 +1681,9 @@ func (ec *executionContext) _FileShare_permissions(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(file_share.FileSharePermissions)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNFileSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileSharePermissions(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FileShare_createdAt(ctx context.Context, field graphql.CollectedField, obj *file_share.FileShare) (ret graphql.Marshaler) {
@@ -4328,7 +4334,7 @@ func (ec *executionContext) unmarshalInputFileShareInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permissions"))
-			it.Permissions, err = ec.unmarshalNInt2int(ctx, v)
+			it.Permissions, err = ec.unmarshalNFileSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileSharePermissions(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5475,6 +5481,16 @@ func (ec *executionContext) marshalNFileShare2ᚖgithubᚗcomᚋmpieczabaᚋnimb
 func (ec *executionContext) unmarshalNFileShareInput2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShareInput(ctx context.Context, v interface{}) (file_share.FileShareInput, error) {
 	res, err := ec.unmarshalInputFileShareInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNFileSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileSharePermissions(ctx context.Context, v interface{}) (file_share.FileSharePermissions, error) {
+	var res file_share.FileSharePermissions
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFileSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileSharePermissions(ctx context.Context, sel ast.SelectionSet, v file_share.FileSharePermissions) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNFileUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚐFileUpdateInput(ctx context.Context, v interface{}) (file.FileUpdateInput, error) {

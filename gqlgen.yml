@@ -29,6 +29,8 @@ models:
     model: github.com/mpieczaba/nimbus/file/file_share.FileShare
   FileShareInput:
     model: github.com/mpieczaba/nimbus/file/file_share.FileShareInput
+  FileSharePermissions:
+    model: github.com/mpieczaba/nimbus/file/file_share.FileSharePermissions
   FileTag:
     model: github.com/mpieczaba/nimbus/file/file_tag.FileTag
   Tag:
