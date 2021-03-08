@@ -1,7 +1,8 @@
 type FileShare {
-    file: File!
     user: User!
     permissions: Int!
+    createdAt: Time!
+    updatedAt: Time!
 }
 
 input FileShareInput {

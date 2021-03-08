@@ -3,7 +3,6 @@ package resolvers
 import (
 	"context"
 
-	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/file/file_share"
 	"github.com/mpieczaba/nimbus/user"
 )
@@ -34,10 +33,6 @@ func (r *mutationResolver) FileShareDelete(ctx context.Context, fileId string, u
 }
 
 // Field resolver
-
-func (r *fileShareResolver) File(ctx context.Context, obj *file_share.FileShare) (*file.File, error) {
-	return r.Store.File.GetFile("id = ?", obj.FileID)
-}
 
 func (r *fileShareResolver) User(ctx context.Context, obj *file_share.FileShare) (*user.User, error) {
 	return r.Store.User.GetUser("id = ?", obj.UserID)

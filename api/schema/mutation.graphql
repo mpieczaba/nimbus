@@ -28,12 +28,12 @@ type Mutation {
 
     # File share
 
-    """Delete file share with id"""
+    """Delete file share with file id and user id"""
     fileShareDelete(fileId: ID!, userId: ID!): FileShare
 
     # File tag
 
-    """Delete file tag with id"""
+    """Delete file tag with file id and tag id"""
     fileTagDelete(fileId: ID!, tagId: ID!): FileTag
 
     # Tag
@@ -49,12 +49,6 @@ type Mutation {
 
     # Tag share
 
-    """Create tag share with TagShareInput"""
-    tagShareCreate(input: TagShareInput!): TagShare
-
-    """Update tag share with id and TagShareUpdateInput"""
-    tagShareUpdate(id: ID!, input: TagShareUpdateInput!): TagShare
-
-    """Delete tag share with id"""
-    tagShareDelete(id: ID!): TagShare
+    """Delete tag share with tag id and user id"""
+    tagShareDelete(tagId: ID!, userId: ID!): TagShare
 }

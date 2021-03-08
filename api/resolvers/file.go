@@ -51,7 +51,7 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 		Extension:  filepath.Ext(input.File.Filename),
 		Size:       input.File.Size,
 		OwnerID:    claims["id"].(string),
-		Tags:       utils.TagIDsToFileTags(input.Tags),
+		FileTags:   utils.TagIDsToFileTags(input.Tags),
 		FileShares: utils.FileShareInputsToFileShares(input.SharedFor),
 	})
 }
@@ -88,7 +88,7 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 
 	if len(input.Tags) > 0 {
 		// Update file tags
-		fileToUpdate.Tags = utils.TagIDsToFileTags(input.Tags)
+		fileToUpdate.FileTags = utils.TagIDsToFileTags(input.Tags)
 	}
 
 	if len(input.SharedFor) > 0 {

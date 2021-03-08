@@ -37,38 +37,12 @@ func (s *Store) GetAllTagShares(query interface{}, args ...interface{}) ([]*TagS
 	return tagShares, nil
 }
 
-func (s *Store) CreateTagShare(tagShare *TagShare) (*TagShare, error) {
-	if err := s.db.Save(tagShare).Error; err != nil {
-		return nil, gqlerror.Errorf("Cannot create tag share!")
-	}
-
-	return tagShare, nil
-}
-
-func (s *Store) UpdateTagShare(tagShare *TagShare) (*TagShare, error) {
-	if err := s.db.Save(tagShare).Error; err != nil {
-		return nil, gqlerror.Errorf("Cannot update tag share!")
-	}
-
-	return tagShare, nil
-}
-
-func (s *Store) DeleteTagShare(id string) (*TagShare, error) {
+func (s *Store) DeleteTagShare(query interface{}, args ...interface{}) (*TagShare, error) {
 	var tagShare TagShare
 
-	if err := s.db.Where("id = ?", id).Find(&tagShare).Delete(&tagShare).Error; err != nil {
+	if err := s.db.Where(query, args...).Find(&tagShare).Delete(&tagShare).Error; err != nil {
 		return nil, gqlerror.Errorf("Cannot delete tag share!")
 	}
 
 	return &tagShare, nil
-}
-
-func (s *Store) DeleteTagShares(query interface{}, args ...interface{}) ([]*TagShare, error) {
-	var tagShares []*TagShare
-
-	if err := s.db.Where(query, args...).Find(&tagShares).Delete(&tagShares).Error; err != nil {
-		return nil, gqlerror.Errorf("Cannot delete tag share!")
-	}
-
-	return tagShares, nil
 }

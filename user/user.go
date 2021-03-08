@@ -3,6 +3,7 @@ package user
 import (
 	"github.com/mpieczaba/nimbus/database"
 	"github.com/mpieczaba/nimbus/file/file_share"
+	"github.com/mpieczaba/nimbus/tag/tag_share"
 )
 
 type User struct {
@@ -11,6 +12,7 @@ type User struct {
 	Username   string `json:"username" gorm:"type:varchar(64);unique;not null"`
 	Password   string `gorm:"type:varchar(128);not null"`
 	FileShares []file_share.FileShare
+	TagShares  []tag_share.TagShare
 }
 
 type UserInput struct {

@@ -1,16 +1,11 @@
 type TagShare {
-    id: ID!
-    tag: Tag!
     user: User!
     permissions: Int!
+    createdAt: Time!
+    updatedAt: Time!
 }
 
 input TagShareInput {
-    tagId: ID!
     userId: ID!
-    permissions: Int!
-}
-
-input TagShareUpdateInput {
     permissions: Int!
 }

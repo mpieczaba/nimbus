@@ -66,7 +66,7 @@ func (s *Store) UpdateTag(tag *Tag) (*Tag, error) {
 func (s *Store) DeleteTag(query interface{}, args ...interface{}) (*Tag, error) {
 	var tag Tag
 
-	if err := s.db.Where(query, args...).First(&tag).Delete(&tag).Error; err != nil {
+	if err := s.db.Where(query, args...).First(&tag).Select("TagShares").Delete(&tag).Error; err != nil {
 		return nil, gqlerror.Errorf("Tag not found!")
 	}
 

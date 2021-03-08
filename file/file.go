@@ -16,7 +16,7 @@ type File struct {
 	Extension  string `json:"extension" gorm:"type:varchar(10);not null"`
 	Size       int64  `json:"size" gorm:"type:bigint"`
 	OwnerID    string `json:"ownerId" gorm:"type:varchar(20);not null"`
-	Tags       []file_tag.FileTag
+	FileTags   []file_tag.FileTag
 	FileShares []file_share.FileShare
 }
 

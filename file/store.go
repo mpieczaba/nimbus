@@ -66,7 +66,7 @@ func (s *Store) UpdateFile(file *File) (*File, error) {
 func (s *Store) DeleteFile(query interface{}, args ...interface{}) (*File, error) {
 	var file File
 
-	if err := s.db.Where(query, args...).First(&file).Select("Tags", "FileShares").Delete(&file).Error; err != nil {
+	if err := s.db.Where(query, args...).First(&file).Select("FileTags", "FileShares").Delete(&file).Error; err != nil {
 		return nil, gqlerror.Errorf("File not found!")
 	}
 

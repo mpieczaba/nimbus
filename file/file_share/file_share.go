@@ -1,9 +1,12 @@
 package file_share
 
+import "github.com/mpieczaba/nimbus/database"
+
 type FileShare struct {
+	database.Model
 	FileID      string `json:"fileId" gorm:"foreignKey;not null"`
 	UserID      string `json:"userId" gorm:"foreignKey;not null"`
-	Permissions int    `json:"permissions" gorm:"type:int;not null"`
+	Permissions int    `json:"permissions" gorm:"type:tinyint;not null"`
 }
 
 type FileShareInput struct {
