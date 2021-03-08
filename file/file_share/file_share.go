@@ -4,8 +4,8 @@ import "github.com/mpieczaba/nimbus/database"
 
 type FileShare struct {
 	database.Model
-	FileID      string `json:"fileId" gorm:"foreignKey;not null"`
-	UserID      string `json:"userId" gorm:"foreignKey;not null"`
+	FileID      string `json:"fileId" gorm:"foreignKey;uniqueIndex:file_share;not null"`
+	UserID      string `json:"userId" gorm:"foreignKey;uniqueIndex:file_share;not null"`
 	Permissions int    `json:"permissions" gorm:"type:tinyint;not null"`
 }
 

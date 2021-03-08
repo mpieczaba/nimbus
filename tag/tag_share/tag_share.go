@@ -4,8 +4,8 @@ import "github.com/mpieczaba/nimbus/database"
 
 type TagShare struct {
 	database.Model
-	TagID       string `json:"tagId" gorm:"foreignKey;not null"`
-	UserID      string `json:"userId" gorm:"foreignKey;not null"`
+	TagID       string `json:"tagId" gorm:"foreignKey;uniqueIndex:tag_share;not null"`
+	UserID      string `json:"userId" gorm:"foreignKey;uniqueIndex:tag_share;not null"`
 	Permissions int    `json:"permissions" gorm:"type:tinyint;not null"`
 }
 
