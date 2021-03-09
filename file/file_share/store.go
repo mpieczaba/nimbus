@@ -27,6 +27,10 @@ func (s *Store) GetFileShare(query interface{}, args ...interface{}) (*FileShare
 	return &fileShare, nil
 }
 
+func (s *Store) GetFileShareAsSubQuery(query interface{}, args ...interface{}) *gorm.DB {
+	return s.db.Select("file_id").Where(query, args...).Table("file_shares")
+}
+
 func (s *Store) GetAllFileShares(query interface{}, args ...interface{}) ([]*FileShare, error) {
 	var fileShares []*FileShare
 

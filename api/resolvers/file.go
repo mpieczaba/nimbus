@@ -56,6 +56,7 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 	})
 }
 
+// TODO: Fix for editor
 func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file.FileUpdateInput) (*file.File, error) {
 	if err := r.Validator.Validate(input); err != nil {
 		return nil, err
@@ -69,8 +70,15 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 
 	fileToUpdate, err := r.Store.File.GetFile("id = ? AND owner_id = ?", id, claims["id"].(string))
 
+	// Get file to update if user is co-owner
 	if err != nil {
-		return nil, err
+		query := "file_id = ? AND user_id = ? AND permissions = ?"
+
+		fileToUpdate, err = r.Store.File.GetFile("id IN (?)", r.Store.FileShare.GetFileShareAsSubQuery(query, id, claims["id"].(string), "CoOwner"))
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if input.Name != "" {
@@ -119,8 +127,15 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.Fil
 
 	fileToDelete, err := r.Store.File.DeleteFile("id = ? AND owner_id = ?", id, claims["id"].(string))
 
+	// Get file to delete if user is co-owner
 	if err != nil {
-		return nil, err
+		query := "file_id = ? AND user_id = ? AND permissions = ?"
+
+		fileToDelete, err = r.Store.File.DeleteFile("id = ?", r.Store.FileShare.GetFileShareAsSubQuery(query, id, claims["id"].(string), "CoOwner"))
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Delete file in data directory
