@@ -64,11 +64,6 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.T
 	}
 
 	if input.OwnerID != "" {
-		// Check if owner does exist
-		if _, err = r.Store.User.GetUser("id = ?", input.OwnerID); err != nil {
-			return nil, err
-		}
-
 		tagToUpdate.OwnerID = input.OwnerID
 	}
 

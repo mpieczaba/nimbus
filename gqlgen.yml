@@ -43,3 +43,5 @@ models:
     model: github.com/mpieczaba/nimbus/tag/tag_share.TagShare
   TagShareInput:
     model: github.com/mpieczaba/nimbus/tag/tag_share.TagShareInput
+  TagSharePermissions:
+      model: github.com/mpieczaba/nimbus/tag/tag_share.TagSharePermissions

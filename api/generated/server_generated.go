@@ -864,16 +864,20 @@ input TagUpdateInput {
 `, BuiltIn: false},
 	{Name: "api/schema/tag_share.graphql", Input: `type TagShare {
     user: User!
-    permissions: Int!
+    permissions: TagSharePermissions!
     createdAt: Time!
     updatedAt: Time!
 }
 
 input TagShareInput {
     userId: ID!
-    permissions: Int!
+    permissions: TagSharePermissions!
 }
-`, BuiltIn: false},
+
+enum TagSharePermissions {
+    CoOwner
+    Viewer
+}`, BuiltIn: false},
 	{Name: "api/schema/user.graphql", Input: `type User {
     id: ID!
     username: String!
@@ -2935,9 +2939,9 @@ func (ec *executionContext) _TagShare_permissions(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(tag_share.TagSharePermissions)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNTagSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚋtag_shareᚐTagSharePermissions(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TagShare_createdAt(ctx context.Context, field graphql.CollectedField, obj *tag_share.TagShare) (ret graphql.Marshaler) {
@@ -4442,7 +4446,7 @@ func (ec *executionContext) unmarshalInputTagShareInput(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permissions"))
-			it.Permissions, err = ec.unmarshalNInt2int(ctx, v)
+			it.Permissions, err = ec.unmarshalNTagSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚋtag_shareᚐTagSharePermissions(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5543,21 +5547,6 @@ func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast
 	return ret
 }
 
-func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
-	res, err := graphql.UnmarshalInt(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	res := graphql.MarshalInt(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) unmarshalNInt2int64(ctx context.Context, v interface{}) (int64, error) {
 	res, err := graphql.UnmarshalInt64(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5690,6 +5679,16 @@ func (ec *executionContext) marshalNTagShare2ᚖgithubᚗcomᚋmpieczabaᚋnimbu
 func (ec *executionContext) unmarshalNTagShareInput2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚋtag_shareᚐTagShareInput(ctx context.Context, v interface{}) (tag_share.TagShareInput, error) {
 	res, err := ec.unmarshalInputTagShareInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNTagSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚋtag_shareᚐTagSharePermissions(ctx context.Context, v interface{}) (tag_share.TagSharePermissions, error) {
+	var res tag_share.TagSharePermissions
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTagSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚋtag_shareᚐTagSharePermissions(ctx context.Context, sel ast.SelectionSet, v tag_share.TagSharePermissions) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNTagUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚐTagUpdateInput(ctx context.Context, v interface{}) (tag.TagUpdateInput, error) {

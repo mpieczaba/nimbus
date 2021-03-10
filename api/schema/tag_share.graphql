@@ -1,11 +1,16 @@
 type TagShare {
     user: User!
-    permissions: Int!
+    permissions: TagSharePermissions!
     createdAt: Time!
     updatedAt: Time!
 }
 
 input TagShareInput {
     userId: ID!
-    permissions: Int!
+    permissions: TagSharePermissions!
+}
+
+enum TagSharePermissions {
+    CoOwner
+    Viewer
 }

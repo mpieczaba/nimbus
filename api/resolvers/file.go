@@ -86,11 +86,6 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 	}
 
 	if input.OwnerID != "" {
-		// Check if owner does exist
-		if _, err = r.Store.User.GetUser(input.OwnerID); err != nil {
-			return nil, err
-		}
-
 		fileToUpdate.OwnerID = input.OwnerID
 	}
 
