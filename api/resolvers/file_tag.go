@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/mpieczaba/nimbus/file/file_tag"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // Mutation
@@ -15,6 +17,11 @@ func (r *mutationResolver) FileTagDelete(ctx context.Context, fileId string, tag
 		return nil, err
 	}
 
+	// Check if user is banned
+	if claims["kind"].(string) == "Banned" {
+		return nil, gqlerror.Errorf("You have no permissions to delete file tag!")
+	}
+
 	fileTagToDelete, err := r.Store.FileTag.GetFileTag("file_id = ? AND tag_id = ?", fileId, tagId)
 
 	if err != nil {
@@ -22,7 +29,7 @@ func (r *mutationResolver) FileTagDelete(ctx context.Context, fileId string, tag
 	}
 
 	// Check permissions
-	_, err = r.Store.File.GetFile("id = ? AND owner_id = ?", fileTagToDelete.FileID, claims["id"].(string))
+	_, err = r.Store.File.GetFile("id = ? AND (owner_id = ? OR ? = 'Admin')", fileTagToDelete.FileID, claims["id"].(string), claims["kind"].(string))
 
 	if err != nil {
 		return nil, err

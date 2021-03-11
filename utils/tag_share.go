@@ -9,8 +9,8 @@ func TagShareInputsToTagShares(tagShareInputs []tag_share.TagShareInput) []tag_s
 
 	for _, tagShareInput := range tagShareInputs {
 		tagShares = append(tagShares, tag_share.TagShare{
-			UserID:      tagShareInput.UserID,
-			Permissions: tagShareInput.Permissions,
+			UserID:    tagShareInput.UserID,
+			ShareKind: tagShareInput.ShareKind,
 		})
 	}
 

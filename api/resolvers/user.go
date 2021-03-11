@@ -48,10 +48,11 @@ func (r *mutationResolver) UserCreate(ctx context.Context, input user.UserInput)
 		ID:       xid.New().String(),
 		Username: input.Username,
 		Password: string(pass),
+		Kind:     "User",
 	})
 }
 
-func (r *mutationResolver) UserUpdate(ctx context.Context, input user.UserUpdateInput) (*user.User, error) {
+func (r *mutationResolver) UserUpdate(ctx context.Context, id *string, input user.UserUpdateInput) (*user.User, error) {
 	if err := r.Validator.Validate(input); err != nil {
 		return nil, err
 	}
@@ -62,7 +63,20 @@ func (r *mutationResolver) UserUpdate(ctx context.Context, input user.UserUpdate
 		return nil, err
 	}
 
-	userToUpdate, err := r.Store.User.GetUser("id = ?", claims["id"].(string))
+	// Check if user is banned
+	if claims["kind"].(string) == "Banned" {
+		return nil, gqlerror.Errorf("You have no permissions to update user!")
+	}
+
+	var userUpdateID string
+
+	if id != nil && claims["kind"].(string) == "Admin" {
+		userUpdateID = *id
+	} else {
+		userUpdateID = claims["id"].(string)
+	}
+
+	userToUpdate, err := r.Store.User.GetUser("id = ?", userUpdateID)
 
 	if err != nil {
 		return nil, err
@@ -82,17 +96,34 @@ func (r *mutationResolver) UserUpdate(ctx context.Context, input user.UserUpdate
 		userToUpdate.Password = string(pass)
 	}
 
+	if input.Kind != "" && claims["kind"].(string) == "Admin" {
+		userToUpdate.Kind = input.Kind
+	}
+
 	return r.Store.User.UpdateUser(userToUpdate)
 }
 
-func (r *mutationResolver) UserDelete(ctx context.Context) (*user.User, error) {
+func (r *mutationResolver) UserDelete(ctx context.Context, id *string) (*user.User, error) {
 	claims, err := r.Auth.GetClaims()
 
 	if err != nil {
 		return nil, err
 	}
 
-	return r.Store.User.DeleteUser("id = ?", claims["id"].(string))
+	// Check if user is banned
+	if claims["kind"].(string) == "Banned" {
+		return nil, gqlerror.Errorf("You have no permissions to delete user!")
+	}
+
+	var userUpdateID string
+
+	if id != nil && claims["kind"].(string) == "Admin" {
+		userUpdateID = *id
+	} else {
+		userUpdateID = claims["id"].(string)
+	}
+
+	return r.Store.User.DeleteUser("id = ?", userUpdateID)
 }
 
 // Field resolver

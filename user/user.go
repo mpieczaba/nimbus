@@ -13,6 +13,7 @@ type User struct {
 	ID         string      `json:"id"  gorm:"type:varchar(20);primaryKey;not null"`
 	Username   string      `json:"username" gorm:"type:varchar(64);unique;not null"`
 	Password   string      `gorm:"type:varchar(128);not null"`
+	Kind       UserKind    `json:"kind" gorm:"type:varchar(8);not null"`
 	UserFiles  []file.File `gorm:"foreignKey:OwnerID"`
 	FileShares []file_share.FileShare
 	UserTags   []tag.Tag `gorm:"foreignKey:OwnerID"`
@@ -25,6 +26,7 @@ type UserInput struct {
 }
 
 type UserUpdateInput struct {
-	Username string `json:"username" validate:"omitempty,username,min=3,max=64,lowercase"`
-	Password string `json:"password" validate:"omitempty,password,min=8,max=512"`
+	Username string   `json:"username" validate:"omitempty,username,min=3,max=64,lowercase"`
+	Password string   `json:"password" validate:"omitempty,password,min=8,max=512"`
+	Kind     UserKind `json:"kind" validate:"omitempty"`
 }

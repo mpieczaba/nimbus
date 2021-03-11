@@ -6,45 +6,45 @@ import (
 	"strconv"
 )
 
-type FileSharePermissions string
+type FileShareKind string
 
 const (
-	FileSharePermissionsCoOwner FileSharePermissions = "CoOwner"
-	FileSharePermissionsEditor  FileSharePermissions = "Editor"
-	FileSharePermissionsViewer  FileSharePermissions = "Viewer"
+	FileShareKindCoOwner FileShareKind = "CoOwner"
+	FileShareKindEditor  FileShareKind = "Editor"
+	FileShareKindViewer  FileShareKind = "Viewer"
 )
 
-var AllFileSharePermissions = []FileSharePermissions{
-	FileSharePermissionsCoOwner,
-	FileSharePermissionsEditor,
-	FileSharePermissionsViewer,
+var AllFileShareKind = []FileShareKind{
+	FileShareKindCoOwner,
+	FileShareKindEditor,
+	FileShareKindViewer,
 }
 
-func (e FileSharePermissions) IsValid() bool {
+func (e FileShareKind) IsValid() bool {
 	switch e {
-	case FileSharePermissionsCoOwner, FileSharePermissionsEditor, FileSharePermissionsViewer:
+	case FileShareKindCoOwner, FileShareKindEditor, FileShareKindViewer:
 		return true
 	}
 	return false
 }
 
-func (e FileSharePermissions) String() string {
+func (e FileShareKind) String() string {
 	return string(e)
 }
 
-func (e *FileSharePermissions) UnmarshalGQL(v interface{}) error {
+func (e *FileShareKind) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = FileSharePermissions(str)
+	*e = FileShareKind(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid FileSharePermissions", str)
+		return fmt.Errorf("%s is not a valid FileShareKind", str)
 	}
 	return nil
 }
 
-func (e FileSharePermissions) MarshalGQL(w io.Writer) {
+func (e FileShareKind) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

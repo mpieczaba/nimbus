@@ -1,6 +1,7 @@
 type User {
     id: ID!
     username: String!
+    kind: UserKind!
     files: [File!]!
     createdAt: Time!
     updatedAt: Time!
@@ -14,4 +15,11 @@ input UserInput {
 input UserUpdateInput {
     username: String
     password: String
+    kind: UserKind
+}
+
+enum UserKind {
+    Admin
+    User
+    Banned
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/rs/xid"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // Query
@@ -34,6 +35,11 @@ func (r *mutationResolver) TagCreate(ctx context.Context, input tag.TagInput) (*
 		return nil, err
 	}
 
+	// Check if user is banned
+	if claims["kind"].(string) == "Banned" {
+		return nil, gqlerror.Errorf("You have no permissions to create tag!")
+	}
+
 	return r.Store.Tag.CreateTag(&tag.Tag{
 		ID:        xid.New().String(),
 		Name:      input.Name,
@@ -53,11 +59,16 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.T
 		return nil, err
 	}
 
-	tagToUpdate, err := r.Store.Tag.GetTag("id = ? AND owner_id = ?", id, claims["id"].(string))
+	// Check if user is banned
+	if claims["kind"].(string) == "Banned" {
+		return nil, gqlerror.Errorf("You have no permissions to update tag!")
+	}
+
+	tagToUpdate, err := r.Store.Tag.GetTag("id = ? AND (owner_id = ? OR ? = 'Admin')", id, claims["id"].(string), claims["kind"].(string))
 
 	// Get tag to update if user is co-owner
 	if err != nil {
-		query := "tag_id = ? AND user_id = ? AND permissions = ?"
+		query := "tag_id = ? AND user_id = ? AND share_kind = ?"
 
 		if tagToUpdate, err = r.Store.Tag.GetTag("id IN (?)", r.Store.TagShare.GetTagShareAsSubQuery(query, id, claims["id"].(string), "CoOwner")); err != nil {
 			return nil, err
@@ -87,11 +98,16 @@ func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*tag.Tag, 
 		return nil, err
 	}
 
-	tagToDelete, err := r.Store.Tag.DeleteTag("id = ? AND owner_id = ?", id, claims["id"].(string))
+	// Check if user is banned
+	if claims["kind"].(string) == "Banned" {
+		return nil, gqlerror.Errorf("You have no permissions to delete tag!")
+	}
+
+	tagToDelete, err := r.Store.Tag.DeleteTag("id = ? AND (owner_id = ? OR ? = 'Admin')", id, claims["id"].(string), claims["kind"].(string))
 
 	// Get tag to delete if user is co-owner
 	if err != nil {
-		query := "tag_id = ? AND user_id = ? AND permissions = ?"
+		query := "tag_id = ? AND user_id = ? AND share_kind = ?"
 
 		if tagToDelete, err = r.Store.Tag.DeleteTag("id = ?", r.Store.TagShare.GetTagShareAsSubQuery(query, id, claims["id"].(string), "CoOwner")); err != nil {
 			return nil, err

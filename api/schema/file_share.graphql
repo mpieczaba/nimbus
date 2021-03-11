@@ -1,16 +1,16 @@
 type FileShare {
     user: User!
-    permissions: FileSharePermissions!
+    shareKind: FileShareKind!
     createdAt: Time!
     updatedAt: Time!
 }
 
 input FileShareInput {
     userId: ID!
-    permissions: FileSharePermissions!
+    shareKind: FileShareKind!
 }
 
-enum FileSharePermissions {
+enum FileShareKind {
     CoOwner
     Editor
     Viewer

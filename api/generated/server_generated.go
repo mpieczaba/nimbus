@@ -73,10 +73,10 @@ type ComplexityRoot struct {
 	}
 
 	FileShare struct {
-		CreatedAt   func(childComplexity int) int
-		Permissions func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
-		User        func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		ShareKind func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+		User      func(childComplexity int) int
 	}
 
 	FileTag struct {
@@ -96,8 +96,8 @@ type ComplexityRoot struct {
 		TagShareDelete  func(childComplexity int, tagID string, userID string) int
 		TagUpdate       func(childComplexity int, id string, input tag.TagUpdateInput) int
 		UserCreate      func(childComplexity int, input user.UserInput) int
-		UserDelete      func(childComplexity int) int
-		UserUpdate      func(childComplexity int, input user.UserUpdateInput) int
+		UserDelete      func(childComplexity int, id *string) int
+		UserUpdate      func(childComplexity int, id *string, input user.UserUpdateInput) int
 	}
 
 	Query struct {
@@ -120,16 +120,17 @@ type ComplexityRoot struct {
 	}
 
 	TagShare struct {
-		CreatedAt   func(childComplexity int) int
-		Permissions func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
-		User        func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		ShareKind func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+		User      func(childComplexity int) int
 	}
 
 	User struct {
 		CreatedAt func(childComplexity int) int
 		Files     func(childComplexity int) int
 		ID        func(childComplexity int) int
+		Kind      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		Username  func(childComplexity int) int
 	}
@@ -146,8 +147,8 @@ type FileShareResolver interface {
 type MutationResolver interface {
 	Login(ctx context.Context, username string, password string) (*auth.AuthPayload, error)
 	UserCreate(ctx context.Context, input user.UserInput) (*user.User, error)
-	UserUpdate(ctx context.Context, input user.UserUpdateInput) (*user.User, error)
-	UserDelete(ctx context.Context) (*user.User, error)
+	UserUpdate(ctx context.Context, id *string, input user.UserUpdateInput) (*user.User, error)
+	UserDelete(ctx context.Context, id *string) (*user.User, error)
 	FileCreate(ctx context.Context, input file.FileInput) (*file.File, error)
 	FileUpdate(ctx context.Context, id string, input file.FileUpdateInput) (*file.File, error)
 	FileDelete(ctx context.Context, id string) (*file.File, error)
@@ -277,12 +278,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FileShare.CreatedAt(childComplexity), true
 
-	case "FileShare.permissions":
-		if e.complexity.FileShare.Permissions == nil {
+	case "FileShare.shareKind":
+		if e.complexity.FileShare.ShareKind == nil {
 			break
 		}
 
-		return e.complexity.FileShare.Permissions(childComplexity), true
+		return e.complexity.FileShare.ShareKind(childComplexity), true
 
 	case "FileShare.updatedAt":
 		if e.complexity.FileShare.UpdatedAt == nil {
@@ -449,7 +450,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Mutation.UserDelete(childComplexity), true
+		args, err := ec.field_Mutation_userDelete_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UserDelete(childComplexity, args["id"].(*string)), true
 
 	case "Mutation.userUpdate":
 		if e.complexity.Mutation.UserUpdate == nil {
@@ -461,7 +467,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UserUpdate(childComplexity, args["input"].(user.UserUpdateInput)), true
+		return e.complexity.Mutation.UserUpdate(childComplexity, args["id"].(*string), args["input"].(user.UserUpdateInput)), true
 
 	case "Query.file":
 		if e.complexity.Query.File == nil {
@@ -576,12 +582,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TagShare.CreatedAt(childComplexity), true
 
-	case "TagShare.permissions":
-		if e.complexity.TagShare.Permissions == nil {
+	case "TagShare.shareKind":
+		if e.complexity.TagShare.ShareKind == nil {
 			break
 		}
 
-		return e.complexity.TagShare.Permissions(childComplexity), true
+		return e.complexity.TagShare.ShareKind(childComplexity), true
 
 	case "TagShare.updatedAt":
 		if e.complexity.TagShare.UpdatedAt == nil {
@@ -617,6 +623,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.ID(childComplexity), true
+
+	case "User.kind":
+		if e.complexity.User.Kind == nil {
+			break
+		}
+
+		return e.complexity.User.Kind(childComplexity), true
 
 	case "User.updatedAt":
 		if e.complexity.User.UpdatedAt == nil {
@@ -730,17 +743,17 @@ input FileUpdateInput {
 `, BuiltIn: false},
 	{Name: "api/schema/file_share.graphql", Input: `type FileShare {
     user: User!
-    permissions: FileSharePermissions!
+    shareKind: FileShareKind!
     createdAt: Time!
     updatedAt: Time!
 }
 
 input FileShareInput {
     userId: ID!
-    permissions: FileSharePermissions!
+    shareKind: FileShareKind!
 }
 
-enum FileSharePermissions {
+enum FileShareKind {
     CoOwner
     Editor
     Viewer
@@ -761,11 +774,11 @@ enum FileSharePermissions {
     """Sign up user with UserInput"""
     userCreate(input: UserInput!): User
 
-    """Update currently authenticated user with UserUpdateInput"""
-    userUpdate(input: UserUpdateInput!): User
+    """Update user with id or currently authenticated user with UserUpdateInput"""
+    userUpdate(id: ID, input: UserUpdateInput!): User
 
-    """Delete currently authenticated user"""
-    userDelete: User
+    """Delete user with id or currently authenticated user"""
+    userDelete(id: ID): User
 
     # File
 
@@ -864,23 +877,24 @@ input TagUpdateInput {
 `, BuiltIn: false},
 	{Name: "api/schema/tag_share.graphql", Input: `type TagShare {
     user: User!
-    permissions: TagSharePermissions!
+    shareKind: TagShareKind!
     createdAt: Time!
     updatedAt: Time!
 }
 
 input TagShareInput {
     userId: ID!
-    permissions: TagSharePermissions!
+    shareKind: TagShareKind!
 }
 
-enum TagSharePermissions {
+enum TagShareKind {
     CoOwner
     Viewer
 }`, BuiltIn: false},
 	{Name: "api/schema/user.graphql", Input: `type User {
     id: ID!
     username: String!
+    kind: UserKind!
     files: [File!]!
     createdAt: Time!
     updatedAt: Time!
@@ -894,6 +908,13 @@ input UserInput {
 input UserUpdateInput {
     username: String
     password: String
+    kind: UserKind
+}
+
+enum UserKind {
+    Admin
+    User
+    Banned
 }
 `, BuiltIn: false},
 }
@@ -1122,18 +1143,42 @@ func (ec *executionContext) field_Mutation_userCreate_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_userUpdate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_userDelete_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 user.UserUpdateInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUserUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserUpdateInput(ctx, tmp)
+	var arg0 *string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_userUpdate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 user.UserUpdateInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUserUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserUpdateInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -1655,7 +1700,7 @@ func (ec *executionContext) _FileShare_user(ctx context.Context, field graphql.C
 	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _FileShare_permissions(ctx context.Context, field graphql.CollectedField, obj *file_share.FileShare) (ret graphql.Marshaler) {
+func (ec *executionContext) _FileShare_shareKind(ctx context.Context, field graphql.CollectedField, obj *file_share.FileShare) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1673,7 +1718,7 @@ func (ec *executionContext) _FileShare_permissions(ctx context.Context, field gr
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Permissions, nil
+		return obj.ShareKind, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1685,9 +1730,9 @@ func (ec *executionContext) _FileShare_permissions(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(file_share.FileSharePermissions)
+	res := resTmp.(file_share.FileShareKind)
 	fc.Result = res
-	return ec.marshalNFileSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileSharePermissions(ctx, field.Selections, res)
+	return ec.marshalNFileShareKind2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShareKind(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FileShare_createdAt(ctx context.Context, field graphql.CollectedField, obj *file_share.FileShare) (ret graphql.Marshaler) {
@@ -1933,7 +1978,7 @@ func (ec *executionContext) _Mutation_userUpdate(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UserUpdate(rctx, args["input"].(user.UserUpdateInput))
+		return ec.resolvers.Mutation().UserUpdate(rctx, args["id"].(*string), args["input"].(user.UserUpdateInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1963,9 +2008,16 @@ func (ec *executionContext) _Mutation_userDelete(ctx context.Context, field grap
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_userDelete_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UserDelete(rctx)
+		return ec.resolvers.Mutation().UserDelete(rctx, args["id"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2909,7 +2961,7 @@ func (ec *executionContext) _TagShare_user(ctx context.Context, field graphql.Co
 	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _TagShare_permissions(ctx context.Context, field graphql.CollectedField, obj *tag_share.TagShare) (ret graphql.Marshaler) {
+func (ec *executionContext) _TagShare_shareKind(ctx context.Context, field graphql.CollectedField, obj *tag_share.TagShare) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2927,7 +2979,7 @@ func (ec *executionContext) _TagShare_permissions(ctx context.Context, field gra
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Permissions, nil
+		return obj.ShareKind, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2939,9 +2991,9 @@ func (ec *executionContext) _TagShare_permissions(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(tag_share.TagSharePermissions)
+	res := resTmp.(tag_share.TagShareKind)
 	fc.Result = res
-	return ec.marshalNTagSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚋtag_shareᚐTagSharePermissions(ctx, field.Selections, res)
+	return ec.marshalNTagShareKind2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚋtag_shareᚐTagShareKind(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TagShare_createdAt(ctx context.Context, field graphql.CollectedField, obj *tag_share.TagShare) (ret graphql.Marshaler) {
@@ -3082,6 +3134,41 @@ func (ec *executionContext) _User_username(ctx context.Context, field graphql.Co
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_kind(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Kind, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(user.UserKind)
+	fc.Result = res
+	return ec.marshalNUserKind2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserKind(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_files(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
@@ -4334,11 +4421,11 @@ func (ec *executionContext) unmarshalInputFileShareInput(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
-		case "permissions":
+		case "shareKind":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permissions"))
-			it.Permissions, err = ec.unmarshalNFileSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileSharePermissions(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shareKind"))
+			it.ShareKind, err = ec.unmarshalNFileShareKind2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShareKind(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4442,11 +4529,11 @@ func (ec *executionContext) unmarshalInputTagShareInput(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
-		case "permissions":
+		case "shareKind":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permissions"))
-			it.Permissions, err = ec.unmarshalNTagSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚋtag_shareᚐTagSharePermissions(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shareKind"))
+			it.ShareKind, err = ec.unmarshalNTagShareKind2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚋtag_shareᚐTagShareKind(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4539,6 +4626,14 @@ func (ec *executionContext) unmarshalInputUserUpdateInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
 			it.Password, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "kind":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kind"))
+			it.Kind, err = ec.unmarshalOUserKind2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserKind(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4707,8 +4802,8 @@ func (ec *executionContext) _FileShare(ctx context.Context, sel ast.SelectionSet
 				}
 				return res
 			})
-		case "permissions":
-			out.Values[i] = ec._FileShare_permissions(ctx, field, obj)
+		case "shareKind":
+			out.Values[i] = ec._FileShare_shareKind(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -5037,8 +5132,8 @@ func (ec *executionContext) _TagShare(ctx context.Context, sel ast.SelectionSet,
 				}
 				return res
 			})
-		case "permissions":
-			out.Values[i] = ec._TagShare_permissions(ctx, field, obj)
+		case "shareKind":
+			out.Values[i] = ec._TagShare_shareKind(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -5081,6 +5176,11 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "username":
 			out.Values[i] = ec._User_username(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "kind":
+			out.Values[i] = ec._User_kind(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -5487,13 +5587,13 @@ func (ec *executionContext) unmarshalNFileShareInput2githubᚗcomᚋmpieczabaᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNFileSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileSharePermissions(ctx context.Context, v interface{}) (file_share.FileSharePermissions, error) {
-	var res file_share.FileSharePermissions
+func (ec *executionContext) unmarshalNFileShareKind2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShareKind(ctx context.Context, v interface{}) (file_share.FileShareKind, error) {
+	var res file_share.FileShareKind
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNFileSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileSharePermissions(ctx context.Context, sel ast.SelectionSet, v file_share.FileSharePermissions) graphql.Marshaler {
+func (ec *executionContext) marshalNFileShareKind2githubᚗcomᚋmpieczabaᚋnimbusᚋfileᚋfile_shareᚐFileShareKind(ctx context.Context, sel ast.SelectionSet, v file_share.FileShareKind) graphql.Marshaler {
 	return v
 }
 
@@ -5681,13 +5781,13 @@ func (ec *executionContext) unmarshalNTagShareInput2githubᚗcomᚋmpieczabaᚋn
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNTagSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚋtag_shareᚐTagSharePermissions(ctx context.Context, v interface{}) (tag_share.TagSharePermissions, error) {
-	var res tag_share.TagSharePermissions
+func (ec *executionContext) unmarshalNTagShareKind2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚋtag_shareᚐTagShareKind(ctx context.Context, v interface{}) (tag_share.TagShareKind, error) {
+	var res tag_share.TagShareKind
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNTagSharePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚋtag_shareᚐTagSharePermissions(ctx context.Context, sel ast.SelectionSet, v tag_share.TagSharePermissions) graphql.Marshaler {
+func (ec *executionContext) marshalNTagShareKind2githubᚗcomᚋmpieczabaᚋnimbusᚋtagᚋtag_shareᚐTagShareKind(ctx context.Context, sel ast.SelectionSet, v tag_share.TagShareKind) graphql.Marshaler {
 	return v
 }
 
@@ -5780,6 +5880,16 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋ
 func (ec *executionContext) unmarshalNUserInput2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserInput(ctx context.Context, v interface{}) (user.UserInput, error) {
 	res, err := ec.unmarshalInputUserInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUserKind2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserKind(ctx context.Context, v interface{}) (user.UserKind, error) {
+	var res user.UserKind
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUserKind2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserKind(ctx context.Context, sel ast.SelectionSet, v user.UserKind) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNUserUpdateInput2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserUpdateInput(ctx context.Context, v interface{}) (user.UserUpdateInput, error) {
@@ -6137,6 +6247,21 @@ func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast
 	return ret
 }
 
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalID(*v)
+}
+
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6213,6 +6338,16 @@ func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋ
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOUserKind2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserKind(ctx context.Context, v interface{}) (user.UserKind, error) {
+	var res user.UserKind
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUserKind2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserKind(ctx context.Context, sel ast.SelectionSet, v user.UserKind) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

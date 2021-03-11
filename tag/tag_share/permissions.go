@@ -6,43 +6,43 @@ import (
 	"strconv"
 )
 
-type TagSharePermissions string
+type TagShareKind string
 
 const (
-	TagSharePermissionsCoOwner TagSharePermissions = "CoOwner"
-	TagSharePermissionsViewer  TagSharePermissions = "Viewer"
+	TagShareKindCoOwner TagShareKind = "CoOwner"
+	TagShareKindViewer  TagShareKind = "Viewer"
 )
 
-var AllTagSharePermissions = []TagSharePermissions{
-	TagSharePermissionsCoOwner,
-	TagSharePermissionsViewer,
+var AllTagShareKind = []TagShareKind{
+	TagShareKindCoOwner,
+	TagShareKindViewer,
 }
 
-func (e TagSharePermissions) IsValid() bool {
+func (e TagShareKind) IsValid() bool {
 	switch e {
-	case TagSharePermissionsCoOwner, TagSharePermissionsViewer:
+	case TagShareKindCoOwner, TagShareKindViewer:
 		return true
 	}
 	return false
 }
 
-func (e TagSharePermissions) String() string {
+func (e TagShareKind) String() string {
 	return string(e)
 }
 
-func (e *TagSharePermissions) UnmarshalGQL(v interface{}) error {
+func (e *TagShareKind) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = TagSharePermissions(str)
+	*e = TagShareKind(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TagSharePermissions", str)
+		return fmt.Errorf("%s is not a valid TagShareKind", str)
 	}
 	return nil
 }
 
-func (e TagSharePermissions) MarshalGQL(w io.Writer) {
+func (e TagShareKind) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
