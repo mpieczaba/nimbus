@@ -27,6 +27,10 @@ func (s *Store) GetTagShare(query interface{}, args ...interface{}) (*TagShare, 
 	return &tagShare, nil
 }
 
+func (s *Store) GetTagShareAsSubQuery(query interface{}, args ...interface{}) *gorm.DB {
+	return s.db.Select("tag_id").Where(query, args...).Table("tag_shares")
+}
+
 func (s *Store) GetAllTagShares(query interface{}, args ...interface{}) ([]*TagShare, error) {
 	var tagShares []*TagShare
 

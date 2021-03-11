@@ -74,9 +74,7 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 	if err != nil {
 		query := "file_id = ? AND user_id = ? AND permissions = ?"
 
-		fileToUpdate, err = r.Store.File.GetFile("id IN (?)", r.Store.FileShare.GetFileShareAsSubQuery(query, id, claims["id"].(string), "CoOwner"))
-
-		if err != nil {
+		if fileToUpdate, err = r.Store.File.GetFile("id IN (?)", r.Store.FileShare.GetFileShareAsSubQuery(query, id, claims["id"].(string), "CoOwner")); err != nil {
 			return nil, err
 		}
 	}
@@ -126,9 +124,7 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.Fil
 	if err != nil {
 		query := "file_id = ? AND user_id = ? AND permissions = ?"
 
-		fileToDelete, err = r.Store.File.DeleteFile("id = ?", r.Store.FileShare.GetFileShareAsSubQuery(query, id, claims["id"].(string), "CoOwner"))
-
-		if err != nil {
+		if fileToDelete, err = r.Store.File.DeleteFile("id = ?", r.Store.FileShare.GetFileShareAsSubQuery(query, id, claims["id"].(string), "CoOwner")); err != nil {
 			return nil, err
 		}
 	}

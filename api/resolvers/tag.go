@@ -55,8 +55,13 @@ func (r *mutationResolver) TagUpdate(ctx context.Context, id string, input tag.T
 
 	tagToUpdate, err := r.Store.Tag.GetTag("id = ? AND owner_id = ?", id, claims["id"].(string))
 
+	// Get tag to update if user is co-owner
 	if err != nil {
-		return nil, err
+		query := "tag_id = ? AND user_id = ? AND permissions = ?"
+
+		if tagToUpdate, err = r.Store.Tag.GetTag("id IN (?)", r.Store.TagShare.GetTagShareAsSubQuery(query, id, claims["id"].(string), "CoOwner")); err != nil {
+			return nil, err
+		}
 	}
 
 	if input.Name != "" {
@@ -84,8 +89,13 @@ func (r *mutationResolver) TagDelete(ctx context.Context, id string) (*tag.Tag, 
 
 	tagToDelete, err := r.Store.Tag.DeleteTag("id = ? AND owner_id = ?", id, claims["id"].(string))
 
+	// Get tag to delete if user is co-owner
 	if err != nil {
-		return nil, err
+		query := "tag_id = ? AND user_id = ? AND permissions = ?"
+
+		if tagToDelete, err = r.Store.Tag.DeleteTag("id = ?", r.Store.TagShare.GetTagShareAsSubQuery(query, id, claims["id"].(string), "CoOwner")); err != nil {
+			return nil, err
+		}
 	}
 
 	return tagToDelete, nil
