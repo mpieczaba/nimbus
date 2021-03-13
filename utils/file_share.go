@@ -9,8 +9,8 @@ func FileShareInputsToFileShares(fileShareInputs []file_share.FileShareInput) []
 
 	for _, fileShareInput := range fileShareInputs {
 		fileShares = append(fileShares, file_share.FileShare{
-			UserID:      fileShareInput.UserID,
-			Permissions: fileShareInput.Permissions,
+			UserID:    fileShareInput.UserID,
+			ShareKind: fileShareInput.ShareKind,
 		})
 	}
 

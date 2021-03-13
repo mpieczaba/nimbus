@@ -19,6 +19,8 @@ models:
     model: github.com/mpieczaba/nimbus/user.UserInput
   UserUpdateInput:
     model: github.com/mpieczaba/nimbus/user.UserUpdateInput
+  UserKind:
+    model: github.com/mpieczaba/nimbus/user.UserKind
   File:
     model: github.com/mpieczaba/nimbus/file.File
   FileInput:
@@ -29,6 +31,8 @@ models:
     model: github.com/mpieczaba/nimbus/file/file_share.FileShare
   FileShareInput:
     model: github.com/mpieczaba/nimbus/file/file_share.FileShareInput
+  FileShareKind:
+    model: github.com/mpieczaba/nimbus/file/file_share.FileShareKind
   FileTag:
     model: github.com/mpieczaba/nimbus/file/file_tag.FileTag
   Tag:
@@ -41,3 +45,5 @@ models:
     model: github.com/mpieczaba/nimbus/tag/tag_share.TagShare
   TagShareInput:
     model: github.com/mpieczaba/nimbus/tag/tag_share.TagShareInput
+  TagShareKind:
+      model: github.com/mpieczaba/nimbus/tag/tag_share.TagShareKind

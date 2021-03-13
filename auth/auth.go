@@ -31,6 +31,7 @@ func (a *Auth) NewToken(user *user.User) (string, error) {
 
 	claims["id"] = user.ID
 	claims["username"] = user.Username
+	claims["kind"] = user.Kind
 	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 
 	return t.SignedString([]byte(os.Getenv("JWT_SECRET")))

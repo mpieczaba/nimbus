@@ -5,6 +5,8 @@ import (
 
 	"github.com/mpieczaba/nimbus/tag/tag_share"
 	"github.com/mpieczaba/nimbus/user"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // Mutation
@@ -16,6 +18,11 @@ func (r *mutationResolver) TagShareDelete(ctx context.Context, tagId string, use
 		return nil, err
 	}
 
+	// Check if user is banned
+	if claims["kind"].(string) == "Banned" {
+		return nil, gqlerror.Errorf("You have no permissions to delete tag share!")
+	}
+
 	tagShareToDelete, err := r.Store.TagShare.GetTagShare("tag_id = ? AND user_id = ?", tagId, userId)
 
 	if err != nil {
@@ -23,7 +30,7 @@ func (r *mutationResolver) TagShareDelete(ctx context.Context, tagId string, use
 	}
 
 	// Check permissions
-	_, err = r.Store.Tag.GetTag("id = ? AND owner_id = ?", tagShareToDelete.TagID, claims["id"].(string))
+	_, err = r.Store.Tag.GetTag("id = ? AND (owner_id = ? OR ? = 'Admin')", tagShareToDelete.TagID, claims["id"].(string), claims["kind"].(string))
 
 	if err != nil {
 		return nil, err

@@ -37,6 +37,11 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 		return nil, err
 	}
 
+	// Check if user is banned
+	if claims["kind"].(string) == "Banned" {
+		return nil, gqlerror.Errorf("You have no permissions to create file!")
+	}
+
 	id := xid.New()
 
 	// Write file in data directory
@@ -56,6 +61,7 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 	})
 }
 
+// TODO: Fix for editor
 func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file.FileUpdateInput) (*file.File, error) {
 	if err := r.Validator.Validate(input); err != nil {
 		return nil, err
@@ -67,10 +73,20 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 		return nil, err
 	}
 
-	fileToUpdate, err := r.Store.File.GetFile("id = ? AND owner_id = ?", id, claims["id"].(string))
+	// Check if user is banned
+	if claims["kind"].(string) == "Banned" {
+		return nil, gqlerror.Errorf("You have no permissions to update file!")
+	}
 
+	fileToUpdate, err := r.Store.File.GetFile("id = ? AND (owner_id = ? OR ? = 'Admin')", id, claims["id"].(string), claims["kind"].(string))
+
+	// Get file to update if user is co-owner
 	if err != nil {
-		return nil, err
+		query := "file_id = ? AND user_id = ? AND share_kind = ?"
+
+		if fileToUpdate, err = r.Store.File.GetFile("id IN (?)", r.Store.FileShare.GetFileShareAsSubQuery(query, id, claims["id"].(string), "CoOwner")); err != nil {
+			return nil, err
+		}
 	}
 
 	if input.Name != "" {
@@ -78,11 +94,6 @@ func (r *mutationResolver) FileUpdate(ctx context.Context, id string, input file
 	}
 
 	if input.OwnerID != "" {
-		// Check if owner does exist
-		if _, err = r.Store.User.GetUser(input.OwnerID); err != nil {
-			return nil, err
-		}
-
 		fileToUpdate.OwnerID = input.OwnerID
 	}
 
@@ -117,10 +128,20 @@ func (r *mutationResolver) FileDelete(ctx context.Context, id string) (*file.Fil
 		return nil, err
 	}
 
-	fileToDelete, err := r.Store.File.DeleteFile("id = ? AND owner_id = ?", id, claims["id"].(string))
+	// Check if user is banned
+	if claims["kind"].(string) == "Banned" {
+		return nil, gqlerror.Errorf("You have no permissions to delete file!")
+	}
 
+	fileToDelete, err := r.Store.File.DeleteFile("id = ? AND (owner_id = ? OR ? = 'Admin')", id, claims["id"].(string), claims["kind"].(string))
+
+	// Get file to delete if user is co-owner
 	if err != nil {
-		return nil, err
+		query := "file_id = ? AND user_id = ? AND share_kind = ?"
+
+		if fileToDelete, err = r.Store.File.DeleteFile("id = ?", r.Store.FileShare.GetFileShareAsSubQuery(query, id, claims["id"].(string), "CoOwner")); err != nil {
+			return nil, err
+		}
 	}
 
 	// Delete file in data directory
