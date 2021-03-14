@@ -5,6 +5,7 @@ package resolvers
 import (
 	"github.com/mpieczaba/nimbus/api/generated"
 	"github.com/mpieczaba/nimbus/auth"
+	"github.com/mpieczaba/nimbus/cv"
 	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/file/file_share"
 	"github.com/mpieczaba/nimbus/file/file_tag"
@@ -27,6 +28,7 @@ type Store struct {
 type Resolver struct {
 	Store      *Store
 	Auth       *auth.Auth
+	CV         *cv.CV
 	Filesystem *filesystem.Filesystem
 	Validator  *validators.Validator
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/mpieczaba/nimbus/api/generated"
 	"github.com/mpieczaba/nimbus/api/resolvers"
 	"github.com/mpieczaba/nimbus/auth"
+	"github.com/mpieczaba/nimbus/cv"
 	"github.com/mpieczaba/nimbus/database"
 	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/file/file_share"
@@ -65,6 +66,7 @@ func (app *App) Start() {
 			},
 			Auth:       auth.NewAuth(c),
 			Filesystem: fs,
+			CV:         cv.New(),
 			Validator:  validators.New(),
 		}}))
 

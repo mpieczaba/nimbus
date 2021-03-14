@@ -42,6 +42,16 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 		return nil, gqlerror.Errorf("You have no permissions to create file!")
 	}
 
+	var pHash []byte
+
+	// Generate perceptual hash is file is image
+	if utils.IsImage(input.File.ContentType) {
+		if pHash, err = r.CV.PerceptualHash.GetHashFromImage(input.File.File); err != nil {
+			return nil, gqlerror.Errorf("Cannot generate perceptual hash!")
+		}
+
+	}
+
 	id := xid.New()
 
 	// Write file in data directory
@@ -50,14 +60,15 @@ func (r *mutationResolver) FileCreate(ctx context.Context, input file.FileInput)
 	}
 
 	return r.Store.File.CreateFile(&file.File{
-		ID:         id.String(),
-		Name:       input.Name,
-		MimeType:   input.File.ContentType,
-		Extension:  filepath.Ext(input.File.Filename),
-		Size:       input.File.Size,
-		OwnerID:    claims["id"].(string),
-		FileTags:   utils.TagIDsToFileTags(input.Tags),
-		FileShares: utils.FileShareInputsToFileShares(input.SharedFor),
+		ID:             id.String(),
+		Name:           input.Name,
+		MimeType:       input.File.ContentType,
+		Extension:      filepath.Ext(input.File.Filename),
+		Size:           input.File.Size,
+		PerceptualHash: pHash,
+		OwnerID:        claims["id"].(string),
+		FileTags:       utils.TagIDsToFileTags(input.Tags),
+		FileShares:     utils.FileShareInputsToFileShares(input.SharedFor),
 	})
 }
 

@@ -1,6 +1,9 @@
 package cv
 
 import (
+	"io"
+	"io/ioutil"
+
 	"gocv.io/x/gocv"
 	"gocv.io/x/gocv/contrib"
 )
@@ -12,7 +15,13 @@ func NewPerceptualHash() *PerceptualHash {
 	return &PerceptualHash{}
 }
 
-func (p *PerceptualHash) GetHashFromImage(image []byte) ([]byte, error) {
+func (p *PerceptualHash) GetHashFromImage(file io.Reader) ([]byte, error) {
+	image, err := ioutil.ReadAll(file)
+
+	if err != nil {
+		return nil, err
+	}
+
 	var hash contrib.PHash
 
 	result := gocv.NewMat()
