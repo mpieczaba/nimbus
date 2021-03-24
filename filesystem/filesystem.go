@@ -1,7 +1,6 @@
 package filesystem
 
 import (
-	"io"
 	"io/ioutil"
 	"os"
 )
@@ -24,14 +23,8 @@ func (fs *Filesystem) CreateDataDirectory() error {
 	return nil
 }
 
-func (fs *Filesystem) WriteFile(id string, file io.Reader) error {
-	fileContent, err := ioutil.ReadAll(file)
-
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(fs.dataDirectoryPath+"/"+id, fileContent, 0777)
+func (fs *Filesystem) WriteFile(id string, file []byte) error {
+	return ioutil.WriteFile(fs.dataDirectoryPath+"/"+id, file, 0777)
 }
 
 func (fs *Filesystem) ReadFile(id string) ([]byte, error) {
