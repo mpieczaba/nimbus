@@ -50,7 +50,7 @@ func (app *App) Start() {
 	app.http = fiber.New()
 
 	app.http.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Nimbus - extensible storage system with quick access to data")
+		return c.SendString("Nimbus - extensible storage system focused on quick data access")
 	})
 
 	// Set up GraphQL api endpoint

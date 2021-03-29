@@ -16,6 +16,6 @@ func Execute() {
 
 		app.Start()
 	default:
-		fmt.Println("Nimbus - extensible storage system with quick access to data")
+		fmt.Println("Nimbus - extensible storage system focused on quick data access")
 	}
 }
