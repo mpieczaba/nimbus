@@ -18,19 +18,27 @@ func (fs *Filesystem) CreateDataDirectory() error {
 		if err = os.Mkdir(fs.dataDirectoryPath, 0777); err != nil {
 			return err
 		}
+
+		if err = os.Mkdir(fs.dataDirectoryPath+"/files", 0777); err != nil {
+			return err
+		}
+
+		if err = os.Mkdir(fs.dataDirectoryPath+"/classifiers", 0777); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (fs *Filesystem) WriteFile(id string, file []byte) error {
-	return ioutil.WriteFile(fs.dataDirectoryPath+"/"+id, file, 0777)
+	return ioutil.WriteFile(fs.dataDirectoryPath+"/files/"+id, file, 0777)
 }
 
 func (fs *Filesystem) ReadFile(id string) ([]byte, error) {
-	return ioutil.ReadFile(fs.dataDirectoryPath + "/" + id)
+	return ioutil.ReadFile(fs.dataDirectoryPath + "/files/" + id)
 }
 
 func (fs *Filesystem) RemoveFile(id string) error {
-	return os.Remove(fs.dataDirectoryPath + "/" + id)
+	return os.Remove(fs.dataDirectoryPath + "/files/" + id)
 }

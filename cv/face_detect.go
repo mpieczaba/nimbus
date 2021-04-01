@@ -1,19 +1,23 @@
 package cv
 
 import (
+	"os"
+
 	"gocv.io/x/gocv"
 )
 
 type FaceDetect struct {
-	classifier gocv.CascadeClassifier
+	classifier        gocv.CascadeClassifier
+	dataDirectoryPath string
 }
 
 func NewFaceDetect() *FaceDetect {
 	faceDetect := &FaceDetect{
-		classifier: gocv.NewCascadeClassifier(),
+		classifier:        gocv.NewCascadeClassifier(),
+		dataDirectoryPath: os.Getenv("DATA_DIRECTORY_PATH"),
 	}
 
-	if !faceDetect.classifier.Load("./classifiers/haarcascade_frontalface_default.xml") {
+	if !faceDetect.classifier.Load(faceDetect.dataDirectoryPath + "/classifiers/haarcascade_frontalface_default.xml") {
 		panic("Cannot load classifiers!")
 	}
 

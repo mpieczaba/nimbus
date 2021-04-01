@@ -9,7 +9,7 @@ import (
 )
 
 func Connect() *gorm.DB {
-	dsn := os.ExpandEnv("${DB_USER}:${DB_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}?charset=utf8mb4&parseTime=True&loc=Local")
+	dsn := os.ExpandEnv("${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}?charset=utf8mb4&parseTime=True&loc=Local")
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
