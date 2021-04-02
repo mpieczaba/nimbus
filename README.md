@@ -1,7 +1,7 @@
 # Nimbus ☁️
-Nimbus - extensible storage system focused on quick data access
+**Nimbus - extensible storage system focused on quick data access**
 
-### Before you start read the disclaimer (at the end of this file)!
+### Before you start read the disclaimer! (at the bottom of this file)
 
 ## 🚀 Running the app
 1. Make sure that you have installed [Go](https://golang.org/), [GoCV](https://gocv.io/) and [MySQL](https://www.mysql.com/).
@@ -14,6 +14,18 @@ $ git clone https://github.com/mpieczaba/nimbus && cd nimbus
 4. Run the app!
 ```
 $ go run . start
+```
+
+## 🐳 Running the app with Docker
+1. Make sure that you have installed [Docker](https://www.docker.com/) and [Docker Compose](https://github.com/docker/compose).
+2. Clone this repository to your local machine:
+```
+$ git clone https://github.com/mpieczaba/nimbus && cd nimbus
+```
+3. Create .env.docker file. Sample content can be found in the `.env.docker.example` file.
+4. Run the app!
+```
+$ docker-compose up
 ```
 
 ## ❓ How does it work?
@@ -30,6 +42,7 @@ Combined with a robust search engine, Nimbus delivers your files **in the blink 
 ## 🔥 Features
 
 - Easy to use and (wannabe) safe GraphQL API
+- Docker image and Docker Compose support
 - ~~Web service and dashboard~~
 - ~~Event hooks~~
 - ~~Computer vision classifiers~~

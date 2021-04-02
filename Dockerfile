@@ -1,4 +1,4 @@
-FROM golang:1.16-alpine as builder
+FROM golang:1.15-alpine as builder
 
 RUN apk add -U build-base sudo git curl cmake make libc-dev linux-headers pkgconfig ffmpeg-dev gstreamer-dev
 
@@ -30,8 +30,6 @@ RUN pkg-config --cflags --libs opencv4
 
 WORKDIR /src
 
-COPY go.mod go.sum ./
-
 COPY . .
 
 RUN go build -o nimbus .
@@ -44,16 +42,14 @@ COPY --from=builder /usr/local/lib64 /usr/local/lib64
 COPY --from=builder /usr/local/lib64/pkgconfig/opencv4.pc /usr/local/lib64/pkgconfig/opencv4.pc
 COPY --from=builder /usr/local/include/opencv4 /usr/local/include/opencv4
 
-RUN ls /usr/local/lib64
-
 WORKDIR /app
 
 COPY --from=builder /src/nimbus .
 
 ENV PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig
-ENV LD_LIBRARY_PATH=/usr/local/lib64
-ENV CGO_CPPFLAGS=-I/usr/local/include
 ENV CGO_CXXFLAGS="--std=c++1z"
+ENV CGO_CPPFLAGS=-I/usr/local/include
+ENV LD_LIBRARY_PATH=/usr/local/lib64
 ENV CGO_LDFLAGS="-L/usr/local/lib -lopencv_core -lopencv_face -lopencv_videoio -lopencv_imgproc -lopencv_highgui -lopencv_imgcodecs -lopencv_objdetect -lopencv_features2d -lopencv_video -lopencv_dnn -lopencv_xfeatures2d -lopencv_plot -lopencv_tracking"
 
 CMD ["/app/nimbus", "start"]

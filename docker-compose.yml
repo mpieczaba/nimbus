@@ -1,12 +1,12 @@
 version: "3.9"
 services:
-  nimbus:
+  core:
     build:
       context: .
-      dockerfile: .Dockerfile
+      dockerfile: Dockerfile
     restart: always
     volumes:
-    - ./data:/data
+    - data:/data
     ports:
     - 8080:8080
     env_file:
@@ -18,3 +18,5 @@ services:
     restart: always
     env_file:
       - .env.docker
+volumes:
+  data:
