@@ -2,7 +2,7 @@ schema:
   - "api/schema/**/*.graphql"
 
 exec:
-  filename: api/generated/server_generated.go
+  filename: api/generated/generated.go
   package: generated
 
 resolver:
@@ -11,39 +11,3 @@ resolver:
   type: Resolver
 
 models:
-  AuthPayload:
-    model: github.com/mpieczaba/nimbus/auth.AuthPayload
-  User:
-    model: github.com/mpieczaba/nimbus/user.User
-  UserInput:
-    model: github.com/mpieczaba/nimbus/user.UserInput
-  UserUpdateInput:
-    model: github.com/mpieczaba/nimbus/user.UserUpdateInput
-  UserKind:
-    model: github.com/mpieczaba/nimbus/user.UserKind
-  File:
-    model: github.com/mpieczaba/nimbus/file.File
-  FileInput:
-    model: github.com/mpieczaba/nimbus/file.FileInput
-  FileUpdateInput:
-    model: github.com/mpieczaba/nimbus/file.FileUpdateInput
-  FileShare:
-    model: github.com/mpieczaba/nimbus/file/file_share.FileShare
-  FileShareInput:
-    model: github.com/mpieczaba/nimbus/file/file_share.FileShareInput
-  FileShareKind:
-    model: github.com/mpieczaba/nimbus/file/file_share.FileShareKind
-  FileTag:
-    model: github.com/mpieczaba/nimbus/file/file_tag.FileTag
-  Tag:
-    model: github.com/mpieczaba/nimbus/tag.Tag
-  TagInput:
-    model: github.com/mpieczaba/nimbus/tag.TagInput
-  TagUpdateInput:
-    model: github.com/mpieczaba/nimbus/tag.TagUpdateInput
-  TagShare:
-    model: github.com/mpieczaba/nimbus/tag/tag_share.TagShare
-  TagShareInput:
-    model: github.com/mpieczaba/nimbus/tag/tag_share.TagShareInput
-  TagShareKind:
-      model: github.com/mpieczaba/nimbus/tag/tag_share.TagShareKind
