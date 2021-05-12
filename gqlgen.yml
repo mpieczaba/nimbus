@@ -11,3 +11,5 @@ resolver:
   type: Resolver
 
 models:
+  User:
+    model: github.com/mpieczaba/nimbus/user.User

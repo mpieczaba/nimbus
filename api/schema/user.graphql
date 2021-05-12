@@ -1,0 +1,13 @@
+type User {
+    """Unique id"""
+    id: ID!
+
+    """Unique username"""
+    username: String!
+
+    """Create time"""
+    createdAt: Time!
+
+    """Update time"""
+    updatedAt: Time!
+}

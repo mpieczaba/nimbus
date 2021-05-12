@@ -3,6 +3,8 @@ package app
 import (
 	"log"
 
+	"github.com/mpieczaba/nimbus/user"
+
 	"gorm.io/gorm"
 )
 
@@ -18,7 +20,7 @@ func (app *App) Start() {
 	// Connect to database
 	app.db = ConnectToDatabase()
 
-	app.db.AutoMigrate()
+	app.db.AutoMigrate(user.User{})
 
 	// Start http server
 	log.Fatal(ServeHTTP())
