@@ -4,11 +4,13 @@ import (
 	"log"
 	"os"
 
+	"github.com/mpieczaba/nimbus/user"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-func ConnectToDatabase() *gorm.DB {
+func (app *App) ConnectToDatabase() {
 	dsn := os.ExpandEnv("${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}?charset=utf8mb4&parseTime=True&loc=Local")
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -17,7 +19,9 @@ func ConnectToDatabase() *gorm.DB {
 		log.Fatal(err)
 	}
 
-	log.Println("Successfully connected to the database!")
+	app.db = db
 
-	return db
+	app.db.AutoMigrate(user.User{})
+
+	log.Println("Successfully connected to the database!")
 }

@@ -1,3 +1,4 @@
 type Mutation {
-    createUser: User!
+    """Sign up user with UserInput"""
+    createUser(input: UserInput!): User
 }

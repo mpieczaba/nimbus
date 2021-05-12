@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/mpieczaba/nimbus/user"
 	"log"
 	"os"
 
@@ -12,7 +13,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func ServeHTTP() error {
+func (app *App) ServeHTTP() error {
 	http := fiber.New(fiber.Config{DisableStartupMessage: true})
 
 	http.Get("/", func(c *fiber.Ctx) error {
@@ -20,7 +21,11 @@ func ServeHTTP() error {
 	})
 
 	http.All("/graphql", func(c *fiber.Ctx) error {
-		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{}}))
+		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{
+			Store: &resolvers.Store{
+				User: user.NewUserStore(app.db),
+			},
+		}}))
 
 		gqlHandler := srv.Handler()
 

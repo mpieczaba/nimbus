@@ -5,9 +5,26 @@ type User {
     """Unique username"""
     username: String!
 
+    """User kind"""
+    kind: UserKind!
+
     """Create time"""
     createdAt: Time!
 
     """Update time"""
     updatedAt: Time!
+}
+
+input UserInput {
+    """Unique username"""
+    username: String!
+
+    """User password"""
+    password: String!
+}
+
+enum UserKind {
+    Admin
+    User
+    Banned
 }

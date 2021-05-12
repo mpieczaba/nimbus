@@ -1,3 +1,7 @@
 type Query {
-    user(id: ID): User!
+    """Get user by id"""
+    user(id: ID!): User!
+
+    """Get all users"""
+    users: [User!]!
 }
