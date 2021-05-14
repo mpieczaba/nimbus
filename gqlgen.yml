@@ -11,6 +11,8 @@ resolver:
   type: Resolver
 
 models:
+  AuthPayload:
+    model: github.com/mpieczaba/nimbus/auth.AuthPayload
   User:
     model: github.com/mpieczaba/nimbus/user.User
   UserInput:

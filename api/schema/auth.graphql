@@ -1,0 +1,9 @@
+directive @auth on FIELD_DEFINITION
+
+type AuthPayload {
+    """JWT authorization token"""
+    token: String!
+
+    """Signed in user"""
+    user: User!
+}

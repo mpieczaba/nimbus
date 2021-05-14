@@ -1,48 +1,55 @@
 package app
 
 import (
-	"github.com/mpieczaba/nimbus/user"
 	"log"
 	"os"
 
 	"github.com/mpieczaba/nimbus/api/generated"
 	"github.com/mpieczaba/nimbus/api/resolvers"
+	"github.com/mpieczaba/nimbus/auth"
+	"github.com/mpieczaba/nimbus/user"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin"
 )
 
 func (app *App) ServeHTTP() error {
-	http := fiber.New(fiber.Config{DisableStartupMessage: true})
+	if os.Getenv("DEBUG") != "true" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
-	http.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Nimbus - extensible storage system")
+	http := gin.Default()
+
+	http.Use(auth.Middleware())
+
+	http.GET("/", func(c *gin.Context) {
+		c.Writer.WriteString("Nimbus - extensible storage system")
 	})
 
-	http.All("/graphql", func(c *fiber.Ctx) error {
-		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{
-			Store: &resolvers.Store{
-				User: user.NewUserStore(app.db),
-			},
-		}}))
+	var cfg generated.Config
 
-		gqlHandler := srv.Handler()
+	cfg.Resolvers = &resolvers.Resolver{
+		Store: &resolvers.Store{
+			User: user.NewUserStore(app.db),
+		},
+	}
 
-		gqlHandler(c.Context())
+	cfg.Directives.Auth = auth.Directive()
 
-		return nil
+	gqlHandler := handler.NewDefaultServer(generated.NewExecutableSchema(cfg))
+
+	gqlPlayground := playground.Handler("GraphQL playground", "/graphql")
+
+	http.POST("/graphql", func(c *gin.Context) {
+		gqlHandler.ServeHTTP(c.Writer, c.Request)
 	})
 
-	http.Get("/playground", func(c *fiber.Ctx) error {
-		gqlPlayground := playground.Handler("GraphQL playground", "/graphql")
-
-		gqlPlayground(c.Context())
-
-		return nil
+	http.GET("/playground", func(c *gin.Context) {
+		gqlPlayground.ServeHTTP(c.Writer, c.Request)
 	})
 
 	log.Println("Nimbus server listening on http://127.0.0.1:" + os.Getenv("PORT"))
 
-	return http.Listen(":" + os.Getenv("PORT"))
+	return http.Run(":" + os.Getenv("PORT"))
 }
