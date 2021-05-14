@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -41,6 +42,7 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	Auth func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -215,6 +217,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "api/schema/auth.graphql", Input: `directive @auth on FIELD_DEFINITION`, BuiltIn: false},
 	{Name: "api/schema/mutation.graphql", Input: `type Mutation {
     """Sign up user with UserInput"""
     createUser(input: UserInput!): User
@@ -225,8 +228,9 @@ var sources = []*ast.Source{
     user(id: ID!): User!
 
     """Get all users"""
-    users: [User!]!
-}`, BuiltIn: false},
+    users: [User!]! @auth
+}
+`, BuiltIn: false},
 	{Name: "api/schema/schema.graphql", Input: `schema {
     query: Query
     mutation: Mutation
@@ -453,8 +457,28 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Users(rctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Users(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Auth == nil {
+				return nil, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*user.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/mpieczaba/nimbus/user.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
