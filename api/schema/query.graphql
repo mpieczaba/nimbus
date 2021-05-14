@@ -1,6 +1,6 @@
 type Query {
     """Get user by id"""
-    user(id: ID!): User!
+    user(id: ID!): User! @auth
 
     """Get all users"""
     users: [User!]! @auth
