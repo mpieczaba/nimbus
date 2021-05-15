@@ -4,16 +4,15 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/mpieczaba/nimbus/user"
-
 	"github.com/gin-gonic/gin"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 type contextKey struct {
 	name string
 }
 
-var UserCtxKey = &contextKey{"user"}
+var userCtxKey = &contextKey{"user"}
 
 func Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -37,14 +36,20 @@ func Middleware() gin.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(c.Request.Context(), UserCtxKey, &user.User{
-			ID:       claims.ID,
-			Username: claims.Username,
-			Kind:     claims.Kind,
-		})
+		ctx := context.WithValue(c.Request.Context(), userCtxKey, claims)
 
 		c.Request = c.Request.WithContext(ctx)
 
 		c.Next()
 	}
+}
+
+func GetAuthClaimsFromContext(ctx context.Context) (*Claims, error) {
+	claims, ok := ctx.Value(userCtxKey).(*Claims)
+
+	if !ok {
+		return nil, gqlerror.Errorf("User must be signed in!")
+	}
+
+	return claims, nil
 }

@@ -42,3 +42,21 @@ func (s *UserStore) CreateUser(user *User) (*User, error) {
 
 	return user, nil
 }
+
+func (s *UserStore) UpdateUser(user *User) (*User, error) {
+	if err := s.db.Save(user).Error; err != nil {
+		return nil, gqlerror.Errorf("Incorrect form data or user already exists!")
+	}
+
+	return user, nil
+}
+
+func (s *UserStore) DeleteUser(query interface{}, args ...interface{}) (*User, error) {
+	var user User
+
+	if err := s.db.Where(query, args...).First(&user).Delete(&user).Error; err != nil {
+		return nil, gqlerror.Errorf("User not found!")
+	}
+
+	return &user, nil
+}

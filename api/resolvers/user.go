@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mpieczaba/nimbus/api/models"
+	"github.com/mpieczaba/nimbus/auth"
 	"github.com/mpieczaba/nimbus/user"
 
 	"github.com/rs/xid"
@@ -39,9 +40,53 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input user.UserInput)
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, id *string, input user.UserUpdateInput) (*user.User, error) {
-	return nil, gqlerror.Errorf("Not implemented!")
+	claims, _ := auth.GetAuthClaimsFromContext(ctx)
+
+	var userUpdateID string
+
+	if id != nil {
+		userUpdateID = *id
+	} else {
+		userUpdateID = claims.ID
+	}
+
+	userToUpdate, err := r.Store.User.GetUser("id = ?", userUpdateID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if input.Username != "" {
+		userToUpdate.Username = input.Username
+	}
+
+	if input.Password != "" {
+		pass, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+
+		if err != nil {
+			return nil, gqlerror.Errorf("Cannot parse password!")
+		}
+
+		userToUpdate.Password = string(pass)
+	}
+
+	if input.Kind != "" {
+		userToUpdate.Kind = input.Kind
+	}
+
+	return r.Store.User.UpdateUser(userToUpdate)
 }
 
 func (r *mutationResolver) DeleteUser(ctx context.Context, id *string) (*user.User, error) {
-	return nil, gqlerror.Errorf("Not implemented!")
+	claims, _ := auth.GetAuthClaimsFromContext(ctx)
+
+	var userDeleteID string
+
+	if id != nil {
+		userDeleteID = *id
+	} else {
+		userDeleteID = claims.ID
+	}
+
+	return r.Store.User.DeleteUser("id = ?", userDeleteID)
 }
