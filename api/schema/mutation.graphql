@@ -1,7 +1,17 @@
 type Mutation {
+    # Auth
+
     """Sign in user with username and password"""
     login(username: String!, password: String!): AuthPayload!
 
+    # User
+
     """Sign up user with UserInput"""
     createUser(input: UserInput!): User
+
+    """Update user with id or currently authenticated user with UserUpdateInput"""
+    updateUser(id: ID @isAdmin, input: UserUpdateInput!): User @auth
+
+    """Delete user with id or currently authenticated user"""
+    deleteUser(id: ID @isAdmin): User @auth
 }

@@ -2,46 +2,49 @@ package auth
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/mpieczaba/nimbus/user"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/gin-gonic/gin"
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 type contextKey struct {
 	name string
 }
 
-var tokenCtxKey = &contextKey{"token"}
 var UserCtxKey = &contextKey{"user"}
 
-// Middleware that passes authorization token to the @auth directive
 func Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx := context.WithValue(c.Request.Context(), tokenCtxKey, c.GetHeader("Authorization"))
+		token := c.GetHeader("Authorization")
 
-		c.Request = c.Request.WithContext(ctx)
+		if !IsToken(token) {
+			c.Next()
 
-		c.Next()
-	}
-}
-
-func Directive() func(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
-	return func(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
-		claims, err := CheckToken(ctx.Value(tokenCtxKey).(string))
-
-		if err != nil {
-			return nil, gqlerror.Errorf("User must be signed in!")
+			return
 		}
 
-		ctx = context.WithValue(ctx, UserCtxKey, &user.User{
+		claims, err := CheckToken(token)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"message": "User must be signed in!",
+				"data":    nil,
+			})
+
+			return
+		}
+
+		ctx := context.WithValue(c.Request.Context(), UserCtxKey, &user.User{
 			ID:       claims.ID,
 			Username: claims.Username,
 			Kind:     claims.Kind,
 		})
 
-		return next(ctx)
+		c.Request = c.Request.WithContext(ctx)
+
+		c.Next()
 	}
 }

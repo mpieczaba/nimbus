@@ -2,8 +2,13 @@ schema:
   - "api/schema/**/*.graphql"
 
 exec:
-  filename: api/generated/generated.go
-  package: generated
+  filename: api/server/server_gen.go
+  package: server
+
+# Generated models like enums
+model:
+  filename: api/models/models_gen.go
+  package: models
 
 resolver:
   filename: api/resolvers/resolver.go
@@ -17,5 +22,5 @@ models:
     model: github.com/mpieczaba/nimbus/user.User
   UserInput:
     model: github.com/mpieczaba/nimbus/user.UserInput
-  UserKind:
-    model: github.com/mpieczaba/nimbus/user.UserKind
+  UserUpdateInput:
+    model: github.com/mpieczaba/nimbus/user.UserUpdateInput

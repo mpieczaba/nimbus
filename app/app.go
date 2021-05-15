@@ -3,11 +3,13 @@ package app
 import (
 	"log"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type App struct {
-	db *gorm.DB
+	db   *gorm.DB
+	http *gin.Engine
 }
 
 func New() *App {

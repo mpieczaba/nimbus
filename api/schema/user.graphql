@@ -1,3 +1,5 @@
+directive @isAdmin on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
 type User {
     """Unique id"""
     id: ID!
@@ -21,6 +23,17 @@ input UserInput {
 
     """User password"""
     password: String!
+}
+
+input UserUpdateInput {
+    """Unique username"""
+    username: String
+
+    """User password"""
+    password: String
+
+    """User kind - requires admin privileges"""
+    kind: UserKind @isAdmin
 }
 
 enum UserKind {

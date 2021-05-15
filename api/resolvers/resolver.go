@@ -1,7 +1,7 @@
 package resolvers
 
 import (
-	"github.com/mpieczaba/nimbus/api/generated"
+	"github.com/mpieczaba/nimbus/api/server"
 	"github.com/mpieczaba/nimbus/user"
 )
 
@@ -15,10 +15,10 @@ type Resolver struct {
 	Store *Store
 }
 
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
+func (r *Resolver) Query() server.QueryResolver { return &queryResolver{r} }
 
 type queryResolver struct{ *Resolver }
 
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+func (r *Resolver) Mutation() server.MutationResolver { return &mutationResolver{r} }
 
 type mutationResolver struct{ *Resolver }

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mpieczaba/nimbus/api/models"
 	"github.com/mpieczaba/nimbus/user"
 
 	"github.com/form3tech-oss/jwt-go"
@@ -13,9 +14,9 @@ import (
 
 type Claims struct {
 	jwt.StandardClaims
-	ID       string        `json:"id"`
-	Username string        `json:"usr"`
-	Kind     user.UserKind `json:"kind"`
+	ID       string          `json:"id"`
+	Username string          `json:"usr"`
+	Kind     models.UserKind `json:"kind"`
 }
 
 func NewToken(user *user.User) (string, error) {
@@ -31,11 +32,15 @@ func NewToken(user *user.User) (string, error) {
 	return t.SignedString([]byte(os.Getenv("JWT_SECRET")))
 }
 
-func CheckToken(tokenString string) (*Claims, error) {
-	if !strings.HasPrefix(tokenString, "Bearer ") {
-		return nil, fmt.Errorf("Token is not a JWT token!")
+func IsToken(tokenString string) bool {
+	if strings.HasPrefix(tokenString, "Bearer ") {
+		return true
 	}
 
+	return false
+}
+
+func CheckToken(tokenString string) (*Claims, error) {
 	t := strings.Split(tokenString, "Bearer ")[1]
 
 	token, err := jwt.ParseWithClaims(t, &Claims{}, func(token *jwt.Token) (interface{}, error) {

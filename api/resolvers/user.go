@@ -3,6 +3,7 @@ package resolvers
 import (
 	"context"
 
+	"github.com/mpieczaba/nimbus/api/models"
 	"github.com/mpieczaba/nimbus/user"
 
 	"github.com/rs/xid"
@@ -33,6 +34,14 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input user.UserInput)
 		ID:       xid.New().String(),
 		Username: input.Username,
 		Password: string(pass),
-		Kind:     "User",
+		Kind:     models.UserKindUser,
 	})
+}
+
+func (r *mutationResolver) UpdateUser(ctx context.Context, id *string, input user.UserUpdateInput) (*user.User, error) {
+	return nil, gqlerror.Errorf("Not implemented!")
+}
+
+func (r *mutationResolver) DeleteUser(ctx context.Context, id *string) (*user.User, error) {
+	return nil, gqlerror.Errorf("Not implemented!")
 }

@@ -2,10 +2,12 @@ package app
 
 import (
 	"log"
+	"net/http"
 	"os"
 
-	"github.com/mpieczaba/nimbus/api/generated"
+	"github.com/mpieczaba/nimbus/api/directives"
 	"github.com/mpieczaba/nimbus/api/resolvers"
+	"github.com/mpieczaba/nimbus/api/server"
 	"github.com/mpieczaba/nimbus/auth"
 	"github.com/mpieczaba/nimbus/user"
 
@@ -19,15 +21,15 @@ func (app *App) ServeHTTP() error {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	http := gin.Default()
+	app.http = gin.Default()
 
-	http.Use(auth.Middleware())
+	app.http.Use(auth.Middleware())
 
-	http.GET("/", func(c *gin.Context) {
-		c.Writer.WriteString("Nimbus - extensible storage system")
+	app.http.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Nimbus - extensible storage system")
 	})
 
-	var cfg generated.Config
+	var cfg server.Config
 
 	cfg.Resolvers = &resolvers.Resolver{
 		Store: &resolvers.Store{
@@ -35,21 +37,22 @@ func (app *App) ServeHTTP() error {
 		},
 	}
 
-	cfg.Directives.Auth = auth.Directive()
+	cfg.Directives.Auth = directives.Auth()
+	cfg.Directives.IsAdmin = directives.IsAdmin()
 
-	gqlHandler := handler.NewDefaultServer(generated.NewExecutableSchema(cfg))
+	gqlHandler := handler.NewDefaultServer(server.NewExecutableSchema(cfg))
 
 	gqlPlayground := playground.Handler("GraphQL playground", "/graphql")
 
-	http.POST("/graphql", func(c *gin.Context) {
+	app.http.POST("/graphql", func(c *gin.Context) {
 		gqlHandler.ServeHTTP(c.Writer, c.Request)
 	})
 
-	http.GET("/playground", func(c *gin.Context) {
+	app.http.GET("/playground", func(c *gin.Context) {
 		gqlPlayground.ServeHTTP(c.Writer, c.Request)
 	})
 
 	log.Println("Nimbus server listening on http://127.0.0.1:" + os.Getenv("PORT"))
 
-	return http.Run(":" + os.Getenv("PORT"))
+	return app.http.Run(":" + os.Getenv("PORT"))
 }
