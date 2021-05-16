@@ -17,12 +17,12 @@ type User struct {
 }
 
 type UserInput struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required,username,min=3,max=64,lowercase"`
+	Password string `json:"password" validate:"required,password,min=8,max=512"`
 }
 
 type UserUpdateInput struct {
-	Username string          `json:"username"`
-	Password string          `json:"password"`
-	Kind     models.UserKind `json:"kind"`
+	Username string          `json:"username" validate:"omitempty,username,min=3,max=64,lowercase"`
+	Password string          `json:"password" validate:"omitempty,password,min=8,max=512"`
+	Kind     models.UserKind `json:"kind" validate:"omitempty"`
 }

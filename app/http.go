@@ -10,6 +10,7 @@ import (
 	"github.com/mpieczaba/nimbus/api/server"
 	"github.com/mpieczaba/nimbus/auth"
 	"github.com/mpieczaba/nimbus/user"
+	"github.com/mpieczaba/nimbus/validators"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -35,6 +36,7 @@ func (app *App) ServeHTTP() error {
 		Store: &resolvers.Store{
 			User: user.NewUserStore(app.db),
 		},
+		Validator: validators.New(),
 	}
 
 	cfg.Directives.Auth = directives.Auth()

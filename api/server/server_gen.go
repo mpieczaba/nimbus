@@ -363,9 +363,9 @@ input UserUpdateInput {
 }
 
 enum UserKind {
-    Admin
-    User
-    Banned
+    ADMIN
+    USER
+    BANNED
 }
 `, BuiltIn: false},
 }

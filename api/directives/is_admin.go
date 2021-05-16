@@ -3,6 +3,7 @@ package directives
 import (
 	"context"
 
+	"github.com/mpieczaba/nimbus/api/models"
 	"github.com/mpieczaba/nimbus/auth"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -17,7 +18,7 @@ func IsAdmin() func(ctx context.Context, obj interface{}, next graphql.Resolver)
 			return nil, err
 		}
 
-		if claims.Kind != "Admin" {
+		if claims.Kind != models.UserKindAdmin {
 			return nil, gqlerror.Errorf("User must be an admin!")
 		}
 

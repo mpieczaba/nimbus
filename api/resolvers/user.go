@@ -25,6 +25,10 @@ func (r *queryResolver) Users(ctx context.Context) ([]*user.User, error) {
 // Mutation
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input user.UserInput) (*user.User, error) {
+	if err := r.Validator.Validate(input); err != nil {
+		return nil, err
+	}
+
 	pass, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 
 	if err != nil {
@@ -40,6 +44,10 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input user.UserInput)
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, id *string, input user.UserUpdateInput) (*user.User, error) {
+	if err := r.Validator.Validate(input); err != nil {
+		return nil, err
+	}
+
 	claims, _ := auth.GetAuthClaimsFromContext(ctx)
 
 	var userUpdateID string

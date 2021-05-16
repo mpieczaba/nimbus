@@ -11,9 +11,9 @@ import (
 type UserKind string
 
 const (
-	UserKindAdmin  UserKind = "Admin"
-	UserKindUser   UserKind = "User"
-	UserKindBanned UserKind = "Banned"
+	UserKindAdmin  UserKind = "ADMIN"
+	UserKindUser   UserKind = "USER"
+	UserKindBanned UserKind = "BANNED"
 )
 
 var AllUserKind = []UserKind{
