@@ -44,7 +44,7 @@ func Middleware() gin.HandlerFunc {
 	}
 }
 
-func GetAuthClaimsFromContext(ctx context.Context) (*Claims, error) {
+func ClaimsFromContext(ctx context.Context) (*Claims, error) {
 	claims, ok := ctx.Value(userCtxKey).(*Claims)
 
 	if !ok {

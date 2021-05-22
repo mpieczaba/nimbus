@@ -16,6 +16,17 @@ type User struct {
 	DeletedAt *time.Time      `json:"deletedAt"`
 }
 
+type UserConnection struct {
+	Edges    []*UserEdge      `json:"edges"`
+	Nodes    []*User          `json:"nodes"`
+	PageInfo *models.PageInfo `json:"pageInfo"`
+}
+
+type UserEdge struct {
+	Cursor string `json:"cursor"`
+	Node   *User  `json:"node"`
+}
+
 type UserInput struct {
 	Username string `json:"username" validate:"required,username,min=3,max=64,lowercase"`
 	Password string `json:"password" validate:"required,password,min=8,max=512"`

@@ -14,12 +14,22 @@ import (
 
 // Query
 
-func (r *queryResolver) User(ctx context.Context, id string) (*user.User, error) {
-	return r.Store.User.GetUser("id = ?", id)
+func (r *queryResolver) User(ctx context.Context, id *string) (*user.User, error) {
+	var userID string
+
+	if id != nil {
+		userID = *id
+	} else {
+		claims, _ := auth.ClaimsFromContext(ctx)
+
+		userID = claims.ID
+	}
+
+	return r.Store.User.GetUser("id = ?", userID)
 }
 
-func (r *queryResolver) Users(ctx context.Context) ([]*user.User, error) {
-	return r.Store.User.GetAllUsers()
+func (r *queryResolver) Users(ctx context.Context, after, before *string, first, last *int) (*user.UserConnection, error) {
+	return r.Store.User.GetAllUsers(after, before, first, last)
 }
 
 // Mutation
@@ -48,13 +58,13 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id *string, input use
 		return nil, err
 	}
 
-	claims, _ := auth.GetAuthClaimsFromContext(ctx)
-
 	var userUpdateID string
 
 	if id != nil {
 		userUpdateID = *id
 	} else {
+		claims, _ := auth.ClaimsFromContext(ctx)
+
 		userUpdateID = claims.ID
 	}
 
@@ -86,13 +96,13 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id *string, input use
 }
 
 func (r *mutationResolver) DeleteUser(ctx context.Context, id *string) (*user.User, error) {
-	claims, _ := auth.GetAuthClaimsFromContext(ctx)
-
 	var userDeleteID string
 
 	if id != nil {
 		userDeleteID = *id
 	} else {
+		claims, _ := auth.ClaimsFromContext(ctx)
+
 		userDeleteID = claims.ID
 	}
 

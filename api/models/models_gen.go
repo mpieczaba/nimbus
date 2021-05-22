@@ -8,6 +8,11 @@ import (
 	"strconv"
 )
 
+type PageInfo struct {
+	HasNextPage     bool `json:"hasNextPage"`
+	HasPreviousPage bool `json:"hasPreviousPage"`
+}
+
 type UserKind string
 
 const (

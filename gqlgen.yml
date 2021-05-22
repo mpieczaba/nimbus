@@ -20,6 +20,10 @@ models:
     model: github.com/mpieczaba/nimbus/auth.AuthPayload
   User:
     model: github.com/mpieczaba/nimbus/user.User
+  UserConnection:
+    model: github.com/mpieczaba/nimbus/user.UserConnection
+  UserEdge:
+    model: github.com/mpieczaba/nimbus/user.UserEdge
   UserInput:
     model: github.com/mpieczaba/nimbus/user.UserInput
   UserUpdateInput:

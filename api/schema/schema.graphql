@@ -3,4 +3,9 @@ schema {
     mutation: Mutation
 }
 
+type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+}
+
 scalar Time

@@ -10,7 +10,7 @@ import (
 
 func Auth() func(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
 	return func(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
-		if _, err := auth.GetAuthClaimsFromContext(ctx); err != nil {
+		if _, err := auth.ClaimsFromContext(ctx); err != nil {
 			return nil, err
 		}
 

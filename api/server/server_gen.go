@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -61,9 +60,14 @@ type ComplexityRoot struct {
 		UpdateUser func(childComplexity int, id *string, input user.UserUpdateInput) int
 	}
 
+	PageInfo struct {
+		HasNextPage     func(childComplexity int) int
+		HasPreviousPage func(childComplexity int) int
+	}
+
 	Query struct {
-		User  func(childComplexity int, id string) int
-		Users func(childComplexity int) int
+		User  func(childComplexity int, id *string) int
+		Users func(childComplexity int, after *string, before *string, first *int, last *int) int
 	}
 
 	User struct {
@@ -72,6 +76,17 @@ type ComplexityRoot struct {
 		Kind      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		Username  func(childComplexity int) int
+	}
+
+	UserConnection struct {
+		Edges    func(childComplexity int) int
+		Nodes    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	UserEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
 	}
 }
 
@@ -82,8 +97,8 @@ type MutationResolver interface {
 	DeleteUser(ctx context.Context, id *string) (*user.User, error)
 }
 type QueryResolver interface {
-	User(ctx context.Context, id string) (*user.User, error)
-	Users(ctx context.Context) ([]*user.User, error)
+	User(ctx context.Context, id *string) (*user.User, error)
+	Users(ctx context.Context, after *string, before *string, first *int, last *int) (*user.UserConnection, error)
 }
 
 type executableSchema struct {
@@ -163,6 +178,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUser(childComplexity, args["id"].(*string), args["input"].(user.UserUpdateInput)), true
 
+	case "PageInfo.hasNextPage":
+		if e.complexity.PageInfo.HasNextPage == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.HasNextPage(childComplexity), true
+
+	case "PageInfo.hasPreviousPage":
+		if e.complexity.PageInfo.HasPreviousPage == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.HasPreviousPage(childComplexity), true
+
 	case "Query.user":
 		if e.complexity.Query.User == nil {
 			break
@@ -173,14 +202,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.User(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.User(childComplexity, args["id"].(*string)), true
 
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
 			break
 		}
 
-		return e.complexity.Query.Users(childComplexity), true
+		args, err := ec.field_Query_users_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Users(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int)), true
 
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
@@ -216,6 +250,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Username(childComplexity), true
+
+	case "UserConnection.edges":
+		if e.complexity.UserConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.UserConnection.Edges(childComplexity), true
+
+	case "UserConnection.nodes":
+		if e.complexity.UserConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.UserConnection.Nodes(childComplexity), true
+
+	case "UserConnection.pageInfo":
+		if e.complexity.UserConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.UserConnection.PageInfo(childComplexity), true
+
+	case "UserEdge.cursor":
+		if e.complexity.UserEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.UserEdge.Cursor(childComplexity), true
+
+	case "UserEdge.node":
+		if e.complexity.UserEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.UserEdge.Node(childComplexity), true
 
 	}
 	return 0, false
@@ -302,24 +371,36 @@ type AuthPayload {
     """Sign up user with UserInput"""
     createUser(input: UserInput!): User
 
-    """Update user with id or currently authenticated user with UserUpdateInput"""
+    """Update currently authenticated user with UserUpdateInput or user with given id"""
     updateUser(id: ID @isAdmin, input: UserUpdateInput!): User @auth
 
-    """Delete user with id or currently authenticated user"""
+    """Delete currently authenticated user or user with with id"""
     deleteUser(id: ID @isAdmin): User @auth
 }
 `, BuiltIn: false},
 	{Name: "api/schema/query.graphql", Input: `type Query {
-    """Get user by id"""
-    user(id: ID!): User! @auth
+    # User
+
+    """Get user by id or currently authenticated user if no id is specified"""
+    user(id: ID): User @auth
 
     """Get all users"""
-    users: [User!]! @auth
+    users(
+        after: String
+        before: String
+        first: Int
+        last: Int
+    ): UserConnection @auth
 }
 `, BuiltIn: false},
 	{Name: "api/schema/schema.graphql", Input: `schema {
     query: Query
     mutation: Mutation
+}
+
+type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
 }
 
 scalar Time
@@ -341,6 +422,17 @@ type User {
 
     """Update time"""
     updatedAt: Time!
+}
+
+type UserConnection {
+    edges: [UserEdge]
+    nodes: [User]
+    pageInfo: PageInfo!
+}
+
+type UserEdge {
+    cursor: String!
+    node: User!
 }
 
 input UserInput {
@@ -501,15 +593,57 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *string
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_users_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
 	return args, nil
 }
 
@@ -820,6 +954,76 @@ func (ec *executionContext) _Mutation_deleteUser(ctx context.Context, field grap
 	return ec.marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *models.PageInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PageInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasNextPage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PageInfo_hasPreviousPage(ctx context.Context, field graphql.CollectedField, obj *models.PageInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PageInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasPreviousPage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -846,7 +1050,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().User(rctx, args["id"].(string))
+			return ec.resolvers.Query().User(rctx, args["id"].(*string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Auth == nil {
@@ -872,14 +1076,11 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*user.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_users(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -898,10 +1099,17 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_users_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Users(rctx)
+			return ec.resolvers.Query().Users(rctx, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Auth == nil {
@@ -917,24 +1125,21 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.([]*user.User); ok {
+		if data, ok := tmp.(*user.UserConnection); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/mpieczaba/nimbus/user.User`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/mpieczaba/nimbus/user.UserConnection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.([]*user.User)
+	res := resTmp.(*user.UserConnection)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalOUserConnection2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1181,6 +1386,175 @@ func (ec *executionContext) _User_updatedAt(ctx context.Context, field graphql.C
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserConnection_edges(ctx context.Context, field graphql.CollectedField, obj *user.UserConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*user.UserEdge)
+	fc.Result = res
+	return ec.marshalOUserEdge2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *user.UserConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*user.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *user.UserConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋapiᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *user.UserEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserEdge",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserEdge_node(ctx context.Context, field graphql.CollectedField, obj *user.UserEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserEdge",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*user.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2427,6 +2801,38 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
+var pageInfoImplementors = []string{"PageInfo"}
+
+func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *models.PageInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, pageInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PageInfo")
+		case "hasNextPage":
+			out.Values[i] = ec._PageInfo_hasNextPage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "hasPreviousPage":
+			out.Values[i] = ec._PageInfo_hasPreviousPage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -2451,9 +2857,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_user(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "users":
@@ -2465,9 +2868,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_users(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "__type":
@@ -2518,6 +2918,69 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "updatedAt":
 			out.Values[i] = ec._User_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userConnectionImplementors = []string{"UserConnection"}
+
+func (ec *executionContext) _UserConnection(ctx context.Context, sel ast.SelectionSet, obj *user.UserConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserConnection")
+		case "edges":
+			out.Values[i] = ec._UserConnection_edges(ctx, field, obj)
+		case "nodes":
+			out.Values[i] = ec._UserConnection_nodes(ctx, field, obj)
+		case "pageInfo":
+			out.Values[i] = ec._UserConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userEdgeImplementors = []string{"UserEdge"}
+
+func (ec *executionContext) _UserEdge(ctx context.Context, sel ast.SelectionSet, obj *user.UserEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserEdge")
+		case "cursor":
+			out.Values[i] = ec._UserEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "node":
+			out.Values[i] = ec._UserEdge_node(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2821,6 +3284,16 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋapiᚋmodelsᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *models.PageInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PageInfo(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -2849,47 +3322,6 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) marshalNUser2githubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx context.Context, sel ast.SelectionSet, v user.User) graphql.Marshaler {
-	return ec._User(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*user.User) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
 }
 
 func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx context.Context, sel ast.SelectionSet, v *user.User) graphql.Marshaler {
@@ -3190,6 +3622,21 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	return graphql.MarshalID(*v)
 }
 
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalInt(*v)
+}
+
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3214,11 +3661,105 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return graphql.MarshalString(*v)
 }
 
+func (ec *executionContext) marshalOUser2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx context.Context, sel ast.SelectionSet, v []*user.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUser(ctx context.Context, sel ast.SelectionSet, v *user.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUserConnection2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserConnection(ctx context.Context, sel ast.SelectionSet, v *user.UserConnection) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UserConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUserEdge2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserEdge(ctx context.Context, sel ast.SelectionSet, v []*user.UserEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUserEdge2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOUserEdge2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋuserᚐUserEdge(ctx context.Context, sel ast.SelectionSet, v *user.UserEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UserEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOUserKind2githubᚗcomᚋmpieczabaᚋnimbusᚋapiᚋmodelsᚐUserKind(ctx context.Context, v interface{}) (models.UserKind, error) {

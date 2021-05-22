@@ -17,6 +17,17 @@ type User {
     updatedAt: Time!
 }
 
+type UserConnection {
+    edges: [UserEdge]
+    nodes: [User]
+    pageInfo: PageInfo!
+}
+
+type UserEdge {
+    cursor: String!
+    node: User!
+}
+
 input UserInput {
     """Unique username"""
     username: String!

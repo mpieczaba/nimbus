@@ -9,9 +9,9 @@ type Mutation {
     """Sign up user with UserInput"""
     createUser(input: UserInput!): User
 
-    """Update user with id or currently authenticated user with UserUpdateInput"""
+    """Update currently authenticated user with UserUpdateInput or user with given id"""
     updateUser(id: ID @isAdmin, input: UserUpdateInput!): User @auth
 
-    """Delete user with id or currently authenticated user"""
+    """Delete currently authenticated user or user with with id"""
     deleteUser(id: ID @isAdmin): User @auth
 }
