@@ -3,11 +3,13 @@ package app
 import (
 	"log"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type App struct {
-	db *gorm.DB
+	db   *gorm.DB
+	http *gin.Engine
 }
 
 func New() *App {
@@ -16,10 +18,8 @@ func New() *App {
 
 func (app *App) Start() {
 	// Connect to database
-	app.db = ConnectToDatabase()
-
-	app.db.AutoMigrate()
+	app.ConnectToDatabase()
 
 	// Start http server
-	log.Fatal(ServeHTTP())
+	log.Fatal(app.ServeHTTP())
 }

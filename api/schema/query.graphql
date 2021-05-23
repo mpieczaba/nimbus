@@ -1,0 +1,14 @@
+type Query {
+    # User
+
+    """Get user by id or currently authenticated user if no id is specified"""
+    user(id: ID): User @auth
+
+    """Get all users"""
+    users(
+        after: String
+        before: String
+        first: Int
+        last: Int
+    ): UserConnection @auth
+}

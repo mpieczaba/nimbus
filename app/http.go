@@ -2,42 +2,59 @@ package app
 
 import (
 	"log"
+	"net/http"
 	"os"
 
-	"github.com/mpieczaba/nimbus/api/generated"
+	"github.com/mpieczaba/nimbus/api/directives"
 	"github.com/mpieczaba/nimbus/api/resolvers"
+	"github.com/mpieczaba/nimbus/api/server"
+	"github.com/mpieczaba/nimbus/auth"
+	"github.com/mpieczaba/nimbus/user"
+	"github.com/mpieczaba/nimbus/validators"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin"
 )
 
-func ServeHTTP() error {
-	http := fiber.New(fiber.Config{DisableStartupMessage: true})
+func (app *App) ServeHTTP() error {
+	if os.Getenv("DEBUG") != "true" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
-	http.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Nimbus - extensible storage system")
+	app.http = gin.Default()
+
+	app.http.Use(auth.Middleware())
+
+	app.http.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Nimbus - extensible storage system")
 	})
 
-	http.All("/graphql", func(c *fiber.Ctx) error {
-		srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{}}))
+	var cfg server.Config
 
-		gqlHandler := srv.Handler()
+	cfg.Resolvers = &resolvers.Resolver{
+		Store: &resolvers.Store{
+			User: user.NewUserStore(app.db),
+		},
+		Validator: validators.New(),
+	}
 
-		gqlHandler(c.Context())
+	cfg.Directives.Auth = directives.Auth()
+	cfg.Directives.IsAdmin = directives.IsAdmin()
 
-		return nil
+	gqlHandler := handler.NewDefaultServer(server.NewExecutableSchema(cfg))
+
+	gqlPlayground := playground.Handler("GraphQL playground", "/graphql")
+
+	app.http.POST("/graphql", func(c *gin.Context) {
+		gqlHandler.ServeHTTP(c.Writer, c.Request)
 	})
 
-	http.Get("/playground", func(c *fiber.Ctx) error {
-		gqlPlayground := playground.Handler("GraphQL playground", "/graphql")
-
-		gqlPlayground(c.Context())
-
-		return nil
+	app.http.GET("/playground", func(c *gin.Context) {
+		gqlPlayground.ServeHTTP(c.Writer, c.Request)
 	})
 
 	log.Println("Nimbus server listening on http://127.0.0.1:" + os.Getenv("PORT"))
 
-	return http.Listen(":" + os.Getenv("PORT"))
+	return app.http.Run(":" + os.Getenv("PORT"))
 }

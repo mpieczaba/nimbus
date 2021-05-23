@@ -2,8 +2,13 @@ schema:
   - "api/schema/**/*.graphql"
 
 exec:
-  filename: api/generated/generated.go
-  package: generated
+  filename: api/server/server_gen.go
+  package: server
+
+# Generated models like enums
+model:
+  filename: api/models/models_gen.go
+  package: models
 
 resolver:
   filename: api/resolvers/resolver.go
@@ -11,3 +16,15 @@ resolver:
   type: Resolver
 
 models:
+  AuthPayload:
+    model: github.com/mpieczaba/nimbus/auth.AuthPayload
+  User:
+    model: github.com/mpieczaba/nimbus/user.User
+  UserConnection:
+    model: github.com/mpieczaba/nimbus/user.UserConnection
+  UserEdge:
+    model: github.com/mpieczaba/nimbus/user.UserEdge
+  UserInput:
+    model: github.com/mpieczaba/nimbus/user.UserInput
+  UserUpdateInput:
+    model: github.com/mpieczaba/nimbus/user.UserUpdateInput
