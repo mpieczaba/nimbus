@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/user"
 
 	"gorm.io/driver/mysql"
@@ -21,7 +22,7 @@ func (app *App) ConnectToDatabase() {
 
 	app.db = db
 
-	app.db.AutoMigrate(user.User{})
+	app.db.AutoMigrate(user.User{}, file.File{})
 
 	log.Println("Successfully connected to the database!")
 }

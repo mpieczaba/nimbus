@@ -1,0 +1,33 @@
+type File {
+    """Unique id"""
+    id: ID!
+
+    """File name"""
+    name: String!
+
+    """File [mime type](https://www.iana.org/assignments/media-types/media-types.xhtml)"""
+    mimeType: String!
+
+    """File extension"""
+    extension: String!
+
+    """File size"""
+    size: Int!
+
+    """Create time"""
+    createdAt: Time!
+
+    """Update time"""
+    updatedAt: Time!
+}
+
+type FileConnection {
+    edges: [FileEdge]
+    nodes: [File]
+    pageInfo: PageInfo!
+}
+
+type FileEdge {
+    cursor: String!
+    node: File!
+}

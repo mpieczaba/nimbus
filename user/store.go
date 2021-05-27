@@ -36,35 +36,37 @@ func (s *UserStore) GetAllUsers(after, before *string, first, last *int) (*UserC
 		return nil, gqlerror.Errorf("Invalid pagination input or internal database error occurred while getting all users!")
 	}
 
-	userConnection.Nodes = users
+	if len(users) > 0 {
+		userConnection.Nodes = users
 
-	for _, user := range users {
-		cursor, err := paginator.EncodeCursor(user.ID)
+		for _, user := range users {
+			cursor, err := paginator.EncodeCursor(user.ID)
 
-		if err != nil {
-			return nil, gqlerror.Errorf("An error occurred while getting all users!")
+			if err != nil {
+				return nil, gqlerror.Errorf("An error occurred while getting all users!")
+			}
+
+			userConnection.Edges = append(userConnection.Edges, &UserEdge{
+				Cursor: cursor,
+				Node:   user,
+			})
 		}
 
-		userConnection.Edges = append(userConnection.Edges, &UserEdge{
-			Cursor: cursor,
-			Node:   user,
-		})
-	}
+		pageInfo := models.PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		}
 
-	pageInfo := models.PageInfo{
-		HasNextPage:     false,
-		HasPreviousPage: false,
-	}
+		if err := s.db.Model(User{}).Scopes(paginator.GetBefore(users[0].ID)).First(&User{}).Error; err == nil {
+			pageInfo.HasPreviousPage = true
+		}
 
-	if err := s.db.Model(User{}).Scopes(paginator.GetBefore(users[0].ID)).First(&User{}).Error; err == nil {
-		pageInfo.HasPreviousPage = true
-	}
+		if err := s.db.Model(User{}).Scopes(paginator.GetAfter(users[len(users)-1].ID)).First(&User{}).Error; err == nil {
+			pageInfo.HasNextPage = true
+		}
 
-	if err := s.db.Model(User{}).Scopes(paginator.GetAfter(users[len(users)-1].ID)).First(&User{}).Error; err == nil {
-		pageInfo.HasNextPage = true
+		userConnection.PageInfo = &pageInfo
 	}
-
-	userConnection.PageInfo = &pageInfo
 
 	return &userConnection, nil
 }

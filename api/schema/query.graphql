@@ -11,4 +11,17 @@ type Query {
         first: Int
         last: Int
     ): UserConnection @auth
+
+    # File
+
+    """Get file by id"""
+    file(id: ID!): File @auth
+
+    """Get all files"""
+    files(
+        after: String
+        before: String
+        first: Int
+        last: Int
+    ): FileConnection @auth
 }

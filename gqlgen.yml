@@ -28,3 +28,9 @@ models:
     model: github.com/mpieczaba/nimbus/user.UserInput
   UserUpdateInput:
     model: github.com/mpieczaba/nimbus/user.UserUpdateInput
+  File:
+    model: github.com/mpieczaba/nimbus/file.File
+  FileConnection:
+    model: github.com/mpieczaba/nimbus/file.FileConnection
+  FileEdge:
+    model: github.com/mpieczaba/nimbus/file.FileEdge

@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"github.com/mpieczaba/nimbus/api/server"
+	"github.com/mpieczaba/nimbus/file"
 	"github.com/mpieczaba/nimbus/user"
 	"github.com/mpieczaba/nimbus/validators"
 )
@@ -10,6 +11,7 @@ import (
 
 type Store struct {
 	User *user.UserStore
+	File *file.FileStore
 }
 
 type Resolver struct {
