@@ -70,3 +70,11 @@ func (s *FileStore) GetAllFiles(after, before *string, first, last *int) (*FileC
 
 	return &fileConnection, nil
 }
+
+func (s *FileStore) CreateFile(file *File) (*File, error) {
+	if err := s.db.Create(file).Error; err != nil {
+		return nil, gqlerror.Errorf("Incorrect form data or file already exists!")
+	}
+
+	return file, nil
+}

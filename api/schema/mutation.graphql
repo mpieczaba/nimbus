@@ -14,4 +14,9 @@ type Mutation {
 
     """Delete currently authenticated user or user with with id"""
     deleteUser(id: ID @isAdmin): User @auth
+
+    # File
+
+    """Create new File with FileInput"""
+    createFile(input: FileInput!): File
 }

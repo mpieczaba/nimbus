@@ -31,3 +31,11 @@ type FileEdge {
     cursor: String!
     node: File!
 }
+
+input FileInput {
+    """File name (optional)"""
+    name: String
+
+    """File"""
+    file: Upload!
+}

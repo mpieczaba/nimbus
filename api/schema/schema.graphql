@@ -9,3 +9,4 @@ type PageInfo {
 }
 
 scalar Time
+scalar Upload
