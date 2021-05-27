@@ -39,3 +39,11 @@ input FileInput {
     """File"""
     file: Upload!
 }
+
+input FileUpdateInput {
+    """File name"""
+    name: String
+
+    """File"""
+    file: Upload
+}

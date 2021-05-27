@@ -18,5 +18,11 @@ type Mutation {
     # File
 
     """Create new File with FileInput"""
-    createFile(input: FileInput!): File
+    createFile(input: FileInput!): File @auth
+
+    """Update file with id and FileUpdateInput"""
+    updateFile(id: ID!, input: FileUpdateInput!): File @auth
+
+    """Delete file with id"""
+    deleteFile(id: ID!): File @auth
 }

@@ -78,3 +78,21 @@ func (s *FileStore) CreateFile(file *File) (*File, error) {
 
 	return file, nil
 }
+
+func (s *FileStore) UpdateFile(file *File) (*File, error) {
+	if err := s.db.Save(file).Error; err != nil {
+		return nil, gqlerror.Errorf("Incorrect form data or file already exists!")
+	}
+
+	return file, nil
+}
+
+func (s *FileStore) DeleteFile(query interface{}, args ...interface{}) (*File, error) {
+	var file File
+
+	if err := s.db.Where(query, args...).First(&file).Delete(&file).Error; err != nil {
+		return nil, gqlerror.Errorf("File not found!")
+	}
+
+	return &file, nil
+}

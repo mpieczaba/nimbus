@@ -52,3 +52,31 @@ func (r *mutationResolver) CreateFile(ctx context.Context, input file.FileInput)
 		Size:      input.File.Size,
 	})
 }
+
+func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input file.FileUpdateInput) (*file.File, error) {
+	if err := r.Validator.Validate(input); err != nil {
+		return nil, err
+	}
+
+	fileToUpdate, err := r.Store.File.GetFile("id = ?", id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if input.Name != "" {
+		fileToUpdate.Name = input.Name
+	}
+
+	if input.File.File != nil {
+		fileToUpdate.MimeType = input.File.ContentType
+		fileToUpdate.Extension = filepath.Ext(input.File.Filename)
+		fileToUpdate.Size = input.File.Size
+	}
+
+	return r.Store.File.UpdateFile(fileToUpdate)
+}
+
+func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*file.File, error) {
+	return r.Store.File.DeleteFile("id = ?", id)
+}

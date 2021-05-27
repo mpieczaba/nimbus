@@ -36,3 +36,5 @@ models:
     model: github.com/mpieczaba/nimbus/file.FileEdge
   FileInput:
     model: github.com/mpieczaba/nimbus/file.FileInput
+  FileUpdateInput:
+    model: github.com/mpieczaba/nimbus/file.FileUpdateInput
