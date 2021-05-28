@@ -7,7 +7,6 @@ import (
 	"github.com/mpieczaba/nimbus/models"
 
 	"github.com/rs/xid"
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // Query
@@ -84,6 +83,6 @@ func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*models.F
 
 // Field resolver
 
-func (r *fileResolver) Collaborators(ctx context.Context, obj *models.File) (*models.FileCollaboratorConnection, error) {
-	return nil, gqlerror.Errorf("Not implemented!")
+func (r *fileResolver) Collaborators(ctx context.Context, obj *models.File, after, before *string, first, last *int) (*models.FileCollaboratorConnection, error) {
+	return r.Store.FileCollaborator.GetFileCollaborators(after, before, first, last, obj.ID)
 }

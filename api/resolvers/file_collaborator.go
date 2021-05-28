@@ -4,13 +4,22 @@ import (
 	"context"
 
 	"github.com/mpieczaba/nimbus/models"
-
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // Mutation
 
 func (r *mutationResolver) AddFileCollaborator(ctx context.Context, input models.FileCollaboratorInput) (*models.File, error) {
+	if err := r.Validator.Validate(input); err != nil {
+		return nil, err
+	}
 
-	return nil, gqlerror.Errorf("Not implemented!")
+	if _, err := r.Store.FileCollaborator.AddFileCollaborator(&models.FileCollaborator{
+		FileID:         input.FileID,
+		CollaboratorID: input.CollaboratorID,
+		Permission:     input.Permission,
+	}); err != nil {
+		return nil, err
+	}
+
+	return r.Store.File.GetFile("id = ?", input.FileID)
 }

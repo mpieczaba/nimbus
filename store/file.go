@@ -2,7 +2,7 @@ package store
 
 import (
 	"github.com/mpieczaba/nimbus/models"
-	"github.com/mpieczaba/nimbus/utils/paginator"
+	"github.com/mpieczaba/nimbus/store/paginator"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"gorm.io/gorm"

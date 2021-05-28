@@ -33,7 +33,7 @@ func Paginate(after, before *string, first, last *int) func(db *gorm.DB) *gorm.D
 			subQuery.Where("id > ?", cfg.before)
 		}
 
-		return db.Order("id desc").Table("(?) as u", subQuery)
+		return db.Session(&gorm.Session{NewDB: true}).Order("id desc").Table("(?) as u", subQuery)
 	}
 }
 

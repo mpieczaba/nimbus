@@ -14,7 +14,7 @@ type FileCollaborator struct {
 }
 
 type FileCollaboratorInput struct {
-	FileID         string         `json:"fileId"`
-	CollaboratorID string         `json:"collaboratorId"`
+	FileID         string         `json:"fileId" validate:"required,alphanum,len=20"`
+	CollaboratorID string         `json:"collaboratorId" validate:"required,alphanum,len=20"`
 	Permission     FilePermission `json:"permission"`
 }

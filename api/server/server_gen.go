@@ -43,9 +43,8 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-	Auth              func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
-	HasFilePermission func(ctx context.Context, obj interface{}, next graphql.Resolver, permission models.FilePermission) (res interface{}, err error)
-	IsAdmin           func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	Auth    func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	IsAdmin func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -55,7 +54,7 @@ type ComplexityRoot struct {
 	}
 
 	File struct {
-		Collaborators func(childComplexity int) int
+		Collaborators func(childComplexity int, after *string, before *string, first *int, last *int) int
 		CreatedAt     func(childComplexity int) int
 		Extension     func(childComplexity int) int
 		ID            func(childComplexity int) int
@@ -132,7 +131,7 @@ type ComplexityRoot struct {
 }
 
 type FileResolver interface {
-	Collaborators(ctx context.Context, obj *models.File) (*models.FileCollaboratorConnection, error)
+	Collaborators(ctx context.Context, obj *models.File, after *string, before *string, first *int, last *int) (*models.FileCollaboratorConnection, error)
 }
 type MutationResolver interface {
 	Login(ctx context.Context, username string, password string) (*models.AuthPayload, error)
@@ -185,7 +184,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.File.Collaborators(childComplexity), true
+		args, err := ec.field_File_collaborators_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.File.Collaborators(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int)), true
 
 	case "File.createdAt":
 		if e.complexity.File.CreatedAt == nil {
@@ -615,9 +619,7 @@ type AuthPayload {
     user: User!
 }
 `, BuiltIn: false},
-	{Name: "api/schema/file.graphql", Input: `directive @hasFilePermission(permission: FilePermission!) on INPUT_FIELD_DEFINITION
-
-type File {
+	{Name: "api/schema/file.graphql", Input: `type File {
     """Unique id"""
     id: ID!
 
@@ -633,7 +635,13 @@ type File {
     """File size"""
     size: Int!
 
-    collaborators: FileCollaboratorConnection
+    """File collaborators"""
+    collaborators(
+        after: String
+        before: String
+        first: Int
+        last: Int
+    ): FileCollaboratorConnection
 
     """Create time"""
     createdAt: Time!
@@ -663,10 +671,10 @@ input FileInput {
 
 input FileUpdateInput {
     """File name"""
-    name: String @hasFilePermission(permission: MAINTAIN)
+    name: String
 
     """File"""
-    file: Upload @hasFilePermission(permission: WRITE)
+    file: Upload
 }
 
 enum FilePermission {
@@ -726,6 +734,8 @@ input FileCollaboratorInput {
 
     """Delete file with id"""
     deleteFile(id: ID!): File @auth
+
+    # File collaborator
 
     """Add file collaborator with FileCollaboratorInput"""
     addFileCollaborator(input: FileCollaboratorInput!): File @auth
@@ -834,18 +844,45 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) dir_hasFilePermission_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_File_collaborators_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 models.FilePermission
-	if tmp, ok := rawArgs["permission"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
-		arg0, err = ec.unmarshalNFilePermission2githubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx, tmp)
+	var arg0 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["permission"] = arg0
+	args["after"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
 	return args, nil
 }
 
@@ -1454,9 +1491,16 @@ func (ec *executionContext) _File_collaborators(ctx context.Context, field graph
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_File_collaborators_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.File().Collaborators(rctx, obj)
+		return ec.resolvers.File().Collaborators(rctx, obj, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4230,55 +4274,17 @@ func (ec *executionContext) unmarshalInputFileUpdateInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2string(ctx, v) }
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				permission, err := ec.unmarshalNFilePermission2githubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx, "MAINTAIN")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.HasFilePermission == nil {
-					return nil, errors.New("directive hasFilePermission is not implemented")
-				}
-				return ec.directives.HasFilePermission(ctx, obj, directive0, permission)
-			}
-
-			tmp, err := directive1(ctx)
+			it.Name, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
-				return it, graphql.ErrorOnPath(ctx, err)
-			}
-			if data, ok := tmp.(string); ok {
-				it.Name = data
-			} else {
-				err := fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
-				return it, graphql.ErrorOnPath(ctx, err)
+				return it, err
 			}
 		case "file":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
-			directive0 := func(ctx context.Context) (interface{}, error) {
-				return ec.unmarshalOUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
-			}
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				permission, err := ec.unmarshalNFilePermission2githubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx, "WRITE")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.HasFilePermission == nil {
-					return nil, errors.New("directive hasFilePermission is not implemented")
-				}
-				return ec.directives.HasFilePermission(ctx, obj, directive0, permission)
-			}
-
-			tmp, err := directive1(ctx)
+			it.File, err = ec.unmarshalOUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
 			if err != nil {
-				return it, graphql.ErrorOnPath(ctx, err)
-			}
-			if data, ok := tmp.(graphql.Upload); ok {
-				it.File = data
-			} else {
-				err := fmt.Errorf(`unexpected type %T from directive, should be github.com/99designs/gqlgen/graphql.Upload`, tmp)
-				return it, graphql.ErrorOnPath(ctx, err)
+				return it, err
 			}
 		}
 	}

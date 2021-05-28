@@ -15,7 +15,12 @@ type File {
     size: Int!
 
     """File collaborators"""
-    collaborators: FileCollaboratorConnection
+    collaborators(
+        after: String
+        before: String
+        first: Int
+        last: Int
+    ): FileCollaboratorConnection
 
     """Create time"""
     createdAt: Time!
