@@ -4,24 +4,25 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/mpieczaba/nimbus/file"
+	"github.com/mpieczaba/nimbus/models"
 
 	"github.com/rs/xid"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // Query
 
-func (r *queryResolver) File(ctx context.Context, id string) (*file.File, error) {
+func (r *queryResolver) File(ctx context.Context, id string) (*models.File, error) {
 	return r.Store.File.GetFile("id = ?", id)
 }
 
-func (r *queryResolver) Files(ctx context.Context, after, before *string, first, last *int) (*file.FileConnection, error) {
+func (r *queryResolver) Files(ctx context.Context, after, before *string, first, last *int) (*models.FileConnection, error) {
 	return r.Store.File.GetAllFiles(after, before, first, last)
 }
 
 // Mutation
 
-func (r *mutationResolver) CreateFile(ctx context.Context, input file.FileInput) (*file.File, error) {
+func (r *mutationResolver) CreateFile(ctx context.Context, input models.FileInput) (*models.File, error) {
 	if err := r.Validator.Validate(input); err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (r *mutationResolver) CreateFile(ctx context.Context, input file.FileInput)
 		}
 	*/
 
-	return r.Store.File.CreateFile(&file.File{
+	return r.Store.File.CreateFile(&models.File{
 		ID:        xid.New().String(),
 		Name:      fileName,
 		MimeType:  input.File.ContentType,
@@ -53,7 +54,7 @@ func (r *mutationResolver) CreateFile(ctx context.Context, input file.FileInput)
 	})
 }
 
-func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input file.FileUpdateInput) (*file.File, error) {
+func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input models.FileUpdateInput) (*models.File, error) {
 	if err := r.Validator.Validate(input); err != nil {
 		return nil, err
 	}
@@ -77,6 +78,12 @@ func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input file
 	return r.Store.File.UpdateFile(fileToUpdate)
 }
 
-func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*file.File, error) {
+func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*models.File, error) {
 	return r.Store.File.DeleteFile("id = ?", id)
+}
+
+// Field resolver
+
+func (r *fileResolver) Collaborators(ctx context.Context, obj *models.File) (*models.FileCollaboratorConnection, error) {
+	return nil, gqlerror.Errorf("Not implemented!")
 }

@@ -1,7 +1,7 @@
-package user
+package store
 
 import (
-	"github.com/mpieczaba/nimbus/api/models"
+	"github.com/mpieczaba/nimbus/models"
 	"github.com/mpieczaba/nimbus/utils/paginator"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -18,8 +18,8 @@ func NewUserStore(db *gorm.DB) *UserStore {
 	}
 }
 
-func (s *UserStore) GetUser(query interface{}, args ...interface{}) (*User, error) {
-	var user User
+func (s *UserStore) GetUser(query interface{}, args ...interface{}) (*models.User, error) {
+	var user models.User
 
 	if err := s.db.Where(query, args...).First(&user).Error; err != nil {
 		return nil, gqlerror.Errorf("User not found!")
@@ -28,12 +28,17 @@ func (s *UserStore) GetUser(query interface{}, args ...interface{}) (*User, erro
 	return &user, nil
 }
 
-func (s *UserStore) GetAllUsers(after, before *string, first, last *int) (*UserConnection, error) {
-	var userConnection UserConnection
-	var users []*User
+func (s *UserStore) GetAllUsers(after, before *string, first, last *int) (*models.UserConnection, error) {
+	var userConnection models.UserConnection
+	var users []*models.User
 
-	if err := s.db.Model(User{}).Scopes(paginator.Paginate(after, before, first, last)).Find(&users).Error; err != nil {
+	if err := s.db.Model(models.User{}).Scopes(paginator.Paginate(after, before, first, last)).Find(&users).Error; err != nil {
 		return nil, gqlerror.Errorf("Invalid pagination input or internal database error occurred while getting all users!")
+	}
+
+	pageInfo := models.PageInfo{
+		HasNextPage:     false,
+		HasPreviousPage: false,
 	}
 
 	if len(users) > 0 {
@@ -46,32 +51,27 @@ func (s *UserStore) GetAllUsers(after, before *string, first, last *int) (*UserC
 				return nil, gqlerror.Errorf("An error occurred while getting all users!")
 			}
 
-			userConnection.Edges = append(userConnection.Edges, &UserEdge{
+			userConnection.Edges = append(userConnection.Edges, &models.UserEdge{
 				Cursor: cursor,
 				Node:   user,
 			})
 		}
 
-		pageInfo := models.PageInfo{
-			HasNextPage:     false,
-			HasPreviousPage: false,
-		}
-
-		if err := s.db.Model(User{}).Scopes(paginator.GetBefore(users[0].ID)).First(&User{}).Error; err == nil {
+		if err := s.db.Model(models.User{}).Scopes(paginator.GetBefore(users[0].ID)).First(&models.User{}).Error; err == nil {
 			pageInfo.HasPreviousPage = true
 		}
 
-		if err := s.db.Model(User{}).Scopes(paginator.GetAfter(users[len(users)-1].ID)).First(&User{}).Error; err == nil {
+		if err := s.db.Model(models.User{}).Scopes(paginator.GetAfter(users[len(users)-1].ID)).First(&models.User{}).Error; err == nil {
 			pageInfo.HasNextPage = true
 		}
-
-		userConnection.PageInfo = &pageInfo
 	}
+
+	userConnection.PageInfo = &pageInfo
 
 	return &userConnection, nil
 }
 
-func (s *UserStore) CreateUser(user *User) (*User, error) {
+func (s *UserStore) CreateUser(user *models.User) (*models.User, error) {
 	if err := s.db.Create(user).Error; err != nil {
 		return nil, gqlerror.Errorf("Incorrect form data or user already exists!")
 	}
@@ -79,7 +79,7 @@ func (s *UserStore) CreateUser(user *User) (*User, error) {
 	return user, nil
 }
 
-func (s *UserStore) UpdateUser(user *User) (*User, error) {
+func (s *UserStore) UpdateUser(user *models.User) (*models.User, error) {
 	if err := s.db.Save(user).Error; err != nil {
 		return nil, gqlerror.Errorf("Incorrect form data or user already exists!")
 	}
@@ -87,8 +87,8 @@ func (s *UserStore) UpdateUser(user *User) (*User, error) {
 	return user, nil
 }
 
-func (s *UserStore) DeleteUser(query interface{}, args ...interface{}) (*User, error) {
-	var user User
+func (s *UserStore) DeleteUser(query interface{}, args ...interface{}) (*models.User, error) {
+	var user models.User
 
 	if err := s.db.Where(query, args...).First(&user).Delete(&user).Error; err != nil {
 		return nil, gqlerror.Errorf("User not found!")

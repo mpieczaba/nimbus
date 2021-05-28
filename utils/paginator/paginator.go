@@ -39,8 +39,6 @@ func Paginate(after, before *string, first, last *int) func(db *gorm.DB) *gorm.D
 
 func GetBefore(id string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		fmt.Println(id)
-
 		return db.Order("id desc").Where("id > ?", id).Limit(1)
 	}
 }

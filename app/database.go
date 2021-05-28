@@ -4,8 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/mpieczaba/nimbus/file"
-	"github.com/mpieczaba/nimbus/user"
+	"github.com/mpieczaba/nimbus/models"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -22,7 +21,7 @@ func (app *App) ConnectToDatabase() {
 
 	app.db = db
 
-	app.db.AutoMigrate(user.User{}, file.File{})
+	app.db.AutoMigrate(models.User{}, models.File{}, models.FileCollaborator{})
 
 	log.Println("Successfully connected to the database!")
 }

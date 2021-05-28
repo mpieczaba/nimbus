@@ -1,0 +1,22 @@
+type FileCollaboratorConnection {
+    edges: [FileCollaboratorEdge]
+    nodes: [User]
+    pageInfo: PageInfo!
+}
+
+type FileCollaboratorEdge {
+    cursor: String!
+    node: User!
+    permission: FilePermission!
+}
+
+input FileCollaboratorInput {
+    """File id"""
+    fileId: ID!
+
+    """Collaborator user id"""
+    collaboratorId: ID!
+
+    """File permission"""
+    permission: FilePermission!
+}

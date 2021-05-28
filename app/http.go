@@ -9,8 +9,7 @@ import (
 	"github.com/mpieczaba/nimbus/api/resolvers"
 	"github.com/mpieczaba/nimbus/api/server"
 	"github.com/mpieczaba/nimbus/auth"
-	"github.com/mpieczaba/nimbus/file"
-	"github.com/mpieczaba/nimbus/user"
+	"github.com/mpieczaba/nimbus/store"
 	"github.com/mpieczaba/nimbus/validators"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -34,10 +33,7 @@ func (app *App) ServeHTTP() error {
 	var cfg server.Config
 
 	cfg.Resolvers = &resolvers.Resolver{
-		Store: &resolvers.Store{
-			User: user.NewUserStore(app.db),
-			File: file.NewFileStore(app.db),
-		},
+		Store:     store.New(app.db),
 		Validator: validators.New(),
 	}
 

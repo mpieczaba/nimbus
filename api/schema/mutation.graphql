@@ -25,4 +25,9 @@ type Mutation {
 
     """Delete file with id"""
     deleteFile(id: ID!): File @auth
+
+    # File collaborator
+
+    """Add file collaborator with FileCollaboratorInput"""
+    addFileCollaborator(input: FileCollaboratorInput!): File @auth
 }

@@ -5,9 +5,9 @@ exec:
   filename: api/server/server_gen.go
   package: server
 
-# Generated models like enums
+# Generated models
 model:
-  filename: api/models/models_gen.go
+  filename: models/models_gen.go
   package: models
 
 resolver:
@@ -15,26 +15,5 @@ resolver:
   package: resolvers
   type: Resolver
 
-models:
-  AuthPayload:
-    model: github.com/mpieczaba/nimbus/auth.AuthPayload
-  User:
-    model: github.com/mpieczaba/nimbus/user.User
-  UserConnection:
-    model: github.com/mpieczaba/nimbus/user.UserConnection
-  UserEdge:
-    model: github.com/mpieczaba/nimbus/user.UserEdge
-  UserInput:
-    model: github.com/mpieczaba/nimbus/user.UserInput
-  UserUpdateInput:
-    model: github.com/mpieczaba/nimbus/user.UserUpdateInput
-  File:
-    model: github.com/mpieczaba/nimbus/file.File
-  FileConnection:
-    model: github.com/mpieczaba/nimbus/file.FileConnection
-  FileEdge:
-    model: github.com/mpieczaba/nimbus/file.FileEdge
-  FileInput:
-    model: github.com/mpieczaba/nimbus/file.FileInput
-  FileUpdateInput:
-    model: github.com/mpieczaba/nimbus/file.FileUpdateInput
+autobind:
+  - "github.com/mpieczaba/nimbus/models"

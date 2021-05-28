@@ -3,8 +3,8 @@ package directives
 import (
 	"context"
 
-	"github.com/mpieczaba/nimbus/api/models"
 	"github.com/mpieczaba/nimbus/auth"
+	"github.com/mpieczaba/nimbus/models"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/v2/gqlerror"

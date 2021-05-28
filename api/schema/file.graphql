@@ -14,6 +14,9 @@ type File {
     """File size"""
     size: Int!
 
+    """File collaborators"""
+    collaborators: FileCollaboratorConnection
+
     """Create time"""
     createdAt: Time!
 
@@ -46,4 +49,11 @@ input FileUpdateInput {
 
     """File"""
     file: Upload
+}
+
+enum FilePermission {
+    ADMIN
+    MAINTAIN
+    WRITE
+    READ
 }

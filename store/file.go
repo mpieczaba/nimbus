@@ -1,7 +1,7 @@
-package file
+package store
 
 import (
-	"github.com/mpieczaba/nimbus/api/models"
+	"github.com/mpieczaba/nimbus/models"
 	"github.com/mpieczaba/nimbus/utils/paginator"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -18,8 +18,8 @@ func NewFileStore(db *gorm.DB) *FileStore {
 	}
 }
 
-func (s *FileStore) GetFile(query interface{}, args ...interface{}) (*File, error) {
-	var file File
+func (s *FileStore) GetFile(query interface{}, args ...interface{}) (*models.File, error) {
+	var file models.File
 
 	if err := s.db.Where(query, args...).First(&file).Error; err != nil {
 		return nil, gqlerror.Errorf("File not found!")
@@ -28,12 +28,17 @@ func (s *FileStore) GetFile(query interface{}, args ...interface{}) (*File, erro
 	return &file, nil
 }
 
-func (s *FileStore) GetAllFiles(after, before *string, first, last *int) (*FileConnection, error) {
-	var fileConnection FileConnection
-	var files []*File
+func (s *FileStore) GetAllFiles(after, before *string, first, last *int) (*models.FileConnection, error) {
+	var fileConnection models.FileConnection
+	var files []*models.File
 
-	if err := s.db.Model(File{}).Scopes(paginator.Paginate(after, before, first, last)).Find(&files).Error; err != nil {
+	if err := s.db.Model(models.File{}).Scopes(paginator.Paginate(after, before, first, last)).Find(&files).Error; err != nil {
 		return nil, gqlerror.Errorf("Invalid pagination input or internal database error occurred while getting all files!")
+	}
+
+	pageInfo := models.PageInfo{
+		HasNextPage:     false,
+		HasPreviousPage: false,
 	}
 
 	if len(files) > 0 {
@@ -46,32 +51,27 @@ func (s *FileStore) GetAllFiles(after, before *string, first, last *int) (*FileC
 				return nil, gqlerror.Errorf("An error occurred while getting all files!")
 			}
 
-			fileConnection.Edges = append(fileConnection.Edges, &FileEdge{
+			fileConnection.Edges = append(fileConnection.Edges, &models.FileEdge{
 				Cursor: cursor,
 				Node:   file,
 			})
 		}
 
-		pageInfo := models.PageInfo{
-			HasNextPage:     false,
-			HasPreviousPage: false,
-		}
-
-		if err := s.db.Model(File{}).Scopes(paginator.GetBefore(files[0].ID)).First(&File{}).Error; err == nil {
+		if err := s.db.Model(models.File{}).Scopes(paginator.GetBefore(files[0].ID)).First(&models.File{}).Error; err == nil {
 			pageInfo.HasPreviousPage = true
 		}
 
-		if err := s.db.Model(File{}).Scopes(paginator.GetAfter(files[len(files)-1].ID)).First(&File{}).Error; err == nil {
+		if err := s.db.Model(models.File{}).Scopes(paginator.GetAfter(files[len(files)-1].ID)).First(&models.File{}).Error; err == nil {
 			pageInfo.HasNextPage = true
 		}
-
-		fileConnection.PageInfo = &pageInfo
 	}
+
+	fileConnection.PageInfo = &pageInfo
 
 	return &fileConnection, nil
 }
 
-func (s *FileStore) CreateFile(file *File) (*File, error) {
+func (s *FileStore) CreateFile(file *models.File) (*models.File, error) {
 	if err := s.db.Create(file).Error; err != nil {
 		return nil, gqlerror.Errorf("Incorrect form data or file already exists!")
 	}
@@ -79,7 +79,7 @@ func (s *FileStore) CreateFile(file *File) (*File, error) {
 	return file, nil
 }
 
-func (s *FileStore) UpdateFile(file *File) (*File, error) {
+func (s *FileStore) UpdateFile(file *models.File) (*models.File, error) {
 	if err := s.db.Save(file).Error; err != nil {
 		return nil, gqlerror.Errorf("Incorrect form data or file already exists!")
 	}
@@ -87,8 +87,8 @@ func (s *FileStore) UpdateFile(file *File) (*File, error) {
 	return file, nil
 }
 
-func (s *FileStore) DeleteFile(query interface{}, args ...interface{}) (*File, error) {
-	var file File
+func (s *FileStore) DeleteFile(query interface{}, args ...interface{}) (*models.File, error) {
+	var file models.File
 
 	if err := s.db.Where(query, args...).First(&file).Delete(&file).Error; err != nil {
 		return nil, gqlerror.Errorf("File not found!")

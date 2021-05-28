@@ -2,20 +2,14 @@ package resolvers
 
 import (
 	"github.com/mpieczaba/nimbus/api/server"
-	"github.com/mpieczaba/nimbus/file"
-	"github.com/mpieczaba/nimbus/user"
+	"github.com/mpieczaba/nimbus/store"
 	"github.com/mpieczaba/nimbus/validators"
 )
 
 //go:generate go run github.com/99designs/gqlgen
 
-type Store struct {
-	User *user.UserStore
-	File *file.FileStore
-}
-
 type Resolver struct {
-	Store     *Store
+	Store     *store.Store
 	Validator *validators.Validator
 }
 
@@ -26,3 +20,7 @@ type queryResolver struct{ *Resolver }
 func (r *Resolver) Mutation() server.MutationResolver { return &mutationResolver{r} }
 
 type mutationResolver struct{ *Resolver }
+
+func (r *Resolver) File() server.FileResolver { return &fileResolver{r} }
+
+type fileResolver struct{ *Resolver }

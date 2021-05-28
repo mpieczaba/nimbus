@@ -6,8 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mpieczaba/nimbus/api/models"
-	"github.com/mpieczaba/nimbus/user"
+	"github.com/mpieczaba/nimbus/models"
 
 	"github.com/form3tech-oss/jwt-go"
 )
@@ -19,7 +18,7 @@ type Claims struct {
 	Kind     models.UserKind `json:"kind"`
 }
 
-func NewToken(user *user.User) (string, error) {
+func NewToken(user *models.User) (string, error) {
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		ID:       user.ID,
 		Username: user.Username,
