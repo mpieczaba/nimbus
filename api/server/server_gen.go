@@ -54,7 +54,7 @@ type ComplexityRoot struct {
 	}
 
 	File struct {
-		Collaborators func(childComplexity int, after *string, before *string, first *int, last *int) int
+		Collaborators func(childComplexity int, after *string, before *string, first *int, last *int, permission *models.FilePermission) int
 		CreatedAt     func(childComplexity int) int
 		Extension     func(childComplexity int) int
 		ID            func(childComplexity int) int
@@ -105,7 +105,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		File  func(childComplexity int, id string) int
-		Files func(childComplexity int, after *string, before *string, first *int, last *int) int
+		Files func(childComplexity int, after *string, before *string, first *int, last *int, permission *models.FilePermission, collaboratorID *string) int
 		User  func(childComplexity int, id *string) int
 		Users func(childComplexity int, after *string, before *string, first *int, last *int) int
 	}
@@ -131,7 +131,7 @@ type ComplexityRoot struct {
 }
 
 type FileResolver interface {
-	Collaborators(ctx context.Context, obj *models.File, after *string, before *string, first *int, last *int) (*models.FileCollaboratorConnection, error)
+	Collaborators(ctx context.Context, obj *models.File, after *string, before *string, first *int, last *int, permission *models.FilePermission) (*models.FileCollaboratorConnection, error)
 }
 type MutationResolver interface {
 	Login(ctx context.Context, username string, password string) (*models.AuthPayload, error)
@@ -147,7 +147,7 @@ type QueryResolver interface {
 	User(ctx context.Context, id *string) (*models.User, error)
 	Users(ctx context.Context, after *string, before *string, first *int, last *int) (*models.UserConnection, error)
 	File(ctx context.Context, id string) (*models.File, error)
-	Files(ctx context.Context, after *string, before *string, first *int, last *int) (*models.FileConnection, error)
+	Files(ctx context.Context, after *string, before *string, first *int, last *int, permission *models.FilePermission, collaboratorID *string) (*models.FileConnection, error)
 }
 
 type executableSchema struct {
@@ -189,7 +189,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.File.Collaborators(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int)), true
+		return e.complexity.File.Collaborators(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["permission"].(*models.FilePermission)), true
 
 	case "File.createdAt":
 		if e.complexity.File.CreatedAt == nil {
@@ -449,7 +449,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Files(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int)), true
+		return e.complexity.Query.Files(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["permission"].(*models.FilePermission), args["collaboratorId"].(*string)), true
 
 	case "Query.user":
 		if e.complexity.Query.User == nil {
@@ -641,6 +641,7 @@ type AuthPayload {
         before: String
         first: Int
         last: Int
+        permission: FilePermission
     ): FileCollaboratorConnection
 
     """Create time"""
@@ -766,6 +767,8 @@ input FileCollaboratorInput {
         before: String
         first: Int
         last: Int
+        permission: FilePermission
+        collaboratorId: ID @isAdmin
     ): FileConnection @auth
 }
 `, BuiltIn: false},
@@ -883,6 +886,15 @@ func (ec *executionContext) field_File_collaborators_args(ctx context.Context, r
 		}
 	}
 	args["last"] = arg3
+	var arg4 *models.FilePermission
+	if tmp, ok := rawArgs["permission"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
+		arg4, err = ec.unmarshalOFilePermission2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["permission"] = arg4
 	return args, nil
 }
 
@@ -1132,6 +1144,39 @@ func (ec *executionContext) field_Query_files_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["last"] = arg3
+	var arg4 *models.FilePermission
+	if tmp, ok := rawArgs["permission"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
+		arg4, err = ec.unmarshalOFilePermission2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["permission"] = arg4
+	var arg5 *string
+	if tmp, ok := rawArgs["collaboratorId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collaboratorId"))
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOID2ᚖstring(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(*string); ok {
+			arg5 = data
+		} else if tmp == nil {
+			arg5 = nil
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp))
+		}
+	}
+	args["collaboratorId"] = arg5
 	return args, nil
 }
 
@@ -1500,7 +1545,7 @@ func (ec *executionContext) _File_collaborators(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.File().Collaborators(rctx, obj, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int))
+		return ec.resolvers.File().Collaborators(rctx, obj, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["permission"].(*models.FilePermission))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2665,7 +2710,7 @@ func (ec *executionContext) _Query_files(ctx context.Context, field graphql.Coll
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Files(rctx, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int))
+			return ec.resolvers.Query().Files(rctx, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["permission"].(*models.FilePermission), args["collaboratorId"].(*string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Auth == nil {
@@ -5702,6 +5747,22 @@ func (ec *executionContext) marshalOFileEdge2ᚖgithubᚗcomᚋmpieczabaᚋnimbu
 		return graphql.Null
 	}
 	return ec._FileEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOFilePermission2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx context.Context, v interface{}) (*models.FilePermission, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(models.FilePermission)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFilePermission2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx context.Context, sel ast.SelectionSet, v *models.FilePermission) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

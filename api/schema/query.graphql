@@ -23,5 +23,7 @@ type Query {
         before: String
         first: Int
         last: Int
+        permission: FilePermission
+        collaboratorId: ID @isAdmin
     ): FileConnection @auth
 }

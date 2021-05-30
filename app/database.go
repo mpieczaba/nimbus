@@ -1,7 +1,6 @@
 package app
 
 import (
-	"gorm.io/gorm/logger"
 	"log"
 	"os"
 
@@ -9,6 +8,7 @@ import (
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func (app *App) ConnectToDatabase() {

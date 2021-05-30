@@ -2,7 +2,8 @@ package store
 
 import (
 	"github.com/mpieczaba/nimbus/models"
-	"github.com/mpieczaba/nimbus/store/paginator"
+	"github.com/mpieczaba/nimbus/store/scopes"
+	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"gorm.io/gorm"
@@ -18,21 +19,24 @@ func NewFileStore(db *gorm.DB) *FileStore {
 	}
 }
 
-func (s *FileStore) GetFile(query interface{}, args ...interface{}) (*models.File, error) {
+func (s *FileStore) GetFile(collaboratorID string, permission models.FilePermission, query interface{}, args ...interface{}) (*models.File, error) {
 	var file models.File
 
-	if err := s.db.Where(query, args...).First(&file).Error; err != nil {
+	if err := s.db.Scopes(scopes.FilePermission(models.File{}, "file_id", permission, "collaborator_id = ?", collaboratorID)).Where(query, args...).First(&file).Error; err != nil {
 		return nil, gqlerror.Errorf("File not found!")
 	}
 
 	return &file, nil
 }
 
-func (s *FileStore) GetAllFiles(after, before *string, first, last *int) (*models.FileConnection, error) {
+func (s *FileStore) GetAllFiles(after, before *string, first, last *int, collaboratorID string, permission models.FilePermission) (*models.FileConnection, error) {
 	var fileConnection models.FileConnection
 	var files []*models.File
 
-	if err := s.db.Model(models.File{}).Scopes(paginator.Paginate(after, before, first, last)).Find(&files).Error; err != nil {
+	if err := s.db.Scopes(
+		scopes.FilePermission(models.File{}, "file_id", permission, "collaborator_id = ?", collaboratorID),
+		scopes.Paginate(after, before, first, last),
+	).Find(&files).Error; err != nil {
 		return nil, gqlerror.Errorf("Invalid pagination input or internal database error occurred while getting all files!")
 	}
 
@@ -45,7 +49,7 @@ func (s *FileStore) GetAllFiles(after, before *string, first, last *int) (*model
 		fileConnection.Nodes = files
 
 		for _, file := range files {
-			cursor, err := paginator.EncodeCursor(file.ID)
+			cursor, err := utils.EncodeCursor(file.ID)
 
 			if err != nil {
 				return nil, gqlerror.Errorf("An error occurred while getting all files!")
@@ -57,11 +61,11 @@ func (s *FileStore) GetAllFiles(after, before *string, first, last *int) (*model
 			})
 		}
 
-		if err := s.db.Model(models.File{}).Scopes(paginator.GetBefore(files[0].ID)).First(&models.File{}).Error; err == nil {
+		if err := s.db.Model(models.File{}).Scopes(scopes.GetBefore(files[0].ID)).First(&models.File{}).Error; err == nil {
 			pageInfo.HasPreviousPage = true
 		}
 
-		if err := s.db.Model(models.File{}).Scopes(paginator.GetAfter(files[len(files)-1].ID)).First(&models.File{}).Error; err == nil {
+		if err := s.db.Model(models.File{}).Scopes(scopes.GetAfter(files[len(files)-1].ID)).First(&models.File{}).Error; err == nil {
 			pageInfo.HasNextPage = true
 		}
 	}
@@ -87,12 +91,10 @@ func (s *FileStore) UpdateFile(file *models.File) (*models.File, error) {
 	return file, nil
 }
 
-func (s *FileStore) DeleteFile(query interface{}, args ...interface{}) (*models.File, error) {
-	var file models.File
-
-	if err := s.db.Where(query, args...).First(&file).Delete(&file).Error; err != nil {
+func (s *FileStore) DeleteFile(file *models.File) (*models.File, error) {
+	if err := s.db.Delete(file).Error; err != nil {
 		return nil, gqlerror.Errorf("File not found!")
 	}
 
-	return &file, nil
+	return file, nil
 }

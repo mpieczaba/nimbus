@@ -1,7 +1,9 @@
-package paginator
+package scopes
 
 import (
 	"fmt"
+
+	"github.com/mpieczaba/nimbus/utils"
 
 	"gorm.io/gorm"
 )
@@ -56,7 +58,7 @@ func getQueryConfig(after, before *string, first, last *int) (*queryConfig, erro
 	cfg.limit = 50
 
 	if after != nil && *after != "" {
-		decodedAfter, err := DecodeCursor(*after)
+		decodedAfter, err := utils.DecodeCursor(*after)
 
 		if err != nil {
 			return nil, fmt.Errorf("Invalid 'after' cursor!")
@@ -66,7 +68,7 @@ func getQueryConfig(after, before *string, first, last *int) (*queryConfig, erro
 	}
 
 	if before != nil && *before != "" {
-		decodedBefore, err := DecodeCursor(*before)
+		decodedBefore, err := utils.DecodeCursor(*before)
 
 		if err != nil {
 			return nil, fmt.Errorf("Invalid 'before' cursor!")

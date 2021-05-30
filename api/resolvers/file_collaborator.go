@@ -3,6 +3,9 @@ package resolvers
 import (
 	"context"
 
+	"github.com/mpieczaba/nimbus/auth"
+	"github.com/mpieczaba/nimbus/utils"
+
 	"github.com/mpieczaba/nimbus/models"
 )
 
@@ -13,13 +16,15 @@ func (r *mutationResolver) AddFileCollaborator(ctx context.Context, input models
 		return nil, err
 	}
 
-	if _, err := r.Store.FileCollaborator.AddFileCollaborator(&models.FileCollaborator{
+	claims, _ := auth.ClaimsFromContext(ctx)
+
+	if _, err := r.Store.FileCollaborator.AddFileCollaborator(claims.ID, &models.FileCollaborator{
 		FileID:         input.FileID,
 		CollaboratorID: input.CollaboratorID,
-		Permission:     input.Permission,
+		Permission:     utils.GetFilePermissionIndex(input.Permission),
 	}); err != nil {
 		return nil, err
 	}
 
-	return r.Store.File.GetFile("id = ?", input.FileID)
+	return r.Store.File.GetFile(claims.ID, models.FilePermissionRead, "id = ?", input.FileID)
 }
