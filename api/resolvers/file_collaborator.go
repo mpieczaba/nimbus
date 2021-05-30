@@ -18,7 +18,7 @@ func (r *mutationResolver) AddFileCollaborator(ctx context.Context, input models
 
 	claims, _ := auth.ClaimsFromContext(ctx)
 
-	if _, err := r.Store.FileCollaborator.AddFileCollaborator(claims.ID, &models.FileCollaborator{
+	if _, err := r.Store.FileCollaborator.AddFileCollaborator(claims, &models.FileCollaborator{
 		FileID:         input.FileID,
 		CollaboratorID: input.CollaboratorID,
 		Permission:     utils.GetFilePermissionIndex(input.Permission),
@@ -26,5 +26,5 @@ func (r *mutationResolver) AddFileCollaborator(ctx context.Context, input models
 		return nil, err
 	}
 
-	return r.Store.File.GetFile(claims.ID, models.FilePermissionRead, "id = ?", input.FileID)
+	return r.Store.File.GetFile(claims, models.FilePermissionRead, "id = ?", input.FileID)
 }

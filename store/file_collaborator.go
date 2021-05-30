@@ -1,6 +1,7 @@
 package store
 
 import (
+	"github.com/mpieczaba/nimbus/auth"
 	"github.com/mpieczaba/nimbus/models"
 	"github.com/mpieczaba/nimbus/store/scopes"
 	"github.com/mpieczaba/nimbus/utils"
@@ -78,9 +79,9 @@ func (s *FileCollaboratorStore) GetFileCollaborators(after, before *string, firs
 	return &fileCollaboratorConnection, nil
 }
 
-func (s *FileCollaboratorStore) AddFileCollaborator(adminCollaboratorID string, fileCollaborator *models.FileCollaborator) (*models.FileCollaborator, error) {
+func (s *FileCollaboratorStore) AddFileCollaborator(claims *auth.Claims, fileCollaborator *models.FileCollaborator) (*models.FileCollaborator, error) {
 	if err := s.db.Scopes(
-		scopes.FilePermission(models.User{}, "collaborator_id", models.FilePermissionAdmin, "file_id = ? AND collaborator_id = ?", fileCollaborator.FileID, adminCollaboratorID),
+		scopes.FilePermission(models.User{}, "collaborator_id", models.FilePermissionAdmin, "file_id = ? AND (collaborator_id = ? OR ? = ?)", fileCollaborator.FileID, claims.ID, claims.Kind, models.UserKindAdmin),
 	).First(&models.User{}).Error; err != nil {
 		return nil, gqlerror.Errorf("No required permission!")
 	}

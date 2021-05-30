@@ -16,17 +16,17 @@ import (
 func (r *queryResolver) File(ctx context.Context, id string) (*models.File, error) {
 	claims, _ := auth.ClaimsFromContext(ctx)
 
-	return r.Store.File.GetFile(claims.ID, models.FilePermissionRead, "id = ?", id)
+	return r.Store.File.GetFile(claims, models.FilePermissionRead, "id = ?", id)
 }
 
 func (r *queryResolver) Files(ctx context.Context, after, before *string, first, last *int, permission *models.FilePermission, collaboratorID *string) (*models.FileConnection, error) {
+	claims, _ := auth.ClaimsFromContext(ctx)
+
 	var filesCollaboratorID string
 
 	if collaboratorID != nil {
 		filesCollaboratorID = *collaboratorID
 	} else {
-		claims, _ := auth.ClaimsFromContext(ctx)
-
 		filesCollaboratorID = claims.ID
 	}
 
@@ -38,7 +38,7 @@ func (r *queryResolver) Files(ctx context.Context, after, before *string, first,
 		filesPermission = models.FilePermissionRead
 	}
 
-	return r.Store.File.GetAllFiles(after, before, first, last, filesCollaboratorID, filesPermission)
+	return r.Store.File.GetAllFiles(claims, after, before, first, last, filesCollaboratorID, filesPermission)
 }
 
 // Mutation
@@ -91,7 +91,7 @@ func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input mode
 
 	claims, _ := auth.ClaimsFromContext(ctx)
 
-	fileToUpdate, err := r.Store.File.GetFile(claims.ID, models.FilePermissionMaintain, "id = ?", id)
+	fileToUpdate, err := r.Store.File.GetFile(claims, models.FilePermissionMaintain, "id = ?", id)
 
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input mode
 func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*models.File, error) {
 	claims, _ := auth.ClaimsFromContext(ctx)
 
-	fileToDelete, err := r.Store.File.GetFile(claims.ID, models.FilePermissionAdmin, "id = ?", id)
+	fileToDelete, err := r.Store.File.GetFile(claims, models.FilePermissionAdmin, "id = ?", id)
 
 	if err != nil {
 		return nil, err
