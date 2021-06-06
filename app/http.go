@@ -9,6 +9,7 @@ import (
 	"github.com/mpieczaba/nimbus/api/resolvers"
 	"github.com/mpieczaba/nimbus/api/server"
 	"github.com/mpieczaba/nimbus/auth"
+	"github.com/mpieczaba/nimbus/filesystem"
 	"github.com/mpieczaba/nimbus/store"
 	"github.com/mpieczaba/nimbus/validators"
 
@@ -33,8 +34,9 @@ func (app *App) ServeHTTP() error {
 	var cfg server.Config
 
 	cfg.Resolvers = &resolvers.Resolver{
-		Store:     store.New(app.db),
-		Validator: validators.New(),
+		Store:      store.New(app.db),
+		Filesystem: filesystem.New(),
+		Validator:  validators.New(),
 	}
 
 	cfg.Directives.Auth = directives.Auth()

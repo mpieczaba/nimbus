@@ -104,7 +104,7 @@ func (s *FileStore) UpdateFile(file *models.File) (*models.File, error) {
 }
 
 func (s *FileStore) DeleteFile(file *models.File) (*models.File, error) {
-	if err := s.db.Delete(file).Error; err != nil {
+	if err := s.db.Select("Collaborators").Delete(file).Error; err != nil {
 		return nil, gqlerror.Errorf("File not found!")
 	}
 

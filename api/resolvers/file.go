@@ -40,19 +40,14 @@ func (r *mutationResolver) CreateFile(ctx context.Context, input models.FileInpu
 		fileName = input.File.Filename
 	}
 
-	// TODO: Add writing file to data directory
-
-	/*
-		fileContent, err := io.ReadAll(input.File.File)
-
-		if err != nil {
-			return nil, gqlerror.Errorf("Cannot open file!")
-		}
-	*/
-
 	claims, _ := auth.ClaimsFromContext(ctx)
 
 	id := xid.New().String()
+
+	// Write file to data directory
+	if err := r.Filesystem.WriteFile(id, input.File.File); err != nil {
+		return nil, err
+	}
 
 	return r.Store.File.CreateFile(&models.File{
 		ID:        id,
@@ -89,6 +84,11 @@ func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input mode
 		fileToUpdate.MimeType = input.File.ContentType
 		fileToUpdate.Extension = filepath.Ext(input.File.Filename)
 		fileToUpdate.Size = input.File.Size
+
+		// Update file in data directory
+		if err = r.Filesystem.WriteFile(fileToUpdate.ID, input.File.File); err != nil {
+			return nil, err
+		}
 	}
 
 	return r.Store.File.UpdateFile(fileToUpdate)
@@ -100,6 +100,11 @@ func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*models.F
 	fileToDelete, err := r.Store.File.GetFile(claims, models.FilePermissionAdmin, "id = ?", id)
 
 	if err != nil {
+		return nil, err
+	}
+
+	// Remove file from data directory
+	if err = r.Filesystem.RemoveFile(fileToDelete.ID); err != nil {
 		return nil, err
 	}
 

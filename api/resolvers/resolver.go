@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"github.com/mpieczaba/nimbus/api/server"
+	"github.com/mpieczaba/nimbus/filesystem"
 	"github.com/mpieczaba/nimbus/store"
 	"github.com/mpieczaba/nimbus/validators"
 )
@@ -9,8 +10,9 @@ import (
 //go:generate go run github.com/99designs/gqlgen
 
 type Resolver struct {
-	Store     *store.Store
-	Validator *validators.Validator
+	Store      *store.Store
+	Filesystem *filesystem.Filesystem
+	Validator  *validators.Validator
 }
 
 func (r *Resolver) Query() server.QueryResolver { return &queryResolver{r} }
