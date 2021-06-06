@@ -20,12 +20,13 @@ func NewFileCollaboratorStore(db *gorm.DB) *FileCollaboratorStore {
 	}
 }
 
-func (s *FileCollaboratorStore) GetFileCollaborators(after, before *string, first, last *int, fileID string, permission models.FilePermission) (*models.FileCollaboratorConnection, error) {
+func (s *FileCollaboratorStore) GetFileCollaborators(after, before *string, first, last *int, fileID string, username *string, permission models.FilePermission) (*models.FileCollaboratorConnection, error) {
 	var fileCollaboratorConnection models.FileCollaboratorConnection
 	var fileCollaborators []*models.User
 
 	if err := s.db.Scopes(
 		scopes.FilePermission(models.User{}, "collaborator_id", permission, "file_id = ?", fileID),
+		scopes.NameLike(models.User{}, "username", username),
 		scopes.Paginate(after, before, first, last),
 	).Find(&fileCollaborators).Error; err != nil {
 		return nil, gqlerror.Errorf("Invalid pagination input or internal database error occurred while getting file collaborators!")
@@ -61,6 +62,7 @@ func (s *FileCollaboratorStore) GetFileCollaborators(after, before *string, firs
 
 		if err := s.db.Scopes(
 			scopes.FilePermission(models.User{}, "collaborator_id", permission, "file_id = ?", fileID),
+			scopes.NameLike(models.User{}, "username", username),
 			scopes.GetBefore(fileCollaborators[0].ID),
 		).First(&models.User{}).Error; err == nil {
 			pageInfo.HasPreviousPage = true
@@ -68,6 +70,7 @@ func (s *FileCollaboratorStore) GetFileCollaborators(after, before *string, firs
 
 		if err := s.db.Scopes(
 			scopes.FilePermission(models.User{}, "collaborator_id", permission, "file_id = ?", fileID),
+			scopes.NameLike(models.User{}, "username", username),
 			scopes.GetAfter(fileCollaborators[len(fileCollaborators)-1].ID),
 		).First(&models.User{}).Error; err == nil {
 			pageInfo.HasNextPage = true

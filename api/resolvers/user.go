@@ -27,8 +27,8 @@ func (r *queryResolver) User(ctx context.Context, id *string) (*models.User, err
 	return r.Store.User.GetUser("id = ?", userID)
 }
 
-func (r *queryResolver) Users(ctx context.Context, after, before *string, first, last *int) (*models.UserConnection, error) {
-	return r.Store.User.GetAllUsers(after, before, first, last)
+func (r *queryResolver) Users(ctx context.Context, after, before *string, first, last *int, username *string) (*models.UserConnection, error) {
+	return r.Store.User.GetAllUsers(after, before, first, last, username)
 }
 
 // Mutation

@@ -82,10 +82,10 @@ func getQueryConfig(after, before *string, first, last *int) (*queryConfig, erro
 		return nil, fmt.Errorf("'first' and 'last' cannot be given at the same time!")
 	}
 
-	if first != nil && *first >= 0 {
+	if first != nil && *first >= 0 && *first <= cfg.limit {
 		cfg.limit = *first
 		cfg.order = "desc"
-	} else if last != nil && *last >= 0 {
+	} else if last != nil && *last >= 0 && *last <= cfg.limit {
 		cfg.limit = *last
 		cfg.order = "asc"
 	}

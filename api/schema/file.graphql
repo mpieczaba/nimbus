@@ -20,7 +20,8 @@ type File {
         before: String
         first: Int
         last: Int
-        permission: FilePermission
+        username: String
+        permission: FilePermission = READ
     ): FileCollaboratorConnection
 
     """Create time"""

@@ -29,11 +29,14 @@ func (s *UserStore) GetUser(query interface{}, args ...interface{}) (*models.Use
 	return &user, nil
 }
 
-func (s *UserStore) GetAllUsers(after, before *string, first, last *int) (*models.UserConnection, error) {
+func (s *UserStore) GetAllUsers(after, before *string, first, last *int, username *string) (*models.UserConnection, error) {
 	var userConnection models.UserConnection
 	var users []*models.User
 
-	if err := s.db.Model(models.User{}).Scopes(scopes.Paginate(after, before, first, last)).Find(&users).Error; err != nil {
+	if err := s.db.Scopes(
+		scopes.NameLike(models.User{}, "username", username),
+		scopes.Paginate(after, before, first, last),
+	).Find(&users).Error; err != nil {
 		return nil, gqlerror.Errorf("Invalid pagination input or internal database error occurred while getting all users!")
 	}
 
@@ -58,11 +61,17 @@ func (s *UserStore) GetAllUsers(after, before *string, first, last *int) (*model
 			})
 		}
 
-		if err := s.db.Model(models.User{}).Scopes(scopes.GetBefore(users[0].ID)).First(&models.User{}).Error; err == nil {
+		if err := s.db.Scopes(
+			scopes.NameLike(models.User{}, "username", username),
+			scopes.GetBefore(users[0].ID),
+		).First(&models.User{}).Error; err == nil {
 			pageInfo.HasPreviousPage = true
 		}
 
-		if err := s.db.Model(models.User{}).Scopes(scopes.GetAfter(users[len(users)-1].ID)).First(&models.User{}).Error; err == nil {
+		if err := s.db.Scopes(
+			scopes.NameLike(models.User{}, "username", username),
+			scopes.GetAfter(users[len(users)-1].ID),
+		).First(&models.User{}).Error; err == nil {
 			pageInfo.HasNextPage = true
 		}
 	}

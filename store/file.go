@@ -32,12 +32,13 @@ func (s *FileStore) GetFile(claims *auth.Claims, permission models.FilePermissio
 	return &file, nil
 }
 
-func (s *FileStore) GetAllFiles(claims *auth.Claims, after, before *string, first, last *int, collaboratorID string, permission models.FilePermission) (*models.FileConnection, error) {
+func (s *FileStore) GetAllFiles(claims *auth.Claims, after, before *string, first, last *int, name *string, permission models.FilePermission) (*models.FileConnection, error) {
 	var fileConnection models.FileConnection
 	var files []*models.File
 
 	if err := s.db.Scopes(
-		scopes.FilePermission(models.File{}, "file_id", permission, "collaborator_id = ? OR ? = ?", collaboratorID, claims.Kind, models.UserKindAdmin),
+		scopes.FilePermission(models.File{}, "file_id", permission, "collaborator_id = ? OR ? = ?", claims.ID, claims.Kind, models.UserKindAdmin),
+		scopes.NameLike(models.File{}, "name", name),
 		scopes.Paginate(after, before, first, last),
 	).Find(&files).Error; err != nil {
 		return nil, gqlerror.Errorf("Invalid pagination input or internal database error occurred while getting all files!")
@@ -65,14 +66,16 @@ func (s *FileStore) GetAllFiles(claims *auth.Claims, after, before *string, firs
 		}
 
 		if err := s.db.Scopes(
-			scopes.FilePermission(models.File{}, "file_id", permission, "collaborator_id = ? OR ? = ?", collaboratorID, claims.Kind, models.UserKindAdmin),
+			scopes.FilePermission(models.File{}, "file_id", permission, "collaborator_id = ? OR ? = ?", claims.ID, claims.Kind, models.UserKindAdmin),
+			scopes.NameLike(models.File{}, "name", name),
 			scopes.GetBefore(files[0].ID),
 		).First(&models.File{}).Error; err == nil {
 			pageInfo.HasPreviousPage = true
 		}
 
 		if err := s.db.Scopes(
-			scopes.FilePermission(models.File{}, "file_id", permission, "collaborator_id = ? OR ? = ?", collaboratorID, claims.Kind, models.UserKindAdmin),
+			scopes.FilePermission(models.File{}, "file_id", permission, "collaborator_id = ? OR ? = ?", claims.ID, claims.Kind, models.UserKindAdmin),
+			scopes.NameLike(models.File{}, "name", name),
 			scopes.GetAfter(files[len(files)-1].ID),
 		).First(&models.File{}).Error; err == nil {
 			pageInfo.HasNextPage = true

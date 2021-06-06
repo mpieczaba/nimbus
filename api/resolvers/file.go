@@ -19,26 +19,10 @@ func (r *queryResolver) File(ctx context.Context, id string) (*models.File, erro
 	return r.Store.File.GetFile(claims, models.FilePermissionRead, "id = ?", id)
 }
 
-func (r *queryResolver) Files(ctx context.Context, after, before *string, first, last *int, permission *models.FilePermission, collaboratorID *string) (*models.FileConnection, error) {
+func (r *queryResolver) Files(ctx context.Context, after, before *string, first, last *int, name *string, permission *models.FilePermission) (*models.FileConnection, error) {
 	claims, _ := auth.ClaimsFromContext(ctx)
 
-	var filesCollaboratorID string
-
-	if collaboratorID != nil {
-		filesCollaboratorID = *collaboratorID
-	} else {
-		filesCollaboratorID = claims.ID
-	}
-
-	var filesPermission models.FilePermission
-
-	if permission != nil {
-		filesPermission = *permission
-	} else {
-		filesPermission = models.FilePermissionRead
-	}
-
-	return r.Store.File.GetAllFiles(claims, after, before, first, last, filesCollaboratorID, filesPermission)
+	return r.Store.File.GetAllFiles(claims, after, before, first, last, name, *permission)
 }
 
 // Mutation
@@ -124,14 +108,6 @@ func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*models.F
 
 // Field resolver
 
-func (r *fileResolver) Collaborators(ctx context.Context, obj *models.File, after, before *string, first, last *int, permission *models.FilePermission) (*models.FileCollaboratorConnection, error) {
-	var filesPermission models.FilePermission
-
-	if permission != nil {
-		filesPermission = *permission
-	} else {
-		filesPermission = models.FilePermissionRead
-	}
-
-	return r.Store.FileCollaborator.GetFileCollaborators(after, before, first, last, obj.ID, filesPermission)
+func (r *fileResolver) Collaborators(ctx context.Context, obj *models.File, after, before *string, first, last *int, username *string, permission *models.FilePermission) (*models.FileCollaboratorConnection, error) {
+	return r.Store.FileCollaborator.GetFileCollaborators(after, before, first, last, obj.ID, username, *permission)
 }
