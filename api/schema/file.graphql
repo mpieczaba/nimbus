@@ -14,6 +14,9 @@ type File {
     """File size"""
     size: Int!
 
+    """File URL"""
+    url: String!
+
     """File collaborators"""
     collaborators(
         after: String

@@ -2,9 +2,11 @@ package resolvers
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 
 	"github.com/mpieczaba/nimbus/auth"
+	"github.com/mpieczaba/nimbus/filesystem"
 	"github.com/mpieczaba/nimbus/models"
 	"github.com/mpieczaba/nimbus/utils"
 
@@ -45,7 +47,7 @@ func (r *mutationResolver) CreateFile(ctx context.Context, input models.FileInpu
 	id := xid.New().String()
 
 	// Write file to data directory
-	if err := r.Filesystem.WriteFile(id, input.File.File); err != nil {
+	if err := filesystem.WriteFile(id, input.File.File); err != nil {
 		return nil, err
 	}
 
@@ -86,7 +88,7 @@ func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input mode
 		fileToUpdate.Size = input.File.Size
 
 		// Update file in data directory
-		if err = r.Filesystem.WriteFile(fileToUpdate.ID, input.File.File); err != nil {
+		if err = filesystem.WriteFile(fileToUpdate.ID, input.File.File); err != nil {
 			return nil, err
 		}
 	}
@@ -104,7 +106,7 @@ func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*models.F
 	}
 
 	// Remove file from data directory
-	if err = r.Filesystem.RemoveFile(fileToDelete.ID); err != nil {
+	if err = filesystem.RemoveFile(fileToDelete.ID); err != nil {
 		return nil, err
 	}
 
@@ -112,6 +114,10 @@ func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*models.F
 }
 
 // Field resolver
+
+func (r *Resolver) URL(ctx context.Context, obj *models.File) (string, error) {
+	return "http://" + os.Getenv("HOST") + "/files/" + obj.ID, nil
+}
 
 func (r *fileResolver) Collaborators(ctx context.Context, obj *models.File, after, before *string, first, last *int, username *string, permission *models.FilePermission) (*models.FileCollaboratorConnection, error) {
 	return r.Store.FileCollaborator.GetFileCollaborators(after, before, first, last, obj.ID, username, *permission)

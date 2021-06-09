@@ -31,30 +31,37 @@ func (app *App) ServeHTTP() error {
 		c.String(http.StatusOK, "Nimbus - extensible storage system")
 	})
 
-	var cfg server.Config
+	app.store = store.New(app.db)
 
-	cfg.Resolvers = &resolvers.Resolver{
-		Store:      store.New(app.db),
-		Filesystem: filesystem.New(),
-		Validator:  validators.New(),
-	}
-
-	cfg.Directives.Auth = directives.Auth()
-	cfg.Directives.IsAdmin = directives.IsAdmin()
-
-	gqlHandler := handler.NewDefaultServer(server.NewExecutableSchema(cfg))
-
-	gqlPlayground := playground.Handler("GraphQL playground", "/graphql")
+	gqlHandler := handler.NewDefaultServer(server.NewExecutableSchema(app.getGQLConfig()))
 
 	app.http.POST("/graphql", func(c *gin.Context) {
 		gqlHandler.ServeHTTP(c.Writer, c.Request)
 	})
 
+	gqlPlayground := playground.Handler("GraphQL playground", "/graphql")
+
 	app.http.GET("/playground", func(c *gin.Context) {
 		gqlPlayground.ServeHTTP(c.Writer, c.Request)
 	})
 
-	log.Println("Nimbus server listening on http://127.0.0.1:" + os.Getenv("PORT"))
+	app.http.GET("/files/:id", filesystem.SendFile(app.store))
 
-	return app.http.Run(":" + os.Getenv("PORT"))
+	log.Println("Nimbus server listening on " + os.Getenv("HOST"))
+
+	return app.http.Run(os.Getenv("HOST"))
+}
+
+func (app *App) getGQLConfig() server.Config {
+	var cfg server.Config
+
+	cfg.Resolvers = &resolvers.Resolver{
+		Store:     app.store,
+		Validator: validators.New(),
+	}
+
+	cfg.Directives.Auth = directives.Auth()
+	cfg.Directives.IsAdmin = directives.IsAdmin()
+
+	return cfg
 }

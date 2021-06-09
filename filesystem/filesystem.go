@@ -8,13 +8,7 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-type Filesystem struct{}
-
-func New() *Filesystem {
-	return &Filesystem{}
-}
-
-func (fs *Filesystem) WriteFile(id string, file io.Reader) error {
+func WriteFile(id string, file io.Reader) error {
 	f, err := os.Create(os.Getenv("DATA_DIRECTORY_PATH") + "/" + id)
 
 	if err != nil {
@@ -34,7 +28,7 @@ func (fs *Filesystem) WriteFile(id string, file io.Reader) error {
 	return nil
 }
 
-func (fs *Filesystem) RemoveFile(id string) error {
+func RemoveFile(id string) error {
 	if err := os.Remove(os.Getenv("DATA_DIRECTORY_PATH") + "/" + id); err != nil {
 		log.Println(err)
 
