@@ -2,9 +2,11 @@ package resolvers
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 
 	"github.com/mpieczaba/nimbus/auth"
+	"github.com/mpieczaba/nimbus/filesystem"
 	"github.com/mpieczaba/nimbus/models"
 	"github.com/mpieczaba/nimbus/utils"
 
@@ -40,19 +42,14 @@ func (r *mutationResolver) CreateFile(ctx context.Context, input models.FileInpu
 		fileName = input.File.Filename
 	}
 
-	// TODO: Add writing file to data directory
-
-	/*
-		fileContent, err := io.ReadAll(input.File.File)
-
-		if err != nil {
-			return nil, gqlerror.Errorf("Cannot open file!")
-		}
-	*/
-
 	claims, _ := auth.ClaimsFromContext(ctx)
 
 	id := xid.New().String()
+
+	// Write file to data directory
+	if err := filesystem.WriteFile(id, input.File.File); err != nil {
+		return nil, err
+	}
 
 	return r.Store.File.CreateFile(&models.File{
 		ID:        id,
@@ -89,6 +86,11 @@ func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input mode
 		fileToUpdate.MimeType = input.File.ContentType
 		fileToUpdate.Extension = filepath.Ext(input.File.Filename)
 		fileToUpdate.Size = input.File.Size
+
+		// Update file in data directory
+		if err = filesystem.WriteFile(fileToUpdate.ID, input.File.File); err != nil {
+			return nil, err
+		}
 	}
 
 	return r.Store.File.UpdateFile(fileToUpdate)
@@ -103,10 +105,19 @@ func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*models.F
 		return nil, err
 	}
 
+	// Remove file from data directory
+	if err = filesystem.RemoveFile(fileToDelete.ID); err != nil {
+		return nil, err
+	}
+
 	return r.Store.File.DeleteFile(fileToDelete)
 }
 
 // Field resolver
+
+func (r *Resolver) URL(ctx context.Context, obj *models.File) (string, error) {
+	return "http://" + os.Getenv("HOST") + "/files/" + obj.ID, nil
+}
 
 func (r *fileResolver) Collaborators(ctx context.Context, obj *models.File, after, before *string, first, last *int, username *string, permission *models.FilePermission) (*models.FileCollaboratorConnection, error) {
 	return r.Store.FileCollaborator.GetFileCollaborators(after, before, first, last, obj.ID, username, *permission)
