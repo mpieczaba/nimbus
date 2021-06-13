@@ -1,0 +1,23 @@
+ type Tag {
+     """Unique id"""
+    id: ID!
+
+     """Unique name"""
+     name: String!
+
+     """Files tagged with the tag"""
+     files(
+         after: String
+         before: String
+         first: Int
+         last: Int
+         name: String
+         permission: FilePermission = READ
+     ): FileConnection
+
+     """Create time"""
+     createdAt: Time!
+
+     """Update time"""
+     updatedAt: Time!
+ }

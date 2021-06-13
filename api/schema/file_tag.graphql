@@ -1,0 +1,18 @@
+type FileTagConnection {
+    edges: [FileTagEdge]
+    nodes: [Tag]
+    pageInfo: PageInfo!
+}
+
+type FileTagEdge {
+    cursor: String!
+    node: Tag!
+}
+
+input FileTagsInput {
+    """File id"""
+    fileId: ID!
+
+    """Tag names"""
+    tagNames: [String!]!
+}

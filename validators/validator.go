@@ -23,6 +23,9 @@ func New() *Validator {
 	// File
 	val.validate.RegisterValidation("filename", CheckFileName)
 
+	// Tag
+	val.validate.RegisterValidation("tagname", CheckTagName)
+
 	return val
 }
 

@@ -38,6 +38,17 @@ type FileEdge struct {
 	Node   *File  `json:"node"`
 }
 
+type FileTagConnection struct {
+	Edges    []*FileTagEdge `json:"edges"`
+	Nodes    []*Tag         `json:"nodes"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+}
+
+type FileTagEdge struct {
+	Cursor string `json:"cursor"`
+	Node   *Tag   `json:"node"`
+}
+
 type PageInfo struct {
 	HasNextPage     bool `json:"hasNextPage"`
 	HasPreviousPage bool `json:"hasPreviousPage"`

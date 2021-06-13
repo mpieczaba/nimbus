@@ -11,7 +11,7 @@ import (
 
 // Mutation
 
-func (r *mutationResolver) AddFileCollaborator(ctx context.Context, input models.FileCollaboratorInput) (*models.File, error) {
+func (r *mutationResolver) AddCollaboratorToFile(ctx context.Context, input models.FileCollaboratorInput) (*models.File, error) {
 	if err := r.Validator.Validate(input); err != nil {
 		return nil, err
 	}

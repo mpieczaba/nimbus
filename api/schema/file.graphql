@@ -17,6 +17,15 @@ type File {
     """File URL"""
     url: String!
 
+    """Tags file was tagged with"""
+    tags(
+        after: String
+        before: String
+        first: Int
+        last: Int
+        name: String
+    ): FileTagConnection
+
     """File collaborators"""
     collaborators(
         after: String

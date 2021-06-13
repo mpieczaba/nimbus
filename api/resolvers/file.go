@@ -119,6 +119,10 @@ func (r *Resolver) URL(ctx context.Context, obj *models.File) (string, error) {
 	return "http://" + os.Getenv("HOST") + "/files/" + obj.ID, nil
 }
 
+func (r *fileResolver) Tags(ctx context.Context, obj *models.File, after, before *string, first, last *int, name *string) (*models.FileTagConnection, error) {
+	return r.Store.FileTag.GetFileTags(after, before, first, last, obj.ID, name)
+}
+
 func (r *fileResolver) Collaborators(ctx context.Context, obj *models.File, after, before *string, first, last *int, username *string, permission *models.FilePermission) (*models.FileCollaboratorConnection, error) {
 	return r.Store.FileCollaborator.GetFileCollaborators(after, before, first, last, obj.ID, username, *permission)
 }

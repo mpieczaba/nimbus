@@ -13,6 +13,11 @@ type Resolver struct {
 	Validator *validators.Validator
 }
 
+// TODO: Implement tag resolvers
+func (r *Resolver) Tag() server.TagResolver {
+	panic("implement me")
+}
+
 func (r *Resolver) Query() server.QueryResolver { return &queryResolver{r} }
 
 type queryResolver struct{ *Resolver }

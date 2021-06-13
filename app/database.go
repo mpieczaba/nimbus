@@ -24,7 +24,7 @@ func (app *App) ConnectToDatabase() {
 
 	app.db = db
 
-	app.db.AutoMigrate(models.User{}, models.File{}, models.FileCollaborator{})
+	app.db.AutoMigrate(models.User{}, models.File{}, models.FileCollaborator{}, models.Tag{}, models.FileTag{})
 
 	log.Println("Successfully connected to the database!")
 }
