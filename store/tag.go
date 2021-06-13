@@ -19,6 +19,16 @@ func NewTagStore(db *gorm.DB) *TagStore {
 	}
 }
 
+func (s *TagStore) GetTag(query interface{}, args ...interface{}) (*models.Tag, error) {
+	var tag models.Tag
+
+	if err := s.db.Where(query, args...).First(&tag).Error; err != nil {
+		return nil, gqlerror.Errorf("Tag not found!")
+	}
+
+	return &tag, nil
+}
+
 func (s *TagStore) CreateTagsOrAppendFileTags(claims *auth.Claims, tags []*models.Tag) ([]*models.Tag, error) {
 	if err := s.db.Scopes(
 		scopes.FilePermission(models.User{}, "collaborator_id", models.FilePermissionMaintain, "file_id = ? AND (collaborator_id = ? OR ? = ?)", tags[0].FileTags[0].FileID, claims.ID, claims.Kind, models.UserKindAdmin),

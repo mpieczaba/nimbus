@@ -120,15 +120,15 @@ type ComplexityRoot struct {
 
 	Query struct {
 		File  func(childComplexity int, id string) int
-		Files func(childComplexity int, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermission) int
+		Files func(childComplexity int, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermission, tags []string) int
+		Tag   func(childComplexity int, name string) int
 		User  func(childComplexity int, id *string) int
 		Users func(childComplexity int, after *string, before *string, first *int, last *int, username *string) int
 	}
 
 	Tag struct {
 		CreatedAt func(childComplexity int) int
-		Files     func(childComplexity int, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermission) int
-		ID        func(childComplexity int) int
+		Files     func(childComplexity int, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermission, tags []string) int
 		Name      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 	}
@@ -173,10 +173,11 @@ type QueryResolver interface {
 	User(ctx context.Context, id *string) (*models.User, error)
 	Users(ctx context.Context, after *string, before *string, first *int, last *int, username *string) (*models.UserConnection, error)
 	File(ctx context.Context, id string) (*models.File, error)
-	Files(ctx context.Context, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermission) (*models.FileConnection, error)
+	Files(ctx context.Context, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermission, tags []string) (*models.FileConnection, error)
+	Tag(ctx context.Context, name string) (*models.Tag, error)
 }
 type TagResolver interface {
-	Files(ctx context.Context, obj *models.Tag, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermission) (*models.FileConnection, error)
+	Files(ctx context.Context, obj *models.Tag, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermission, tags []string) (*models.FileConnection, error)
 }
 
 type executableSchema struct {
@@ -544,7 +545,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Files(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermission)), true
+		return e.complexity.Query.Files(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermission), args["tags"].([]string)), true
+
+	case "Query.tag":
+		if e.complexity.Query.Tag == nil {
+			break
+		}
+
+		args, err := ec.field_Query_tag_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Tag(childComplexity, args["name"].(string)), true
 
 	case "Query.user":
 		if e.complexity.Query.User == nil {
@@ -587,14 +600,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Tag.Files(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermission)), true
-
-	case "Tag.id":
-		if e.complexity.Tag.ID == nil {
-			break
-		}
-
-		return e.complexity.Tag.ID(childComplexity), true
+		return e.complexity.Tag.Files(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermission), args["tags"].([]string)), true
 
 	case "Tag.name":
 		if e.complexity.Tag.Name == nil {
@@ -942,7 +948,13 @@ input FileTagsInput {
         last: Int
         name: String
         permission: FilePermission = READ
+        tags: [String!]
     ): FileConnection @auth
+
+    # Tag
+
+    """Get tag by name"""
+    tag(name: String!): Tag @auth
 }
 `, BuiltIn: false},
 	{Name: "api/schema/schema.graphql", Input: `schema {
@@ -959,9 +971,6 @@ scalar Time
 scalar Upload
 `, BuiltIn: false},
 	{Name: "api/schema/tag.graphql", Input: ` type Tag {
-     """Unique id"""
-    id: ID!
-
      """Unique name"""
      name: String!
 
@@ -973,6 +982,7 @@ scalar Upload
          last: Int
          name: String
          permission: FilePermission = READ
+         tags: [String!]
      ): FileConnection
 
      """Create time"""
@@ -1434,6 +1444,30 @@ func (ec *executionContext) field_Query_files_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["permission"] = arg5
+	var arg6 []string
+	if tmp, ok := rawArgs["tags"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
+		arg6, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tags"] = arg6
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_tag_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
 	return args, nil
 }
 
@@ -1560,6 +1594,15 @@ func (ec *executionContext) field_Tag_files_args(ctx context.Context, rawArgs ma
 		}
 	}
 	args["permission"] = arg5
+	var arg6 []string
+	if tmp, ok := rawArgs["tags"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
+		arg6, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tags"] = arg6
 	return args, nil
 }
 
@@ -3338,7 +3381,7 @@ func (ec *executionContext) _Query_files(ctx context.Context, field graphql.Coll
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Files(rctx, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermission))
+			return ec.resolvers.Query().Files(rctx, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermission), args["tags"].([]string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Auth == nil {
@@ -3369,6 +3412,65 @@ func (ec *executionContext) _Query_files(ctx context.Context, field graphql.Coll
 	res := resTmp.(*models.FileConnection)
 	fc.Result = res
 	return ec.marshalOFileConnection2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFileConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_tag(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_tag_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Tag(rctx, args["name"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Auth == nil {
+				return nil, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Tag); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/mpieczaba/nimbus/models.Tag`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Tag)
+	fc.Result = res
+	return ec.marshalOTag2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐTag(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3442,41 +3544,6 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Tag_id(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Tag",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Tag_name(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3537,7 +3604,7 @@ func (ec *executionContext) _Tag_files(ctx context.Context, field graphql.Collec
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Tag().Files(rctx, obj, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermission))
+		return ec.resolvers.Tag().Files(rctx, obj, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermission), args["tags"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5717,6 +5784,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_files(ctx, field)
 				return res
 			})
+		case "tag":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_tag(ctx, field)
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -5743,11 +5821,6 @@ func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Tag")
-		case "id":
-			out.Values[i] = ec._Tag_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "name":
 			out.Values[i] = ec._Tag_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6879,6 +6952,42 @@ func (ec *executionContext) unmarshalOString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalString(v)
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

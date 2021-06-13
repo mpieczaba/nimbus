@@ -1,7 +1,4 @@
  type Tag {
-     """Unique id"""
-    id: ID!
-
      """Unique name"""
      name: String!
 
@@ -13,6 +10,7 @@
          last: Int
          name: String
          permission: FilePermission = READ
+         tags: [String!]
      ): FileConnection
 
      """Create time"""

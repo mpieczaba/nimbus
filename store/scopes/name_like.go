@@ -10,6 +10,6 @@ func NameLike(model interface{}, fieldToSelect string, stringToCompare *string) 
 			return db.Model(model)
 		}
 
-		return db.Model(model).Where(fieldToSelect+" LIKE ?", *stringToCompare)
+		return db.Session(&gorm.Session{NewDB: true}).Model(model).Where(fieldToSelect+" LIKE ?", *stringToCompare)
 	}
 }
