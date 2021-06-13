@@ -1,7 +1,9 @@
-package paginator
+package scopes
 
 import (
 	"fmt"
+
+	"github.com/mpieczaba/nimbus/utils"
 
 	"gorm.io/gorm"
 )
@@ -33,14 +35,12 @@ func Paginate(after, before *string, first, last *int) func(db *gorm.DB) *gorm.D
 			subQuery.Where("id > ?", cfg.before)
 		}
 
-		return db.Order("id desc").Table("(?) as u", subQuery)
+		return db.Session(&gorm.Session{NewDB: true}).Order("id desc").Table("(?) as u", subQuery)
 	}
 }
 
 func GetBefore(id string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		fmt.Println(id)
-
 		return db.Order("id desc").Where("id > ?", id).Limit(1)
 	}
 }
@@ -58,7 +58,7 @@ func getQueryConfig(after, before *string, first, last *int) (*queryConfig, erro
 	cfg.limit = 50
 
 	if after != nil && *after != "" {
-		decodedAfter, err := DecodeCursor(*after)
+		decodedAfter, err := utils.DecodeCursor(*after)
 
 		if err != nil {
 			return nil, fmt.Errorf("Invalid 'after' cursor!")
@@ -68,7 +68,7 @@ func getQueryConfig(after, before *string, first, last *int) (*queryConfig, erro
 	}
 
 	if before != nil && *before != "" {
-		decodedBefore, err := DecodeCursor(*before)
+		decodedBefore, err := utils.DecodeCursor(*before)
 
 		if err != nil {
 			return nil, fmt.Errorf("Invalid 'before' cursor!")
@@ -82,10 +82,10 @@ func getQueryConfig(after, before *string, first, last *int) (*queryConfig, erro
 		return nil, fmt.Errorf("'first' and 'last' cannot be given at the same time!")
 	}
 
-	if first != nil && *first >= 0 {
+	if first != nil && *first >= 0 && *first <= cfg.limit {
 		cfg.limit = *first
 		cfg.order = "desc"
-	} else if last != nil && *last >= 0 {
+	} else if last != nil && *last >= 0 && *last <= cfg.limit {
 		cfg.limit = *last
 		cfg.order = "asc"
 	}

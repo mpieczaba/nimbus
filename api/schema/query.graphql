@@ -10,5 +10,21 @@ type Query {
         before: String
         first: Int
         last: Int
+        username: String
     ): UserConnection @auth
+
+    # File
+
+    """Get file by id"""
+    file(id: ID!): File @auth
+
+    """Get all files"""
+    files(
+        after: String
+        before: String
+        first: Int
+        last: Int
+        name: String
+        permission: FilePermission = READ
+    ): FileConnection @auth
 }

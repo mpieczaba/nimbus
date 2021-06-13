@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mpieczaba/nimbus/auth"
+	"github.com/mpieczaba/nimbus/models"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"golang.org/x/crypto/bcrypt"
@@ -11,7 +12,7 @@ import (
 
 // Mutation
 
-func (r *mutationResolver) Login(ctx context.Context, username string, password string) (*auth.AuthPayload, error) {
+func (r *mutationResolver) Login(ctx context.Context, username string, password string) (*models.AuthPayload, error) {
 	userLogin, err := r.Store.User.GetUser("username = ?", username)
 
 	if err != nil {
@@ -30,7 +31,7 @@ func (r *mutationResolver) Login(ctx context.Context, username string, password 
 		return nil, gqlerror.Errorf("Internal server error!")
 	}
 
-	return &auth.AuthPayload{
+	return &models.AuthPayload{
 		Token: token,
 		User:  userLogin,
 	}, nil

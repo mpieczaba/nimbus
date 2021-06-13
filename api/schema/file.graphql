@@ -1,0 +1,78 @@
+type File {
+    """Unique id"""
+    id: ID!
+
+    """File name"""
+    name: String!
+
+    """File [mime type](https://www.iana.org/assignments/media-types/media-types.xhtml)"""
+    mimeType: String!
+
+    """File extension"""
+    extension: String!
+
+    """File size"""
+    size: Int!
+
+    """File URL"""
+    url: String!
+
+    """Tags file was tagged with"""
+    tags(
+        after: String
+        before: String
+        first: Int
+        last: Int
+        name: String
+    ): FileTagConnection
+
+    """File collaborators"""
+    collaborators(
+        after: String
+        before: String
+        first: Int
+        last: Int
+        username: String
+        permission: FilePermission = READ
+    ): FileCollaboratorConnection
+
+    """Create time"""
+    createdAt: Time!
+
+    """Update time"""
+    updatedAt: Time!
+}
+
+type FileConnection {
+    edges: [FileEdge]
+    nodes: [File]
+    pageInfo: PageInfo!
+}
+
+type FileEdge {
+    cursor: String!
+    node: File!
+}
+
+input FileInput {
+    """File name (optional)"""
+    name: String
+
+    """File"""
+    file: Upload!
+}
+
+input FileUpdateInput {
+    """File name"""
+    name: String
+
+    """File"""
+    file: Upload
+}
+
+enum FilePermission {
+    ADMIN
+    MAINTAIN
+    WRITE
+    READ
+}

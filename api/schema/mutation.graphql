@@ -14,4 +14,25 @@ type Mutation {
 
     """Delete currently authenticated user or user with with id"""
     deleteUser(id: ID @isAdmin): User @auth
+
+    # File
+
+    """Create new File with FileInput"""
+    createFile(input: FileInput!): File @auth
+
+    """Update file with id and FileUpdateInput"""
+    updateFile(id: ID!, input: FileUpdateInput!): File @auth
+
+    """Delete file with id"""
+    deleteFile(id: ID!): File @auth
+
+    # File tag
+
+    """Add tags to the file with FileTagsInput"""
+    addTagsToFile(input: FileTagsInput!): File @auth
+
+    # File collaborator
+
+    """Add file collaborator with FileCollaboratorInput"""
+    addCollaboratorToFile(input: FileCollaboratorInput!): File @auth
 }

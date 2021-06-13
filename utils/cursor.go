@@ -1,4 +1,4 @@
-package paginator
+package utils
 
 import (
 	"encoding/base64"
