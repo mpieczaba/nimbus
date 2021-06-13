@@ -33,4 +33,13 @@ type Query {
 
     """Get tag by name"""
     tag(name: String!): Tag @auth
+
+    """Get all tags"""
+    tags(
+        after: String
+        before: String
+        first: Int
+        last: Int
+        name: String
+    ): TagConnection
 }

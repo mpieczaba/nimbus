@@ -19,3 +19,14 @@
      """Update time"""
      updatedAt: Time!
  }
+
+ type TagConnection {
+     edges: [TagEdge]
+     nodes: [Tag]
+     pageInfo: PageInfo!
+ }
+
+ type TagEdge {
+     cursor: String!
+     node: Tag!
+ }
