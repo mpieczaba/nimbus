@@ -1,6 +1,7 @@
 package store
 
 import (
+	"github.com/mpieczaba/nimbus/auth"
 	"github.com/mpieczaba/nimbus/models"
 	"github.com/mpieczaba/nimbus/store/scopes"
 	"github.com/mpieczaba/nimbus/utils"
@@ -72,4 +73,20 @@ func (s *FileTagStore) GetFileTags(after, before *string, first, last *int, file
 	fileTagConnection.PageInfo = &pageInfo
 
 	return &fileTagConnection, nil
+}
+
+func (s *FileTagStore) DeleteFileTags(claims *auth.Claims, fileTagsInput models.FileTagsInput) ([]*models.FileTag, error) {
+	if err := s.db.Scopes(
+		scopes.FilePermission(models.User{}, "collaborator_id", models.FilePermissionMaintain, "file_id = ? AND (collaborator_id = ? OR ? = ?)", fileTagsInput.FileID, claims.ID, claims.Kind, models.UserKindAdmin),
+	).First(&models.User{}).Error; err != nil {
+		return nil, gqlerror.Errorf("No required permission!")
+	}
+
+	var fileTags []*models.FileTag
+
+	if err := s.db.Where("file_id = ? AND tag_name IN ?", fileTagsInput.FileID, fileTagsInput.TagNames).Find(&fileTags).Delete(&fileTags).Error; err != nil {
+		return nil, gqlerror.Errorf("File tags not found!")
+	}
+
+	return fileTags, nil
 }

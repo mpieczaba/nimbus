@@ -102,15 +102,17 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddCollaboratorToFile func(childComplexity int, input models.FileCollaboratorInput) int
-		AddTagsToFile         func(childComplexity int, input models.FileTagsInput) int
-		CreateFile            func(childComplexity int, input models.FileInput) int
-		CreateUser            func(childComplexity int, input models.UserInput) int
-		DeleteFile            func(childComplexity int, id string) int
-		DeleteUser            func(childComplexity int, id *string) int
-		Login                 func(childComplexity int, username string, password string) int
-		UpdateFile            func(childComplexity int, id string, input models.FileUpdateInput) int
-		UpdateUser            func(childComplexity int, id *string, input models.UserUpdateInput) int
+		AddCollaboratorToFile      func(childComplexity int, input models.FileCollaboratorInput) int
+		AddTagsToFile              func(childComplexity int, input models.FileTagsInput) int
+		CreateFile                 func(childComplexity int, input models.FileInput) int
+		CreateUser                 func(childComplexity int, input models.UserInput) int
+		DeleteFile                 func(childComplexity int, id string) int
+		DeleteUser                 func(childComplexity int, id *string) int
+		Login                      func(childComplexity int, username string, password string) int
+		RemoveCollaboratorFromFile func(childComplexity int, fileID string, collaboratorID string) int
+		RemoveTagsFromFile         func(childComplexity int, input models.FileTagsInput) int
+		UpdateFile                 func(childComplexity int, id string, input models.FileUpdateInput) int
+		UpdateUser                 func(childComplexity int, id *string, input models.UserUpdateInput) int
 	}
 
 	PageInfo struct {
@@ -179,7 +181,9 @@ type MutationResolver interface {
 	UpdateFile(ctx context.Context, id string, input models.FileUpdateInput) (*models.File, error)
 	DeleteFile(ctx context.Context, id string) (*models.File, error)
 	AddTagsToFile(ctx context.Context, input models.FileTagsInput) (*models.File, error)
+	RemoveTagsFromFile(ctx context.Context, input models.FileTagsInput) (*models.File, error)
 	AddCollaboratorToFile(ctx context.Context, input models.FileCollaboratorInput) (*models.File, error)
+	RemoveCollaboratorFromFile(ctx context.Context, fileID string, collaboratorID string) (*models.File, error)
 }
 type QueryResolver interface {
 	User(ctx context.Context, id *string) (*models.User, error)
@@ -497,6 +501,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.Login(childComplexity, args["username"].(string), args["password"].(string)), true
+
+	case "Mutation.removeCollaboratorFromFile":
+		if e.complexity.Mutation.RemoveCollaboratorFromFile == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeCollaboratorFromFile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveCollaboratorFromFile(childComplexity, args["fileId"].(string), args["collaboratorId"].(string)), true
+
+	case "Mutation.removeTagsFromFile":
+		if e.complexity.Mutation.RemoveTagsFromFile == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeTagsFromFile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveTagsFromFile(childComplexity, args["input"].(models.FileTagsInput)), true
 
 	case "Mutation.updateFile":
 		if e.complexity.Mutation.UpdateFile == nil {
@@ -974,10 +1002,16 @@ input FileTagsInput {
     """Add tags to the file with FileTagsInput"""
     addTagsToFile(input: FileTagsInput!): File @auth
 
+    """Remove tags from file with FileTagsInput"""
+    removeTagsFromFile(input: FileTagsInput!): File @auth
+
     # File collaborator
 
     """Add file collaborator with FileCollaboratorInput"""
     addCollaboratorToFile(input: FileCollaboratorInput!): File @auth
+
+    """Remove file collaborator from file with file id and collaborator id"""
+    removeCollaboratorFromFile(fileId: ID!, collaboratorId: ID!): File @auth
 }
 `, BuiltIn: false},
 	{Name: "api/schema/query.graphql", Input: `type Query {
@@ -1071,7 +1105,6 @@ scalar Upload
      cursor: String!
      node: Tag!
  }
-
 `, BuiltIn: false},
 	{Name: "api/schema/user.graphql", Input: `directive @isAdmin on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
@@ -1372,6 +1405,45 @@ func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawAr
 		}
 	}
 	args["password"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeCollaboratorFromFile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["fileId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fileId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["fileId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["collaboratorId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collaboratorId"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["collaboratorId"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeTagsFromFile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.FileTagsInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNFileTagsInput2githubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFileTagsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -3181,6 +3253,65 @@ func (ec *executionContext) _Mutation_addTagsToFile(ctx context.Context, field g
 	return ec.marshalOFile2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFile(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_removeTagsFromFile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_removeTagsFromFile_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RemoveTagsFromFile(rctx, args["input"].(models.FileTagsInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Auth == nil {
+				return nil, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.File); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/mpieczaba/nimbus/models.File`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.File)
+	fc.Result = res
+	return ec.marshalOFile2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFile(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_addCollaboratorToFile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3208,6 +3339,65 @@ func (ec *executionContext) _Mutation_addCollaboratorToFile(ctx context.Context,
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
 			return ec.resolvers.Mutation().AddCollaboratorToFile(rctx, args["input"].(models.FileCollaboratorInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Auth == nil {
+				return nil, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.File); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/mpieczaba/nimbus/models.File`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.File)
+	fc.Result = res
+	return ec.marshalOFile2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_removeCollaboratorFromFile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_removeCollaboratorFromFile_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RemoveCollaboratorFromFile(rctx, args["fileId"].(string), args["collaboratorId"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Auth == nil {
@@ -6020,8 +6210,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_deleteFile(ctx, field)
 		case "addTagsToFile":
 			out.Values[i] = ec._Mutation_addTagsToFile(ctx, field)
+		case "removeTagsFromFile":
+			out.Values[i] = ec._Mutation_removeTagsFromFile(ctx, field)
 		case "addCollaboratorToFile":
 			out.Values[i] = ec._Mutation_addCollaboratorToFile(ctx, field)
+		case "removeCollaboratorFromFile":
+			out.Values[i] = ec._Mutation_removeCollaboratorFromFile(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

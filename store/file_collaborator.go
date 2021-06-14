@@ -82,7 +82,7 @@ func (s *FileCollaboratorStore) GetFileCollaborators(after, before *string, firs
 	return &fileCollaboratorConnection, nil
 }
 
-func (s *FileCollaboratorStore) AddFileCollaborator(claims *auth.Claims, fileCollaborator *models.FileCollaborator) (*models.FileCollaborator, error) {
+func (s *FileCollaboratorStore) CreateFileCollaborator(claims *auth.Claims, fileCollaborator *models.FileCollaborator) (*models.FileCollaborator, error) {
 	if err := s.db.Scopes(
 		scopes.FilePermission(models.User{}, "collaborator_id", models.FilePermissionAdmin, "file_id = ? AND (collaborator_id = ? OR ? = ?)", fileCollaborator.FileID, claims.ID, claims.Kind, models.UserKindAdmin),
 	).First(&models.User{}).Error; err != nil {
@@ -94,4 +94,20 @@ func (s *FileCollaboratorStore) AddFileCollaborator(claims *auth.Claims, fileCol
 	}
 
 	return fileCollaborator, nil
+}
+
+func (s *FileCollaboratorStore) DeleteFileCollaborator(claims *auth.Claims, fileID, collaboratorID string) (*models.FileCollaborator, error) {
+	if err := s.db.Scopes(
+		scopes.FilePermission(models.User{}, "collaborator_id", models.FilePermissionAdmin, "file_id = ? AND (collaborator_id = ? OR ? = ?)", fileID, claims.ID, claims.Kind, models.UserKindAdmin),
+	).First(&models.User{}).Error; err != nil {
+		return nil, gqlerror.Errorf("No required permission!")
+	}
+
+	var fileCollaborator models.FileCollaborator
+
+	if err := s.db.Where("file_id = ? AND collaborator_id = ?", fileID, collaboratorID).First(&fileCollaborator).Delete(&fileCollaborator).Error; err != nil {
+		return nil, gqlerror.Errorf("File collaborator not found!")
+	}
+
+	return &fileCollaborator, nil
 }
