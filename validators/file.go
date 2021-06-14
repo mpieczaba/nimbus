@@ -7,7 +7,7 @@ import (
 )
 
 func CheckFileName(fl validator.FieldLevel) bool {
-	err, _ := regexp.MatchString("^(?:[^/>|:&]+)$", fl.Field().String())
+	ok, _ := regexp.MatchString("^(?:[^/>|:&]+)$", fl.Field().String())
 
-	return err
+	return ok
 }

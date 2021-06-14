@@ -3,37 +3,37 @@ package resolvers
 import (
 	"context"
 
-	"github.com/mpieczaba/nimbus/file/file_tag"
-
-	"github.com/vektah/gqlparser/v2/gqlerror"
+	"github.com/mpieczaba/nimbus/auth"
+	"github.com/mpieczaba/nimbus/models"
+	"github.com/mpieczaba/nimbus/utils"
 )
 
 // Mutation
 
-func (r *mutationResolver) FileTagDelete(ctx context.Context, fileId string, tagId string) (*file_tag.FileTag, error) {
-	claims, err := r.Auth.GetClaims()
-
-	if err != nil {
+func (r *mutationResolver) AddTagsToFile(ctx context.Context, input models.FileTagsInput) (*models.File, error) {
+	if err := r.Validator.Validate(input); err != nil {
 		return nil, err
 	}
 
-	// Check if user is banned
-	if claims["kind"].(string) == "Banned" {
-		return nil, gqlerror.Errorf("You have no permissions to delete file tag!")
-	}
+	claims, _ := auth.ClaimsFromContext(ctx)
 
-	fileTagToDelete, err := r.Store.FileTag.GetFileTag("file_id = ? AND tag_id = ?", fileId, tagId)
-
-	if err != nil {
+	if _, err := r.Store.Tag.CreateTagsOrAppendFileTags(claims, utils.FileTagsInputToTags(input)); err != nil {
 		return nil, err
 	}
 
-	// Check permissions
-	_, err = r.Store.File.GetFile("id = ? AND (owner_id = ? OR ? = 'Admin')", fileTagToDelete.FileID, claims["id"].(string), claims["kind"].(string))
+	return r.Store.File.GetFile(claims, models.FilePermissionRead, "id = ?", input.FileID)
+}
 
-	if err != nil {
+func (r *mutationResolver) RemoveTagsFromFile(ctx context.Context, input models.FileTagsInput) (*models.File, error) {
+	if err := r.Validator.Validate(input); err != nil {
 		return nil, err
 	}
 
-	return r.Store.FileTag.DeleteFileTag("file_id = ? AND tag_id = ?", fileId, tagId)
+	claims, _ := auth.ClaimsFromContext(ctx)
+
+	if _, err := r.Store.FileTag.DeleteFileTags(claims, input); err != nil {
+		return nil, err
+	}
+
+	return r.Store.File.GetFile(claims, models.FilePermissionRead, "id = ?", input.FileID)
 }

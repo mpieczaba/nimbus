@@ -1,25 +1,54 @@
+directive @isAdmin on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
 type User {
+    """Unique id"""
     id: ID!
+
+    """Unique username"""
     username: String!
+
+    """User kind"""
     kind: UserKind!
-    files: [File!]!
+
+    """Create time"""
     createdAt: Time!
+
+    """Update time"""
     updatedAt: Time!
 }
 
+type UserConnection {
+    edges: [UserEdge]
+    nodes: [User]
+    pageInfo: PageInfo!
+}
+
+type UserEdge {
+    cursor: String!
+    node: User!
+}
+
 input UserInput {
+    """Unique username"""
     username: String!
+
+    """User password"""
     password: String!
 }
 
 input UserUpdateInput {
+    """Unique username"""
     username: String
+
+    """User password"""
     password: String
-    kind: UserKind
+
+    """User kind - requires admin privileges"""
+    kind: UserKind @isAdmin
 }
 
 enum UserKind {
-    Admin
-    User
-    Banned
+    ADMIN
+    USER
+    BANNED
 }

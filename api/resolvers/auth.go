@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mpieczaba/nimbus/auth"
+	"github.com/mpieczaba/nimbus/models"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"golang.org/x/crypto/bcrypt"
@@ -11,7 +12,7 @@ import (
 
 // Mutation
 
-func (r *mutationResolver) Login(ctx context.Context, username string, password string) (*auth.AuthPayload, error) {
+func (r *mutationResolver) Login(ctx context.Context, username string, password string) (*models.AuthPayload, error) {
 	userLogin, err := r.Store.User.GetUser("username = ?", username)
 
 	if err != nil {
@@ -19,16 +20,19 @@ func (r *mutationResolver) Login(ctx context.Context, username string, password 
 	}
 
 	// Check if password is correct
-	if err := bcrypt.CompareHashAndPassword([]byte(userLogin.Password), []byte(password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(userLogin.Password), []byte(password)); err != nil {
 		return nil, gqlerror.Errorf("Incorrect username or password!")
 	}
 
 	// Create jwt token
-	token, err := r.Auth.NewToken(userLogin)
+	token, err := auth.NewToken(userLogin)
 
 	if err != nil {
 		return nil, gqlerror.Errorf("Internal server error!")
 	}
 
-	return &auth.AuthPayload{Token: token}, nil
+	return &models.AuthPayload{
+		Token: token,
+		User:  userLogin,
+	}, nil
 }

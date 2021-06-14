@@ -1,17 +1,26 @@
 package utils
 
 import (
-	"github.com/mpieczaba/nimbus/file/file_tag"
+	"github.com/mpieczaba/nimbus/models"
+
+	"github.com/rs/xid"
 )
 
-func TagIDsToFileTags(tagIDs []string) []file_tag.FileTag {
-	var fileTags []file_tag.FileTag
+func FileTagsInputToTags(input models.FileTagsInput) []*models.Tag {
+	var tags []*models.Tag
 
-	for _, tagID := range tagIDs {
-		fileTags = append(fileTags, file_tag.FileTag{
-			TagID: tagID,
+	for _, tagName := range input.TagNames {
+		tags = append(tags, &models.Tag{
+			ID:   xid.New().String(),
+			Name: tagName,
+			FileTags: []models.FileTag{
+				{
+					FileID:  input.FileID,
+					TagName: tagName,
+				},
+			},
 		})
 	}
 
-	return fileTags
+	return tags
 }

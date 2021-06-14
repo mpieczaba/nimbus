@@ -1,57 +1,55 @@
 package auth
 
 import (
-	"os"
-	"strings"
-	"time"
+	"context"
+	"net/http"
 
-	"github.com/mpieczaba/nimbus/user"
-
-	"github.com/form3tech-oss/jwt-go"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-type Auth struct {
-	ctx       *fiber.Ctx
-	jwtSecret string
+type contextKey struct {
+	name string
 }
 
-func NewAuth(ctx *fiber.Ctx) *Auth {
-	return &Auth{
-		ctx:       ctx,
-		jwtSecret: os.Getenv("JWT_SECRET"),
-	}
-}
+var userCtxKey = &contextKey{"user"}
 
-func (a *Auth) NewToken(user *user.User) (string, error) {
-	t := jwt.New(jwt.SigningMethodHS256)
+func Middleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.GetHeader("Authorization")
 
-	claims := t.Claims.(jwt.MapClaims)
+		if !IsToken(token) {
+			c.Next()
 
-	claims["id"] = user.ID
-	claims["username"] = user.Username
-	claims["kind"] = user.Kind
-	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
-	return t.SignedString([]byte(os.Getenv("JWT_SECRET")))
-}
-
-func (a *Auth) GetClaims() (jwt.MapClaims, error) {
-	auth := a.ctx.Get(fiber.HeaderAuthorization)
-
-	if strings.HasPrefix(auth, "Bearer ") {
-		t := strings.Split(auth, "Bearer ")[1]
-
-		token, _ := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
-			return []byte(a.jwtSecret), nil
-		})
-
-		if token.Valid {
-			return token.Claims.(jwt.MapClaims), nil
+			return
 		}
 
+		claims, err := CheckToken(token)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"message": "User must be signed in!",
+				"data":    nil,
+			})
+
+			return
+		}
+
+		ctx := context.WithValue(c.Request.Context(), userCtxKey, claims)
+
+		c.Request = c.Request.WithContext(ctx)
+
+		c.Next()
+	}
+}
+
+func ClaimsFromContext(ctx context.Context) (*Claims, error) {
+	claims, ok := ctx.Value(userCtxKey).(*Claims)
+
+	if !ok {
+		return nil, gqlerror.Errorf("User must be signed in!")
 	}
 
-	return nil, gqlerror.Errorf("User must be signed in!")
+	return claims, nil
 }

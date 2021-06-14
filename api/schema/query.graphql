@@ -1,28 +1,45 @@
 type Query {
     # User
 
-    """Get currently authenticated user"""
-    me: User!
-
-    """Get user by id"""
-    user(id: ID!): User!
+    """Get user by id or currently authenticated user if no id is specified"""
+    user(id: ID): User @auth
 
     """Get all users"""
-    users: [User!]!
+    users(
+        after: String
+        before: String
+        first: Int
+        last: Int
+        username: String
+    ): UserConnection @auth
 
     # File
 
     """Get file by id"""
-    file(id: ID!): File!
+    file(id: ID!): File @auth
 
     """Get all files"""
-    files: [File!]!
+    files(
+        after: String
+        before: String
+        first: Int
+        last: Int
+        name: String
+        permission: FilePermission = READ
+        tags: [String!]
+    ): FileConnection @auth
 
     # Tag
 
-    """Get tag by id"""
-    tag(id: ID!): Tag
+    """Get tag by name"""
+    tag(name: String!): Tag @auth
 
     """Get all tags"""
-    tags: [Tag!]!
+    tags(
+        after: String
+        before: String
+        first: Int
+        last: Int
+        name: String
+    ): TagConnection
 }

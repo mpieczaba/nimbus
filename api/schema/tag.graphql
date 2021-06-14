@@ -1,19 +1,32 @@
-type Tag {
-    id: ID!
-    name: String!
-    owner: User!
-    sharedFor: [TagShare!]!
-    createdAt: Time!
-    updatedAt: Time!
-}
+ type Tag {
+     """Unique name"""
+     name: String!
 
-input TagInput {
-    name: String!
-    sharedFor: [TagShareInput!]
-}
+     """Files tagged with the tag"""
+     files(
+         after: String
+         before: String
+         first: Int
+         last: Int
+         name: String
+         permission: FilePermission = READ
+         tags: [String!]
+     ): FileConnection
 
-input TagUpdateInput {
-    name: String
-    ownerId: ID
-    sharedFor: [TagShareInput!]
-}
+     """Create time"""
+     createdAt: Time!
+
+     """Update time"""
+     updatedAt: Time!
+ }
+
+ type TagConnection {
+     edges: [TagEdge]
+     nodes: [Tag]
+     pageInfo: PageInfo!
+ }
+
+ type TagEdge {
+     cursor: String!
+     node: Tag!
+ }

@@ -3,19 +3,19 @@ package cmd
 import (
 	"fmt"
 	"os"
+
+	"github.com/mpieczaba/nimbus/app"
 )
 
 func Execute() {
+	fmt.Print("Nimbus - extensible storage system\n\n")
+
 	if len(os.Args) < 2 {
 		os.Args = append(os.Args, "help")
 	}
 
 	switch os.Args[1] {
 	case "start":
-		app := NewApp()
-
-		app.Start()
-	default:
-		fmt.Println("Nimbus - extensible storage system focused on quick data access")
+		app.New().Start()
 	}
 }

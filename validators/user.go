@@ -8,9 +8,9 @@ import (
 )
 
 func CheckUserUsername(fl validator.FieldLevel) bool {
-	err, _ := regexp.MatchString("^(?:[A-Za-z0-9_]+)$", fl.Field().String())
+	ok, _ := regexp.MatchString("^(?:[A-Za-z0-9_]+)$", fl.Field().String())
 
-	return err
+	return ok
 }
 
 func CheckUserPassword(fl validator.FieldLevel) bool {

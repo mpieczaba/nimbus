@@ -1,44 +1,39 @@
 package filesystem
 
 import (
-	"io/ioutil"
+	"io"
+	"log"
 	"os"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-type Filesystem struct {
-	dataDirectoryPath string
-}
+func WriteFile(id string, file io.Reader) error {
+	f, err := os.Create(os.Getenv("DATA_DIRECTORY_PATH") + "/" + id)
 
-func NewFilesystem() *Filesystem {
-	return &Filesystem{dataDirectoryPath: os.Getenv("DATA_DIRECTORY_PATH")}
-}
+	if err != nil {
+		log.Println(err)
 
-func (fs *Filesystem) CreateDataDirectory() error {
-	if _, err := os.Stat(fs.dataDirectoryPath); os.IsNotExist(err) {
-		if err = os.Mkdir(fs.dataDirectoryPath, 0777); err != nil {
-			return err
-		}
+		return gqlerror.Errorf("Failed to create file!")
+	}
 
-		if err = os.Mkdir(fs.dataDirectoryPath+"/files", 0777); err != nil {
-			return err
-		}
+	defer f.Close()
 
-		if err = os.Mkdir(fs.dataDirectoryPath+"/classifiers", 0777); err != nil {
-			return err
-		}
+	if _, err = io.Copy(f, file); err != nil {
+		log.Println(err)
+
+		return gqlerror.Errorf("Failed to clone file!")
 	}
 
 	return nil
 }
 
-func (fs *Filesystem) WriteFile(id string, file []byte) error {
-	return ioutil.WriteFile(fs.dataDirectoryPath+"/files/"+id, file, 0777)
-}
+func RemoveFile(id string) error {
+	if err := os.Remove(os.Getenv("DATA_DIRECTORY_PATH") + "/" + id); err != nil {
+		log.Println(err)
 
-func (fs *Filesystem) ReadFile(id string) ([]byte, error) {
-	return ioutil.ReadFile(fs.dataDirectoryPath + "/files/" + id)
-}
+		return gqlerror.Errorf("Failed to remove file!")
+	}
 
-func (fs *Filesystem) RemoveFile(id string) error {
-	return os.Remove(fs.dataDirectoryPath + "/files/" + id)
+	return nil
 }
