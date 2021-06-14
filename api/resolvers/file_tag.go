@@ -23,3 +23,17 @@ func (r *mutationResolver) AddTagsToFile(ctx context.Context, input models.FileT
 
 	return r.Store.File.GetFile(claims, models.FilePermissionRead, "id = ?", input.FileID)
 }
+
+func (r *mutationResolver) RemoveTagsFromFile(ctx context.Context, input models.FileTagsInput) (*models.File, error) {
+	if err := r.Validator.Validate(input); err != nil {
+		return nil, err
+	}
+
+	claims, _ := auth.ClaimsFromContext(ctx)
+
+	if _, err := r.Store.FileTag.DeleteFileTags(claims, input); err != nil {
+		return nil, err
+	}
+
+	return r.Store.File.GetFile(claims, models.FilePermissionRead, "id = ?", input.FileID)
+}

@@ -1,7 +1,4 @@
  type Tag {
-     """Unique id"""
-    id: ID!
-
      """Unique name"""
      name: String!
 
@@ -13,6 +10,7 @@
          last: Int
          name: String
          permission: FilePermission = READ
+         tags: [String!]
      ): FileConnection
 
      """Create time"""
@@ -20,4 +18,15 @@
 
      """Update time"""
      updatedAt: Time!
+ }
+
+ type TagConnection {
+     edges: [TagEdge]
+     nodes: [Tag]
+     pageInfo: PageInfo!
+ }
+
+ type TagEdge {
+     cursor: String!
+     node: Tag!
  }

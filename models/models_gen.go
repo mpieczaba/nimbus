@@ -54,6 +54,17 @@ type PageInfo struct {
 	HasPreviousPage bool `json:"hasPreviousPage"`
 }
 
+type TagConnection struct {
+	Edges    []*TagEdge `json:"edges"`
+	Nodes    []*Tag     `json:"nodes"`
+	PageInfo *PageInfo  `json:"pageInfo"`
+}
+
+type TagEdge struct {
+	Cursor string `json:"cursor"`
+	Node   *Tag   `json:"node"`
+}
+
 type UserConnection struct {
 	Edges    []*UserEdge `json:"edges"`
 	Nodes    []*User     `json:"nodes"`

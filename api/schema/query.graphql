@@ -26,5 +26,20 @@ type Query {
         last: Int
         name: String
         permission: FilePermission = READ
+        tags: [String!]
     ): FileConnection @auth
+
+    # Tag
+
+    """Get tag by name"""
+    tag(name: String!): Tag @auth
+
+    """Get all tags"""
+    tags(
+        after: String
+        before: String
+        first: Int
+        last: Int
+        name: String
+    ): TagConnection
 }

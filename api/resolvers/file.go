@@ -21,10 +21,10 @@ func (r *queryResolver) File(ctx context.Context, id string) (*models.File, erro
 	return r.Store.File.GetFile(claims, models.FilePermissionRead, "id = ?", id)
 }
 
-func (r *queryResolver) Files(ctx context.Context, after, before *string, first, last *int, name *string, permission *models.FilePermission) (*models.FileConnection, error) {
+func (r *queryResolver) Files(ctx context.Context, after, before *string, first, last *int, name *string, permission *models.FilePermission, tags []string) (*models.FileConnection, error) {
 	claims, _ := auth.ClaimsFromContext(ctx)
 
-	return r.Store.File.GetAllFiles(claims, after, before, first, last, name, *permission)
+	return r.Store.File.GetAllFiles(claims, after, before, first, last, name, *permission, tags)
 }
 
 // Mutation

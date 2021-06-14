@@ -31,8 +31,14 @@ type Mutation {
     """Add tags to the file with FileTagsInput"""
     addTagsToFile(input: FileTagsInput!): File @auth
 
+    """Remove tags from file with FileTagsInput"""
+    removeTagsFromFile(input: FileTagsInput!): File @auth
+
     # File collaborator
 
     """Add file collaborator with FileCollaboratorInput"""
     addCollaboratorToFile(input: FileCollaboratorInput!): File @auth
+
+    """Remove file collaborator from the file with file id and collaborator id"""
+    removeCollaboratorFromFile(fileId: ID!, collaboratorId: ID!): File @auth
 }
