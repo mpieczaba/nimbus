@@ -8,8 +8,24 @@ import Home from "../Home";
 // Font awesome imports
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { fas } from "@fortawesome/free-solid-svg-icons";
+import {
+  faSearch,
+  faEllipsisV,
+  faGripVertical,
+  faThList,
+  faArrowDown,
+  faBars,
+} from "@fortawesome/free-solid-svg-icons";
 
-library.add(fas);
+library.add(
+  fas,
+  faSearch,
+  faEllipsisV,
+  faGripVertical,
+  faThList,
+  faArrowDown,
+  faBars
+);
 
 const App: React.FC = () => {
   return (

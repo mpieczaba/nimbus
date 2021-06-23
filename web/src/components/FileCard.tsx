@@ -1,6 +1,5 @@
 import React from "react";
 import styled from "styled-components";
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import colors from "../utils/colors";
@@ -12,7 +11,7 @@ import { FileIcon } from "./FileIcon";
 const Wrapper = styled(Column)`
   background: ${colors.gray};
   border-radius: 10px;
-  box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: ${colors.boxShadow};
   cursor: pointer;
 `;
 
@@ -27,7 +26,7 @@ const Thumbnail = styled.img`
   height: 100%;
   object-fit: cover;
   border-radius: 10px;
-  box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: ${colors.boxShadow};
 `;
 
 const ThumbnailIcon = styled.div`
@@ -54,6 +53,7 @@ const FileName = styled.div`
   align-self: center;
   padding: 0.5rem 0;
   font-size: 0.8rem;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -89,7 +89,7 @@ export const FileCard: React.FC<{ name: string; thumbnail?: string }> = ({
         </FileInfoIcon>
         <FileName>{name}</FileName>
         <Menu>
-          <FontAwesomeIcon icon={["fas", "ellipsis-v"]} color={colors.text} />
+          <FontAwesomeIcon icon="ellipsis-v" color={colors.text} />
         </Menu>
       </FileInfo>
     </Wrapper>

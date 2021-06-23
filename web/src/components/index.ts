@@ -3,5 +3,7 @@ export * from "./Container";
 export * from "./FileCard";
 export * from "./FileIcon";
 export * from "./FilesGrid";
+export * from "./FileOptions";
 export * from "./Layout";
 export * from "./Row";
+export * from "./SearchBar";
