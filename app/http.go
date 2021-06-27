@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/mpieczaba/nimbus/api/directives"
 	"github.com/mpieczaba/nimbus/api/resolvers"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,7 +27,11 @@ func (app *App) ServeHTTP() error {
 
 	app.http = gin.Default()
 
-	app.http.Use(auth.Middleware())
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+
+	app.http.Use(cors.New(corsConfig), auth.Middleware())
 
 	app.http.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Nimbus - extensible storage system")
@@ -49,7 +55,15 @@ func (app *App) ServeHTTP() error {
 
 	log.Println("Nimbus server listening on " + os.Getenv("HOST"))
 
-	return app.http.Run(os.Getenv("HOST"))
+	srv := &http.Server{
+		Addr:           os.Getenv("HOST"),
+		Handler:        app.http,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	return srv.ListenAndServe()
 }
 
 func (app *App) getGQLConfig() server.Config {

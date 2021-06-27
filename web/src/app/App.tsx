@@ -1,9 +1,10 @@
 import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { createGlobalStyle } from "styled-components";
 
-import "./App.scss";
+import { style, AppWrapper } from "../themes/styles";
 
-import Home from "../Home";
+import Home from "../views/Home";
 
 // Font awesome imports
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -27,18 +28,19 @@ library.add(
   faBars
 );
 
-const App: React.FC = () => {
+const GlobalStyle = createGlobalStyle`${style}`;
+
+export const App: React.FC = () => {
   return (
-    <Router>
-      <div className="app">
-        <Switch>
-          <Route path="/">
-            <Home />
-          </Route>
-        </Switch>
-      </div>
-    </Router>
+    <>
+      <GlobalStyle />
+      <AppWrapper>
+        <Router>
+          <Switch>
+            <Route path="/" component={Home} />
+          </Switch>
+        </Router>
+      </AppWrapper>
+    </>
   );
 };
-
-export default App;

@@ -1,8 +1,11 @@
 import React from "react";
-
 import icons from "@uiw/file-icons/fonts/ffont.symbol.svg";
 
-export const FileIcon: React.FC<{ icon: string }> = ({ icon }) => {
+interface Props {
+  icon: string;
+}
+
+const FileIcon = ({ icon }: Props) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -13,3 +16,5 @@ export const FileIcon: React.FC<{ icon: string }> = ({ icon }) => {
     </svg>
   );
 };
+
+export default FileIcon;
