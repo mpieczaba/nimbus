@@ -7,16 +7,17 @@ import FileThumbnail from "../FileThumbnail";
 
 interface Props {
   fileName: string;
+  fileURL: string;
   thumbnail?: string;
 }
 
-const FileCard = ({ fileName, thumbnail }: Props) => {
+const FileCard: React.FC<Props> = ({ fileName, fileURL, thumbnail }) => {
   return (
     <Wrapper>
       <Thumbnail>
         <FileThumbnail thumbnail={thumbnail} />
       </Thumbnail>
-      <FileInfo file={{ name: fileName }} />
+      <FileInfo file={{ name: fileName, url: fileURL }} />
     </Wrapper>
   );
 };

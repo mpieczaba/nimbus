@@ -1,72 +1,97 @@
 import React, { useState } from "react";
-import { useQuery } from "@apollo/react-hooks";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import dayjs from "dayjs";
 import fileSize from "filesize";
 
-import files, { FilesData } from "../../apollo/queries/files";
+import { useFilesQuery } from "../../generated/graphql";
 
+import Dropdown, { DropdownItemsWrapper } from "../Dropdown";
 import FileCard from "../FileCard";
 import FileList from "../FileList";
 
 import {
   Wrapper,
   OptionsWrapper,
-  ViewOptionsWrapper,
+  FilterOption,
+  FilterButton,
+  DropdownItem,
   ViewOption,
   FileCardWrapper,
   FileListWrapper,
 } from "./styles";
 
-const Files = () => {
-  const { loading, error, data } = useQuery<FilesData>(files);
+const Files: React.FC = () => {
+  const { loading, error, data } = useFilesQuery();
 
+  const [dropdown, showHideDropdown] = useState<boolean>(false);
+  const [order, setOrder] = useState<boolean>(true);
   const [view, setView] = useState<boolean>(true);
 
-  const handleOptionChange = () => {
+  const handleDropdownShowHide = () => {
+    showHideDropdown(!dropdown);
+  };
+
+  const handleViewOptionChange = () => {
     setView(!view);
   };
 
-  if (loading) {
-    return <>Loading...</>;
-  }
-  if (error) return <>Error! {error.message}</>;
+  const handleOrderChange = () => {
+    setOrder(!order);
+  };
+
+  if (loading) return <>Loading...</>;
+  if (error || !data) return <>Error!</>;
 
   return (
     <Wrapper>
       <OptionsWrapper>
-        <div />
-        <ViewOptionsWrapper>
-          <ViewOption onClick={handleOptionChange} active={view}>
-            <FontAwesomeIcon icon="grip-vertical" />
-          </ViewOption>
-          <ViewOption onClick={handleOptionChange} active={!view}>
-            <FontAwesomeIcon icon="th-list" />
-          </ViewOption>
-        </ViewOptionsWrapper>
+        <FilterOption>
+          <div onClick={handleDropdownShowHide}>Name</div>
+          {dropdown ? (
+            <Dropdown onClick={handleDropdownShowHide}>
+              <DropdownItemsWrapper>
+                <DropdownItem>Name</DropdownItem>
+                <DropdownItem>Modification date</DropdownItem>
+                <DropdownItem>Size</DropdownItem>
+              </DropdownItemsWrapper>
+            </Dropdown>
+          ) : null}
+          <FilterButton onClick={handleOrderChange}>
+            <FontAwesomeIcon icon={order ? "arrow-down" : "arrow-up"} />
+          </FilterButton>
+        </FilterOption>
+        <ViewOption onClick={handleViewOptionChange}>
+          <FontAwesomeIcon icon={view ? "th-list" : "grip-vertical"} />
+        </ViewOption>
       </OptionsWrapper>
+
       {view ? (
         <FileCardWrapper>
-          {data &&
-            data.files.edges.map((el) => (
-              <FileCard fileName={el.node.name} thumbnail={el.node.url} />
-            ))}
+          {data.files?.edges?.map((edge, index) => (
+            <FileCard
+              key={index}
+              fileName={edge!.node.name}
+              fileURL={edge!.node.url}
+              thumbnail={edge!.node.url}
+            />
+          ))}
         </FileCardWrapper>
       ) : (
         <FileListWrapper>
-          {data &&
-            data.files.edges.map((el) => (
-              <FileList
-                file={{
-                  name: el.node.name,
-                  modificationDate: dayjs(el.node.updatedAt)
-                    .format("D MMMM YYYY H:m")
-                    .toString(),
-                  size: fileSize(el.node.size).toString(),
-                }}
-                thumbnail={el.node.url}
-              />
-            ))}
+          {data.files?.edges?.map((edge, index) => (
+            <FileList
+              key={index}
+              file={{
+                name: edge!.node.name,
+                modificationDate: dayjs(edge!.node.updatedAt)
+                  .format("D MMMM YYYY H:m")
+                  .toString(),
+                size: fileSize(edge!.node.size).toString(),
+                url: edge!.node.url,
+              }}
+              thumbnail={edge!.node.url}
+            />
+          ))}
         </FileListWrapper>
       )}
     </Wrapper>

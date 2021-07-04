@@ -1,0 +1,13 @@
+query Files {
+  files {
+    edges {
+      node {
+        id
+        name
+        size
+        url
+        updatedAt
+      }
+    }
+  }
+}

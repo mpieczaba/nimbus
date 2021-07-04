@@ -1,12 +1,14 @@
-import { Wrapper, Thumbnail } from "./styles";
-import FileIcon from "../FileIcon";
 import React from "react";
+
+import { Wrapper, Thumbnail } from "./styles";
+
+import FileIcon from "../FileIcon";
 
 interface Props {
   thumbnail?: string;
 }
 
-const FileThumbnail = ({ thumbnail }: Props) => {
+const FileThumbnail: React.FC<Props> = ({ thumbnail }) => {
   return (
     <Wrapper>
       {thumbnail ? <Thumbnail src={thumbnail} /> : <FileIcon icon="image" />}

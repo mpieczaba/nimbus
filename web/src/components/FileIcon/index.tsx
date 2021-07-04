@@ -5,7 +5,7 @@ interface Props {
   icon: string;
 }
 
-const FileIcon = ({ icon }: Props) => {
+const FileIcon: React.FC<Props> = ({ icon }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

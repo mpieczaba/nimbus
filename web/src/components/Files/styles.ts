@@ -14,26 +14,43 @@ export const OptionsWrapper = styled.div`
   justify-content: space-between;
 `;
 
-export const ViewOptionsWrapper = styled.div`
+export const FilterOption = styled.div`
   display: flex;
-  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.5rem;
   background: ${colors.gray};
+  font-weight: 600;
+  color: ${colors.text};
   border-radius: 10px;
-  box-shadow: ${colors.boxShadow};
+  cursor: pointer;
 `;
 
-interface ViewOptionProps {
-  active?: boolean;
-}
+export const FilterButton = styled.button`
+  display: flex;
+  align-self: center;
+  justify-content: center;
+  color: ${colors.text};
+  background: none;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+`;
 
-export const ViewOption = styled.button<ViewOptionProps>`
+export const DropdownItem = styled.div`
+  display: flex;
+  padding: 0.5rem;
+`;
+
+export const ViewOption = styled.button`
   display: flex;
   align-self: center;
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
   padding: 0.5rem;
-  background: ${(props) => (props.active ? colors.accent : colors.gray)};
+  background: ${colors.gray};
   color: ${colors.text};
   font-size: 1.25rem;
   border: none;

@@ -66,3 +66,8 @@ export const FileMenuButton = styled.button`
     color: ${colors.textGray};
   }
 `;
+
+export const DropdownItem = styled.div`
+  display: flex;
+  padding: 0.5rem;
+`;
