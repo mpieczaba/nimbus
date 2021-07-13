@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 import FileInfo from "../FileInfo";
 
@@ -6,19 +7,25 @@ import { Wrapper, Thumbnail } from "./styles";
 import FileThumbnail from "../FileThumbnail";
 
 interface Props {
-  fileName: string;
-  fileURL: string;
+  file: {
+    id: string;
+    name: string;
+    url: string;
+  };
   thumbnail?: string;
 }
 
-const FileCard: React.FC<Props> = ({ fileName, fileURL, thumbnail }) => {
+const FileCard: React.FC<Props> = ({ file, thumbnail }) => {
   return (
-    <Wrapper>
-      <Thumbnail>
-        <FileThumbnail thumbnail={thumbnail} />
-      </Thumbnail>
-      <FileInfo file={{ name: fileName, url: fileURL }} />
-    </Wrapper>
+    <Link to={`/files/${file.id}`}>
+      <Wrapper>
+        <Thumbnail>
+          <FileThumbnail thumbnail={thumbnail} />
+        </Thumbnail>
+
+        <FileInfo file={{ id: file.id, name: file.name, url: file.url }} />
+      </Wrapper>
+    </Link>
   );
 };
 

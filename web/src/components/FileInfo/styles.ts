@@ -1,6 +1,7 @@
 import styled from "styled-components";
 
 import { colors } from "../../themes/colors";
+import { DropdownItem } from "../Dropdown";
 
 export const Wrapper = styled.div`
   display: flex;
@@ -35,6 +36,7 @@ export const FileName = styled.div<{ rich?: boolean }>`
   line-height: 1.5rem;
   font-size: 0.8rem;
   font-weight: 600;
+  color: ${colors.text};
   text-align: ${(props) => (props.rich ? "flex-start" : "center")};
   white-space: nowrap;
   overflow: hidden;
@@ -60,14 +62,24 @@ export const FileMenuButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
+  color: ${colors.textGray};
+  font-size: 0.8rem;
+`;
 
-  svg {
-    font-size: 1rem;
-    color: ${colors.textGray};
+export const DropdownItemName = styled(DropdownItem)`
+  margin: 0;
+  padding: 0.5rem 1.5rem 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-bottom: 2px solid ${colors.accent};
+
+  div {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 1.5rem;
   }
 `;
 
-export const DropdownItem = styled.div`
-  display: flex;
-  padding: 0.5rem;
+export const DropdownItemDelete = styled(DropdownItem)`
+  color: ${colors.error};
 `;

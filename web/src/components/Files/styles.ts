@@ -18,12 +18,10 @@ export const FilterOption = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  padding: 0.5rem;
-  background: ${colors.gray};
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
   font-weight: 600;
-  color: ${colors.text};
-  border-radius: 10px;
+  color: ${colors.textGray};
   cursor: pointer;
 `;
 
@@ -31,30 +29,23 @@ export const FilterButton = styled.button`
   display: flex;
   align-self: center;
   justify-content: center;
-  color: ${colors.text};
+  padding: 0;
+  color: ${colors.textGray};
   background: none;
   border: none;
   border-radius: 10px;
   cursor: pointer;
 `;
 
-export const DropdownItem = styled.div`
-  display: flex;
-  padding: 0.5rem;
-`;
-
 export const ViewOption = styled.button`
   display: flex;
   align-self: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
   padding: 0.5rem;
-  background: ${colors.gray};
-  color: ${colors.text};
+  background: none;
+  color: ${colors.textGray};
   font-size: 1.25rem;
   border: none;
-  border-radius: 10px;
   cursor: pointer;
 `;
 

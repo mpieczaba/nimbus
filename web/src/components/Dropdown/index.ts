@@ -18,12 +18,43 @@ export const DropdownItemsWrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 1.5rem;
+  padding: 1rem 0;
   background: ${colors.gray};
   font-weight: 600;
-  border-radius: 10px 10px 0 0;
+  border-radius: 20px 20px 0 0;
   box-shadow: ${colors.boxShadow};
+  animation: 100ms ease-out 0s 1 goUp;
+
+  @keyframes goUp {
+    0% {
+      transform: translateY(100px);
+    }
+
+    100% {
+      transform: translateY(0);
+    }
+  }
+`;
+
+export const DropdownItem = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 0.5rem;
+  margin: 0 1rem;
+  font-size: 1rem;
+  color: ${colors.text};
+  font-weight: 400;
+  text-align: center;
+`;
+
+export const DropdownItemIcon = styled.div`
+  display: flex;
+  align-self: center;
+  justify-content: center;
+  margin-right: 1.5rem;
+  color: ${colors.textGray};
 `;
 
 export default Dropdown;

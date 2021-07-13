@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  IconDownload,
+  IconPencil,
+  IconInfoCircle,
+  IconShare,
+  IconTrash,
+  IconDotsVertical,
+} from "@tabler/icons";
+
+import { colors } from "../../themes/colors";
 
 import {
   Wrapper,
@@ -9,15 +18,21 @@ import {
   FileInfoElements,
   FileInfoElement,
   FileMenuButton,
-  DropdownItem,
+  DropdownItemName,
+  DropdownItemDelete,
 } from "./styles";
 
 import FileThumbnail from "../FileThumbnail";
-import Dropdown, { DropdownItemsWrapper } from "../Dropdown";
+import Dropdown, {
+  DropdownItemsWrapper,
+  DropdownItem,
+  DropdownItemIcon,
+} from "../Dropdown";
 
 interface Props {
   rich?: boolean;
   file: {
+    id: string;
     name: string;
     size?: string;
     url: string;
@@ -29,7 +44,9 @@ interface Props {
 const FileInfo: React.FC<Props> = ({ rich, file, thumbnail }) => {
   const [dropdown, showHideDropdown] = useState<boolean>(false);
 
-  const handleDropdownShowHide = () => {
+  const handleDropdownShowHide = (e: React.MouseEvent) => {
+    e.preventDefault();
+
     showHideDropdown(!dropdown);
   };
 
@@ -42,8 +59,10 @@ const FileInfo: React.FC<Props> = ({ rich, file, thumbnail }) => {
       <Thumbnail rich={rich}>
         <FileThumbnail thumbnail={thumbnail} />
       </Thumbnail>
+
       <FileInfoWrapper>
         <FileName rich={rich}>{file.name}</FileName>
+
         {rich && file.size && file.modificationDate ? (
           <FileInfoElements>
             <FileInfoElement>{file.size}</FileInfoElement>
@@ -51,14 +70,55 @@ const FileInfo: React.FC<Props> = ({ rich, file, thumbnail }) => {
           </FileInfoElements>
         ) : null}
       </FileInfoWrapper>
+
       <FileMenuButton onClick={handleDropdownShowHide}>
-        <FontAwesomeIcon icon="ellipsis-v" />
+        <IconDotsVertical />
       </FileMenuButton>
+
       {dropdown ? (
         <Dropdown onClick={handleDropdownShowHide}>
           <DropdownItemsWrapper>
-            <DropdownItem>Details</DropdownItem>
-            <DropdownItem onClick={handleDownload}>Download</DropdownItem>
+            <DropdownItemName>
+              <Thumbnail>
+                <FileThumbnail />
+              </Thumbnail>
+              <span>{file.name}</span>
+            </DropdownItemName>
+
+            <DropdownItem>
+              <DropdownItemIcon>
+                <IconInfoCircle />
+              </DropdownItemIcon>
+              Details
+            </DropdownItem>
+
+            <DropdownItem>
+              <DropdownItemIcon>
+                <IconShare />
+              </DropdownItemIcon>
+              Share
+            </DropdownItem>
+
+            <DropdownItem onClick={handleDownload}>
+              <DropdownItemIcon>
+                <IconDownload />
+              </DropdownItemIcon>
+              Download
+            </DropdownItem>
+
+            <DropdownItem>
+              <DropdownItemIcon>
+                <IconPencil />
+              </DropdownItemIcon>
+              Change name
+            </DropdownItem>
+
+            <DropdownItemDelete>
+              <DropdownItemIcon>
+                <IconTrash color={colors.error} />
+              </DropdownItemIcon>
+              Delete
+            </DropdownItemDelete>
           </DropdownItemsWrapper>
         </Dropdown>
       ) : null}

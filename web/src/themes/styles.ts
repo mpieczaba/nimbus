@@ -22,6 +22,11 @@ export const style = css`
     background: ${colors.background};
     color: ${colors.text};
   }
+
+  a {
+    outline: none;
+    text-decoration: none;
+  }
 `;
 
 export const AppWrapper = styled.div`

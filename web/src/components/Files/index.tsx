@@ -1,11 +1,16 @@
 import React, { useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import dayjs from "dayjs";
 import fileSize from "filesize";
+import {
+  IconArrowDown,
+  IconArrowUp,
+  IconLayoutGrid,
+  IconLayoutList,
+} from "@tabler/icons";
 
 import { useFilesQuery } from "../../generated/graphql";
 
-import Dropdown, { DropdownItemsWrapper } from "../Dropdown";
+import Dropdown, { DropdownItemsWrapper, DropdownItem } from "../Dropdown";
 import FileCard from "../FileCard";
 import FileList from "../FileList";
 
@@ -14,7 +19,6 @@ import {
   OptionsWrapper,
   FilterOption,
   FilterButton,
-  DropdownItem,
   ViewOption,
   FileCardWrapper,
   FileListWrapper,
@@ -57,11 +61,11 @@ const Files: React.FC = () => {
             </Dropdown>
           ) : null}
           <FilterButton onClick={handleOrderChange}>
-            <FontAwesomeIcon icon={order ? "arrow-down" : "arrow-up"} />
+            {order ? <IconArrowDown /> : <IconArrowUp />}
           </FilterButton>
         </FilterOption>
         <ViewOption onClick={handleViewOptionChange}>
-          <FontAwesomeIcon icon={view ? "th-list" : "grip-vertical"} />
+          {view ? <IconLayoutList /> : <IconLayoutGrid />}
         </ViewOption>
       </OptionsWrapper>
 
@@ -70,8 +74,11 @@ const Files: React.FC = () => {
           {data.files?.edges?.map((edge, index) => (
             <FileCard
               key={index}
-              fileName={edge!.node.name}
-              fileURL={edge!.node.url}
+              file={{
+                id: edge!.node.id,
+                name: edge!.node.name,
+                url: edge!.node.url,
+              }}
               thumbnail={edge!.node.url}
             />
           ))}
@@ -82,9 +89,10 @@ const Files: React.FC = () => {
             <FileList
               key={index}
               file={{
+                id: edge!.node.id,
                 name: edge!.node.name,
                 modificationDate: dayjs(edge!.node.updatedAt)
-                  .format("D MMMM YYYY H:m")
+                  .format("D MMM YYYY H:m")
                   .toString(),
                 size: fileSize(edge!.node.size).toString(),
                 url: edge!.node.url,
