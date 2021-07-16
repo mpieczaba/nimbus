@@ -11,7 +11,7 @@ const Dropdown = styled.div`
   height: 100%;
   top: 0;
   left: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: ${colors.overlay};
 `;
 
 export const DropdownItemsWrapper = styled.div`
@@ -25,16 +25,6 @@ export const DropdownItemsWrapper = styled.div`
   border-radius: 20px 20px 0 0;
   box-shadow: ${colors.boxShadow};
   animation: 100ms ease-out 0s 1 goUp;
-
-  @keyframes goUp {
-    0% {
-      transform: translateY(100px);
-    }
-
-    100% {
-      transform: translateY(0);
-    }
-  }
 `;
 
 export const DropdownItem = styled.div`
@@ -47,6 +37,14 @@ export const DropdownItem = styled.div`
   color: ${colors.text};
   font-weight: 400;
   text-align: center;
+`;
+
+export const DropdownItemTitle = styled(DropdownItem)`
+  margin: 0;
+  padding: 0.5rem 1.5rem 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-bottom: 2px solid ${colors.accent};
 `;
 
 export const DropdownItemIcon = styled.div`

@@ -10,7 +10,11 @@ import {
 
 import { useFilesQuery } from "../../generated/graphql";
 
-import Dropdown, { DropdownItemsWrapper, DropdownItem } from "../Dropdown";
+import Dropdown, {
+  DropdownItemsWrapper,
+  DropdownItem,
+  DropdownItemTitle,
+} from "../Dropdown";
 import FileCard from "../FileCard";
 import FileList from "../FileList";
 
@@ -54,6 +58,7 @@ const Files: React.FC = () => {
           {dropdown ? (
             <Dropdown onClick={handleDropdownShowHide}>
               <DropdownItemsWrapper>
+                <DropdownItemTitle>Sort by</DropdownItemTitle>
                 <DropdownItem>Name</DropdownItem>
                 <DropdownItem>Modification date</DropdownItem>
                 <DropdownItem>Size</DropdownItem>

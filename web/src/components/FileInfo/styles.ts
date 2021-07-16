@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 import { colors } from "../../themes/colors";
-import { DropdownItem } from "../Dropdown";
+import { DropdownItemTitle, DropdownItem } from "../Dropdown";
 
 export const Wrapper = styled.div`
   display: flex;
@@ -66,13 +66,7 @@ export const FileMenuButton = styled.button`
   font-size: 0.8rem;
 `;
 
-export const DropdownItemName = styled(DropdownItem)`
-  margin: 0;
-  padding: 0.5rem 1.5rem 1rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border-bottom: 2px solid ${colors.accent};
-
+export const DropdownItemName = styled(DropdownItemTitle)`
   div {
     width: 1.25rem;
     height: 1.25rem;

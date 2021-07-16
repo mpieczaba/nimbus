@@ -3,7 +3,7 @@ import { withRouter } from "react-router-dom";
 
 import Files from "../../components/Files";
 
-const Home = () => {
+const Home: React.FC = () => {
   return <Files />;
 };
 

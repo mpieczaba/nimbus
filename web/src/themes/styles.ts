@@ -3,8 +3,6 @@ import styled, { css } from "styled-components";
 import { colors } from "./colors";
 
 export const style = css`
-  @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap");
-
   *,
   *::before,
   *::after {
@@ -26,6 +24,26 @@ export const style = css`
   a {
     outline: none;
     text-decoration: none;
+  }
+
+  @keyframes goUp {
+    0% {
+      transform: translateY(100px);
+    }
+
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes goRight {
+    0% {
+      transform: translateX(-100px);
+    }
+
+    100% {
+      transform: translateX(0);
+    }
   }
 `;
 

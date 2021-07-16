@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, MouseEvent } from "react";
 import {
   IconDownload,
   IconPencil,
@@ -44,7 +44,7 @@ interface Props {
 const FileInfo: React.FC<Props> = ({ rich, file, thumbnail }) => {
   const [dropdown, showHideDropdown] = useState<boolean>(false);
 
-  const handleDropdownShowHide = (e: React.MouseEvent) => {
+  const handleDropdownShowHide = (e: MouseEvent) => {
     e.preventDefault();
 
     showHideDropdown(!dropdown);
