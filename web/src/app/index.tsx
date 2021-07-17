@@ -2,6 +2,8 @@ import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { createGlobalStyle } from "styled-components";
 
+import PrivateRoute from "../utils/PrivateRoute";
+
 import { style, AppWrapper } from "../themes/styles";
 
 import Home from "../views/Home";
@@ -18,8 +20,12 @@ const App: React.FC = () => {
       <AppWrapper>
         <Router>
           <Switch>
-            <Route path="/login" component={Login} />
-            <Route path="/" component={Home} />
+            <Route exact path="/login">
+              <Login />
+            </Route>
+            <PrivateRoute path="/">
+              <Home />
+            </PrivateRoute>
           </Switch>
           <Navbar />
         </Router>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { Link, useHistory, useLocation } from "react-router-dom";
 import {
   IconMenu2,
   IconSearch,
@@ -8,6 +9,8 @@ import {
   IconSettings,
   IconLogout,
 } from "@tabler/icons";
+
+import { setToken } from "../../actions/authActions";
 
 import {
   Wrapper,
@@ -26,12 +29,20 @@ import Sidebar, {
 } from "../Sidebar";
 
 const Navbar: React.FC = () => {
+  const dispatch = useDispatch();
+  const history = useHistory();
   const location = useLocation();
 
   const [sidebar, showHideSidebar] = useState<boolean>(false);
 
   const handleSidebarShowHide = () => {
     showHideSidebar(!sidebar);
+  };
+
+  const handleSignOut = () => {
+    dispatch(setToken(""));
+
+    history.push("/");
   };
 
   return (
@@ -79,11 +90,11 @@ const Navbar: React.FC = () => {
                   Settings
                 </SidebarItem>
 
-                <SidebarItem>
+                <SidebarItem onClick={handleSignOut}>
                   <SidebarItemIcon>
                     <IconLogout />
                   </SidebarItemIcon>
-                  Logout
+                  Sign out
                 </SidebarItem>
               </SidebarItemsWrapper>
             </Sidebar>

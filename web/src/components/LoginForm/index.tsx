@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { useHistory } from "react-router-dom";
 import { Formik, FormikErrors } from "formik";
 import { IconUser, IconLock } from "@tabler/icons";
-
-import { useAppDispatch } from "../../hooks/store";
 
 import { setToken } from "../../actions/authActions";
 
@@ -24,9 +24,22 @@ import Input, {
 import Button from "../Button";
 
 const LoginForm: React.FC = () => {
-  const dispatch = useAppDispatch();
+  const dispatch = useDispatch();
+  const history = useHistory();
 
-  const [login, { data, error }] = useLoginMutation();
+  const [login, { error }] = useLoginMutation({
+    onCompleted: ({ login }) => {
+      if (login) {
+        dispatch(setToken(login.token));
+
+        history.push("/");
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (localStorage.getItem("token")) history.push("/");
+  }, [history]);
 
   return (
     <Wrapper>
@@ -46,12 +59,10 @@ const LoginForm: React.FC = () => {
           return errors;
         }}
         onSubmit={async (values: LoginMutationVariables, { setSubmitting }) => {
-          console.log(values);
-
           try {
-            await login({ variables: values });
-
-            dispatch(setToken(data?.login.token));
+            await login({
+              variables: values,
+            });
           } catch (err) {
             console.log(err);
           }

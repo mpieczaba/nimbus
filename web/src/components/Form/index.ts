@@ -7,6 +7,7 @@ const Form = styled.form`
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 80%;
   padding: 2rem 1rem;
   background: ${colors.gray};
   border-radius: 10px;
