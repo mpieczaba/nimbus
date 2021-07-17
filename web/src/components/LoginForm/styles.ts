@@ -11,13 +11,14 @@ export const Wrapper = styled.div`
   height: 100%;
 `;
 
-export const Header = styled.h1`
+export const Logo = styled.h1`
   display: flex;
-  justify-content: center;
   margin: 0;
-  padding-bottom: 1rem;
-  color: ${colors.accent};
+  padding: 1rem;
   font-family: "Baloo Tammudu 2", sans-serif;
+  color: ${colors.accent};
+  text-transform: lowercase;
+  font-size: 2.5rem;
   font-weight: 700;
   line-height: 2rem;
 `;

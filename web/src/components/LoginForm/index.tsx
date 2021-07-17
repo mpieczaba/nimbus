@@ -11,9 +11,9 @@ import {
   useLoginMutation,
 } from "../../generated/graphql";
 
-import Form from "../Form";
+import Form, { Header } from "../Form";
 
-import { Wrapper, Header, Error } from "./styles";
+import { Wrapper, Logo, Error } from "./styles";
 
 import Input, {
   InputWrapper,
@@ -43,6 +43,8 @@ const LoginForm: React.FC = () => {
 
   return (
     <Wrapper>
+      <Logo>Nimbus</Logo>
+
       <Formik
         initialValues={{
           username: "",
