@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import dayjs from "dayjs";
 import fileSize from "filesize";
 import {
@@ -29,7 +30,18 @@ import {
 } from "./styles";
 
 const Files: React.FC = () => {
-  const { loading, error, data } = useFilesQuery();
+  const location = useLocation();
+
+  const urlSearchParams = new URLSearchParams(location.search);
+
+  console.log(urlSearchParams.getAll("tag").map((t) => `#${t}`));
+
+  const { loading, error, data } = useFilesQuery({
+    variables: {
+      name: urlSearchParams.get("search"),
+      tags: urlSearchParams.getAll("tag").map((t) => `#${t}`),
+    },
+  });
 
   const [dropdown, showHideDropdown] = useState<boolean>(false);
   const [order, setOrder] = useState<boolean>(true);

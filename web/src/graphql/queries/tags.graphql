@@ -1,0 +1,9 @@
+query Tags($name: String, $first: Int) {
+  tags(name: $name, first: $first) {
+    edges {
+      node {
+        name
+      }
+    }
+  }
+}

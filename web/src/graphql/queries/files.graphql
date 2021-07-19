@@ -1,5 +1,5 @@
-query Files {
-  files {
+query Files($name: String, $tags: [String!]) {
+  files(name: $name, tags: $tags) {
     edges {
       node {
         id

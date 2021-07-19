@@ -28,32 +28,6 @@ export const NavButton = styled.button`
   color: ${colors.text};
 `;
 
-export const SearchWrapper = styled.div`
-  display: flex;
-  flex-direction: row;
-  gap: 0.5rem;
-  align-items: center;
-  width: 100%;
-  height: 2.5rem;
-  padding: 0 0.5rem;
-  background: ${colors.gray};
-  border-radius: 10px;
-`;
-
-export const SearchIcon = styled.div`
-  display: flex;
-`;
-
-export const SearchInput = styled.input`
-  display: flex;
-  width: 100%;
-  background: none;
-  border: none;
-  outline: none;
-  font-size: 1rem;
-  color: ${colors.text};
-`;
-
 export const SidebarItemLogo = styled(SidebarItem)`
   padding: 0.5rem 1rem;
   border-bottom: 2px solid ${colors.accent};

@@ -402,7 +402,10 @@ export type LoginMutation = (
   ) }
 );
 
-export type FilesQueryVariables = Exact<{ [key: string]: never; }>;
+export type FilesQueryVariables = Exact<{
+  name?: Maybe<Scalars['String']>;
+  tags?: Maybe<Array<Scalars['String']> | Scalars['String']>;
+}>;
 
 
 export type FilesQuery = (
@@ -414,6 +417,26 @@ export type FilesQuery = (
       & { node: (
         { __typename?: 'File' }
         & Pick<File, 'id' | 'name' | 'size' | 'url' | 'updatedAt'>
+      ) }
+    )>>> }
+  )> }
+);
+
+export type TagsQueryVariables = Exact<{
+  name?: Maybe<Scalars['String']>;
+  first?: Maybe<Scalars['Int']>;
+}>;
+
+
+export type TagsQuery = (
+  { __typename?: 'Query' }
+  & { tags?: Maybe<(
+    { __typename?: 'TagConnection' }
+    & { edges?: Maybe<Array<Maybe<(
+      { __typename?: 'TagEdge' }
+      & { node: (
+        { __typename?: 'Tag' }
+        & Pick<Tag, 'name'>
       ) }
     )>>> }
   )> }
@@ -458,8 +481,8 @@ export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
 export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
 export const FilesDocument = gql`
-    query Files {
-  files {
+    query Files($name: String, $tags: [String!]) {
+  files(name: $name, tags: $tags) {
     edges {
       node {
         id
@@ -485,6 +508,8 @@ export const FilesDocument = gql`
  * @example
  * const { data, loading, error } = useFilesQuery({
  *   variables: {
+ *      name: // value for 'name'
+ *      tags: // value for 'tags'
  *   },
  * });
  */
@@ -499,3 +524,43 @@ export function useFilesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<File
 export type FilesQueryHookResult = ReturnType<typeof useFilesQuery>;
 export type FilesLazyQueryHookResult = ReturnType<typeof useFilesLazyQuery>;
 export type FilesQueryResult = Apollo.QueryResult<FilesQuery, FilesQueryVariables>;
+export const TagsDocument = gql`
+    query Tags($name: String, $first: Int) {
+  tags(name: $name, first: $first) {
+    edges {
+      node {
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useTagsQuery__
+ *
+ * To run a query within a React component, call `useTagsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTagsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTagsQuery({
+ *   variables: {
+ *      name: // value for 'name'
+ *      first: // value for 'first'
+ *   },
+ * });
+ */
+export function useTagsQuery(baseOptions?: Apollo.QueryHookOptions<TagsQuery, TagsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TagsQuery, TagsQueryVariables>(TagsDocument, options);
+      }
+export function useTagsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TagsQuery, TagsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TagsQuery, TagsQueryVariables>(TagsDocument, options);
+        }
+export type TagsQueryHookResult = ReturnType<typeof useTagsQuery>;
+export type TagsLazyQueryHookResult = ReturnType<typeof useTagsLazyQuery>;
+export type TagsQueryResult = Apollo.QueryResult<TagsQuery, TagsQueryVariables>;

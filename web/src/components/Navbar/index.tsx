@@ -3,7 +3,6 @@ import { useDispatch } from "react-redux";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import {
   IconMenu2,
-  IconSearch,
   IconFiles,
   IconTag,
   IconSettings,
@@ -12,21 +11,15 @@ import {
 
 import { setToken } from "../../actions/authActions";
 
-import {
-  Wrapper,
-  NavButton,
-  SearchWrapper,
-  SearchIcon,
-  SearchInput,
-  SidebarItemLogo,
-  Logo,
-} from "./styles";
+import { Wrapper, NavButton, SidebarItemLogo, Logo } from "./styles";
 
 import Sidebar, {
   SidebarItemsWrapper,
   SidebarItem,
   SidebarItemIcon,
 } from "../Sidebar";
+
+import Search from "../Search";
 
 const Navbar: React.FC = () => {
   const dispatch = useDispatch();
@@ -53,12 +46,7 @@ const Navbar: React.FC = () => {
             <IconMenu2 size="2rem" />
           </NavButton>
 
-          <SearchWrapper>
-            <SearchIcon>
-              <IconSearch />
-            </SearchIcon>
-            <SearchInput type="text" placeholder="Search..." />
-          </SearchWrapper>
+          <Search />
 
           {sidebar ? (
             <Sidebar onClick={handleSidebarShowHide}>
