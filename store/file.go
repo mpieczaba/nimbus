@@ -83,6 +83,9 @@ func (s *FileStore) GetAllFiles(claims *auth.Claims, after, before *string, firs
 		).First(&models.File{}).Error; err == nil {
 			pageInfo.HasNextPage = true
 		}
+
+		pageInfo.StartCursor = &fileConnection.Edges[0].Cursor
+		pageInfo.EndCursor = &fileConnection.Edges[len(fileConnection.Edges)-1].Cursor
 	}
 
 	fileConnection.PageInfo = &pageInfo

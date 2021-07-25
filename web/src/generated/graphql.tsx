@@ -168,7 +168,7 @@ export type Mutation = {
   removeTagsFromFile?: Maybe<File>;
   /** Add file collaborator with FileCollaboratorInput */
   addCollaboratorToFile?: Maybe<File>;
-  /** Remove file collaborator from file with file id and collaborator id */
+  /** Remove file collaborator from the file with file id and collaborator id */
   removeCollaboratorFromFile?: Maybe<File>;
 };
 
@@ -235,6 +235,8 @@ export type PageInfo = {
   __typename?: 'PageInfo';
   hasNextPage: Scalars['Boolean'];
   hasPreviousPage: Scalars['Boolean'];
+  startCursor?: Maybe<Scalars['String']>;
+  endCursor?: Maybe<Scalars['String']>;
 };
 
 export type Query = {
@@ -403,6 +405,8 @@ export type LoginMutation = (
 );
 
 export type FilesQueryVariables = Exact<{
+  after?: Maybe<Scalars['String']>;
+  first?: Maybe<Scalars['Int']>;
   name?: Maybe<Scalars['String']>;
   tags?: Maybe<Array<Scalars['String']> | Scalars['String']>;
 }>;
@@ -414,11 +418,15 @@ export type FilesQuery = (
     { __typename?: 'FileConnection' }
     & { edges?: Maybe<Array<Maybe<(
       { __typename?: 'FileEdge' }
+      & Pick<FileEdge, 'cursor'>
       & { node: (
         { __typename?: 'File' }
         & Pick<File, 'id' | 'name' | 'size' | 'url' | 'updatedAt'>
       ) }
-    )>>> }
+    )>>>, pageInfo: (
+      { __typename?: 'PageInfo' }
+      & Pick<PageInfo, 'hasNextPage' | 'endCursor'>
+    ) }
   )> }
 );
 
@@ -481,9 +489,10 @@ export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
 export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
 export const FilesDocument = gql`
-    query Files($name: String, $tags: [String!]) {
-  files(name: $name, tags: $tags) {
+    query Files($after: String, $first: Int, $name: String, $tags: [String!]) {
+  files(after: $after, first: $first, name: $name, tags: $tags) {
     edges {
+      cursor
       node {
         id
         name
@@ -491,6 +500,10 @@ export const FilesDocument = gql`
         url
         updatedAt
       }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
     }
   }
 }
@@ -508,6 +521,8 @@ export const FilesDocument = gql`
  * @example
  * const { data, loading, error } = useFilesQuery({
  *   variables: {
+ *      after: // value for 'after'
+ *      first: // value for 'first'
  *      name: // value for 'name'
  *      tags: // value for 'tags'
  *   },

@@ -6,6 +6,8 @@ schema {
 type PageInfo {
     hasNextPage: Boolean!
     hasPreviousPage: Boolean!
+    startCursor: String
+    endCursor: String
 }
 
 scalar Time

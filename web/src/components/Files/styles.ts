@@ -50,6 +50,13 @@ export const ViewOption = styled.button`
   cursor: pointer;
 `;
 
+export const Tags = styled.div`
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+`;
+
 export const FileCardWrapper = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 2fr));

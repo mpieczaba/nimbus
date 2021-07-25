@@ -18,6 +18,7 @@ import Dropdown, {
 } from "../Dropdown";
 import FileCard from "../FileCard";
 import FileList from "../FileList";
+import Tag from "../Tag";
 
 import {
   Wrapper,
@@ -27,17 +28,18 @@ import {
   ViewOption,
   FileCardWrapper,
   FileListWrapper,
+  Tags,
 } from "./styles";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 const Files: React.FC = () => {
   const location = useLocation();
 
   const urlSearchParams = new URLSearchParams(location.search);
 
-  console.log(urlSearchParams.getAll("tag").map((t) => `#${t}`));
-
-  const { loading, error, data } = useFilesQuery({
+  const { loading, error, data, fetchMore } = useFilesQuery({
     variables: {
+      first: 20,
       name: urlSearchParams.get("search"),
       tags: urlSearchParams.getAll("tag").map((t) => `#${t}`),
     },
@@ -86,39 +88,78 @@ const Files: React.FC = () => {
         </ViewOption>
       </OptionsWrapper>
 
-      {view ? (
-        <FileCardWrapper>
-          {data.files?.edges?.map((edge, index) => (
-            <FileCard
-              key={index}
-              file={{
-                id: edge!.node.id,
-                name: edge!.node.name,
-                url: edge!.node.url,
-              }}
-              thumbnail={edge!.node.url}
-            />
-          ))}
-        </FileCardWrapper>
-      ) : (
-        <FileListWrapper>
-          {data.files?.edges?.map((edge, index) => (
-            <FileList
-              key={index}
-              file={{
-                id: edge!.node.id,
-                name: edge!.node.name,
-                modificationDate: dayjs(edge!.node.updatedAt)
-                  .format("D MMM YYYY H:m")
-                  .toString(),
-                size: fileSize(edge!.node.size).toString(),
-                url: edge!.node.url,
-              }}
-              thumbnail={edge!.node.url}
-            />
-          ))}
-        </FileListWrapper>
-      )}
+      <Tags>
+        {urlSearchParams.getAll("tag").map((tag, index) => (
+          <Tag key={index} tagName={`#${tag}`} />
+        ))}
+      </Tags>
+
+      <InfiniteScroll
+        next={async () => {
+          if (data?.files?.pageInfo.hasNextPage) {
+            await fetchMore({
+              variables: {
+                after: data?.files.pageInfo.endCursor,
+                first: 20,
+              },
+            });
+          }
+        }}
+        hasMore={!!data.files?.pageInfo.hasNextPage}
+        loader={<>Loading...</>}
+        dataLength={data.files?.edges?.length || 0}
+      >
+        {view ? (
+          <FileCardWrapper>
+            {data.files?.edges?.map((edge, index) => (
+              <FileCard
+                key={index}
+                file={{
+                  id: edge!.node.id,
+                  name: edge!.node.name,
+                  url: edge!.node.url,
+                }}
+                thumbnail={edge!.node.url}
+              />
+            ))}
+          </FileCardWrapper>
+        ) : (
+          <FileListWrapper>
+            {data.files?.edges?.map((edge, index) => (
+              <FileList
+                key={index}
+                file={{
+                  id: edge!.node.id,
+                  name: edge!.node.name,
+                  modificationDate: dayjs(edge!.node.updatedAt)
+                    .format("D MMM YYYY H:m")
+                    .toString(),
+                  size: fileSize(edge!.node.size).toString(),
+                  url: edge!.node.url,
+                }}
+                thumbnail={edge!.node.url}
+              />
+            ))}
+          </FileListWrapper>
+        )}
+      </InfiniteScroll>
+
+      {/*
+        <button
+            onClick={() => {
+              if (data?.files?.pageInfo.hasNextPage) {
+                fetchMore({
+                  variables: {
+                    after: data?.files.pageInfo.endCursor,
+                    first: 20,
+                  },
+                });
+              }
+            }}
+        >
+          Load more
+        </button>
+      */}
     </Wrapper>
   );
 };

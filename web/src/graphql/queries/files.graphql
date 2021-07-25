@@ -1,6 +1,7 @@
-query Files($name: String, $tags: [String!]) {
-  files(name: $name, tags: $tags) {
+query Files($after: String, $first: Int, $name: String, $tags: [String!]) {
+  files(after: $after, first: $first, name: $name, tags: $tags) {
     edges {
+      cursor
       node {
         id
         name
@@ -8,6 +9,10 @@ query Files($name: String, $tags: [String!]) {
         url
         updatedAt
       }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
     }
   }
 }
