@@ -2,11 +2,9 @@ package auth
 
 import (
 	"fmt"
+	"github.com/mpieczaba/nimbus/models"
 	"os"
 	"strings"
-	"time"
-
-	"github.com/mpieczaba/nimbus/models"
 
 	"github.com/form3tech-oss/jwt-go"
 )
@@ -23,9 +21,11 @@ func NewToken(user *models.User) (string, error) {
 		ID:       user.ID,
 		Username: user.Username,
 		Kind:     user.Kind,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
-		},
+		/*
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
+			},
+		*/
 	})
 
 	return t.SignedString([]byte(os.Getenv("JWT_SECRET")))

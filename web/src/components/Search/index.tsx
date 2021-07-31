@@ -26,17 +26,13 @@ const Search: React.FC = () => {
   const handleSearchSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    const urlSearchParams = new URLSearchParams(
-      tags.map((t) => ["tag", t.substring(1)])
-    );
+    const urlSearchParams = new URLSearchParams();
 
-    history.push(
-      `/?${searchInput.length > 0 ? `search=${searchInput}` : ""}${
-        urlSearchParams.toString().length > 0
-          ? `&${urlSearchParams.toString()}`
-          : ""
-      }`
-    );
+    if (searchInput.length > 0) urlSearchParams.set("search", searchInput);
+
+    tags.map((tag) => urlSearchParams.append("tag", tag.substring(1)));
+
+    history.push({ pathname: "/", search: urlSearchParams.toString() });
   };
 
   const handleSearchInputChange = (e: ChangeEvent<HTMLInputElement>) => {

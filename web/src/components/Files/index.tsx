@@ -31,6 +31,7 @@ import {
   Tags,
 } from "./styles";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { extractSearchOperators } from "../../utils/search";
 
 const Files: React.FC = () => {
   const location = useLocation();
@@ -40,8 +41,8 @@ const Files: React.FC = () => {
   const { loading, error, data, fetchMore } = useFilesQuery({
     variables: {
       first: 20,
-      name: urlSearchParams.get("search"),
-      tags: urlSearchParams.getAll("tag").map((t) => `#${t}`),
+      name: extractSearchOperators(urlSearchParams.get("search")),
+      tags: urlSearchParams.getAll("tag").map((tag) => `#${tag}`),
     },
   });
 
@@ -101,6 +102,8 @@ const Files: React.FC = () => {
               variables: {
                 after: data?.files.pageInfo.endCursor,
                 first: 20,
+                name: urlSearchParams.get("search"),
+                tags: urlSearchParams.getAll("tag").map((tag) => `#${tag}`),
               },
             });
           }
@@ -143,23 +146,6 @@ const Files: React.FC = () => {
           </FileListWrapper>
         )}
       </InfiniteScroll>
-
-      {/*
-        <button
-            onClick={() => {
-              if (data?.files?.pageInfo.hasNextPage) {
-                fetchMore({
-                  variables: {
-                    after: data?.files.pageInfo.endCursor,
-                    first: 20,
-                  },
-                });
-              }
-            }}
-        >
-          Load more
-        </button>
-      */}
     </Wrapper>
   );
 };
