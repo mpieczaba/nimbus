@@ -23,6 +23,8 @@ func (app *App) Start() {
 	// Connect to database
 	app.ConnectToDatabase()
 
+	app.store = store.New(app.db)
+
 	// Start http server
 	log.Fatal(app.ServeHTTP())
 }

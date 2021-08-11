@@ -93,26 +93,32 @@ func (s *FileStore) GetAllFiles(claims *auth.Claims, after, before *string, firs
 	return &fileConnection, nil
 }
 
-func (s *FileStore) CreateFile(file *models.File) (*models.File, error) {
-	if err := s.db.Create(file).Error; err != nil {
-		return nil, gqlerror.Errorf("Incorrect form data or file already exists!")
+func (s *FileStore) CreateFile(file *models.File) (*gorm.DB, *models.File, error) {
+	tx := s.db.Begin()
+
+	if err := tx.Create(file).Error; err != nil {
+		return nil, nil, gqlerror.Errorf("Incorrect form data or file already exists!")
 	}
 
-	return file, nil
+	return tx, file, nil
 }
 
-func (s *FileStore) UpdateFile(file *models.File) (*models.File, error) {
-	if err := s.db.Save(file).Error; err != nil {
-		return nil, gqlerror.Errorf("Incorrect form data or file already exists!")
+func (s *FileStore) UpdateFile(file *models.File) (*gorm.DB, *models.File, error) {
+	tx := s.db.Begin()
+
+	if err := tx.Save(file).Error; err != nil {
+		return nil, nil, gqlerror.Errorf("Incorrect form data or file already exists!")
 	}
 
-	return file, nil
+	return tx, file, nil
 }
 
-func (s *FileStore) DeleteFile(file *models.File) (*models.File, error) {
-	if err := s.db.Select("Collaborators", "FileTags").Delete(file).Error; err != nil {
-		return nil, gqlerror.Errorf("File not found!")
+func (s *FileStore) DeleteFile(file *models.File) (*gorm.DB, *models.File, error) {
+	tx := s.db.Begin()
+
+	if err := tx.Select("Collaborators", "FileTags").Delete(file).Error; err != nil {
+		return nil, nil, gqlerror.Errorf("File not found!")
 	}
 
-	return file, nil
+	return tx, file, nil
 }

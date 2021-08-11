@@ -46,12 +46,7 @@ func (r *mutationResolver) CreateFile(ctx context.Context, input models.FileInpu
 
 	id := xid.New().String()
 
-	// Write file to data directory
-	if err := filesystem.WriteFile(id, input.File.File); err != nil {
-		return nil, err
-	}
-
-	return r.Store.File.CreateFile(&models.File{
+	tx, file, err := r.Store.File.CreateFile(&models.File{
 		ID:        id,
 		Name:      fileName,
 		MimeType:  input.File.ContentType,
@@ -63,6 +58,21 @@ func (r *mutationResolver) CreateFile(ctx context.Context, input models.FileInpu
 			Permission:     utils.GetFilePermissionIndex(models.FilePermissionAdmin),
 		}},
 	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Write file to data directory
+	if err = filesystem.WriteFile(id, input.File.File); err != nil {
+		tx.Rollback()
+
+		return nil, err
+	}
+
+	tx.Commit()
+
+	return file, nil
 }
 
 func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input models.FileUpdateInput) (*models.File, error) {
@@ -86,14 +96,26 @@ func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input mode
 		fileToUpdate.MimeType = input.File.ContentType
 		fileToUpdate.Extension = filepath.Ext(input.File.Filename)
 		fileToUpdate.Size = input.File.Size
+	}
 
+	tx, file, err := r.Store.File.UpdateFile(fileToUpdate)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if input.File.File != nil {
 		// Update file in data directory
 		if err = filesystem.WriteFile(fileToUpdate.ID, input.File.File); err != nil {
+			tx.Rollback()
+
 			return nil, err
 		}
 	}
 
-	return r.Store.File.UpdateFile(fileToUpdate)
+	tx.Commit()
+
+	return file, err
 }
 
 func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*models.File, error) {
@@ -105,12 +127,22 @@ func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*models.F
 		return nil, err
 	}
 
-	// Remove file from data directory
-	if err = filesystem.RemoveFile(fileToDelete.ID); err != nil {
+	tx, file, err := r.Store.File.DeleteFile(fileToDelete)
+
+	if err != nil {
 		return nil, err
 	}
 
-	return r.Store.File.DeleteFile(fileToDelete)
+	// Remove file from data directory
+	if err = filesystem.RemoveFile(fileToDelete.ID); err != nil {
+		tx.Rollback()
+
+		return nil, err
+	}
+
+	tx.Commit()
+
+	return file, err
 }
 
 // Field resolver
