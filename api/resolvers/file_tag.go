@@ -21,7 +21,7 @@ func (r *mutationResolver) AddTagsToFile(ctx context.Context, input models.FileT
 		return nil, err
 	}
 
-	return r.Store.File.GetFile(claims, models.FilePermissionRead, "id = ?", input.FileID)
+	return r.Store.File.GetFile(claims, models.FilePermissionsRead, "id = ?", input.FileID)
 }
 
 func (r *mutationResolver) RemoveTagsFromFile(ctx context.Context, input models.FileTagsInput) (*models.File, error) {
@@ -35,5 +35,5 @@ func (r *mutationResolver) RemoveTagsFromFile(ctx context.Context, input models.
 		return nil, err
 	}
 
-	return r.Store.File.GetFile(claims, models.FilePermissionRead, "id = ?", input.FileID)
+	return r.Store.File.GetFile(claims, models.FilePermissionsRead, "id = ?", input.FileID)
 }

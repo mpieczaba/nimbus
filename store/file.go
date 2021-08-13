@@ -4,6 +4,7 @@ import (
 	"github.com/mpieczaba/nimbus/auth"
 	"github.com/mpieczaba/nimbus/models"
 	"github.com/mpieczaba/nimbus/store/scopes"
+	"github.com/mpieczaba/nimbus/store/scopes/filters"
 	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -20,72 +21,65 @@ func NewFileStore(db *gorm.DB) *FileStore {
 	}
 }
 
-func (s *FileStore) GetFile(claims *auth.Claims, permission models.FilePermission, query interface{}, args ...interface{}) (*models.File, error) {
+func (s *FileStore) GetFile(claims *auth.Claims, permission models.FilePermissions, query interface{}, args ...interface{}) (*models.File, error) {
 	var file models.File
 
-	if err := s.db.Scopes(
-		scopes.FilePermission(models.File{}, "file_id", permission, "collaborator_id = ? OR ? = ?", claims.ID, claims.Kind, models.UserKindAdmin),
-	).Where(query, args...).First(&file).Error; err != nil {
+	if err := s.db.Scopes(filters.FilterFilesByFilePermissions(claims, permission)).Where(query, args...).First(&file).Error; err != nil {
 		return nil, gqlerror.Errorf("File not found!")
 	}
 
 	return &file, nil
 }
 
-func (s *FileStore) GetAllFiles(claims *auth.Claims, after, before *string, first, last *int, name *string, permission models.FilePermission, tags []string) (*models.FileConnection, error) {
+func (s *FileStore) GetAllFiles(claims *auth.Claims, after, before *string, first, last *int, name *string, permission models.FilePermissions, tags []string) (*models.FileConnection, error) {
 	var fileConnection models.FileConnection
 	var files []*models.File
 
-	if err := s.db.Scopes(
-		scopes.FilePermission(models.File{}, "file_id", permission, "collaborator_id = ? OR ? = ?", claims.ID, claims.Kind, models.UserKindAdmin),
-		scopes.FileTag(models.File{}, "file_id", "id", "tag_name IN ?", tags),
-		scopes.NameLike(models.File{}, "name", name),
-		scopes.Paginate(after, before, first, last),
-	).Find(&files).Error; err != nil {
+	if err := s.db.Scopes(scopes.Paginate(
+		s.db.Scopes(
+			filters.FilterFilesByFilePermissions(claims, permission),
+			filters.FilterByName(name),
+			filters.FilterFilesByTags(tags),
+		).Model(models.File{}),
+		after, before, first, last,
+	)).Find(&files).Error; err != nil {
 		return nil, gqlerror.Errorf("Invalid pagination input or internal database error occurred while getting all files!")
 	}
 
-	pageInfo := models.PageInfo{
-		HasNextPage:     false,
-		HasPreviousPage: false,
-	}
+	pageInfo := utils.GetEmptyPageInfo()
 
 	if len(files) > 0 {
-		fileConnection.Nodes = files
-
 		for _, file := range files {
-			cursor, err := utils.EncodeCursor(file.ID)
-
-			if err != nil {
-				return nil, gqlerror.Errorf("An error occurred while getting all files!")
-			}
-
 			fileConnection.Edges = append(fileConnection.Edges, &models.FileEdge{
-				Cursor: cursor,
+				Cursor: utils.EncodeCursor(file.ID),
 				Node:   file,
 			})
 		}
 
-		if err := s.db.Scopes(
-			scopes.FilePermission(models.File{}, "file_id", permission, "collaborator_id = ? OR ? = ?", claims.ID, claims.Kind, models.UserKindAdmin),
-			scopes.FileTag(models.File{}, "file_id", "id", "tag_name IN (?)", tags),
-			scopes.NameLike(models.File{}, "name", name),
-			scopes.GetBefore(files[0].ID),
-		).First(&models.File{}).Error; err == nil {
+		pageInfo.StartCursor = &fileConnection.Edges[0].Cursor
+		pageInfo.EndCursor = &fileConnection.Edges[len(fileConnection.Edges)-1].Cursor
+
+		if err := s.db.Scopes(scopes.HasPreviousPage(
+			s.db.Scopes(
+				filters.FilterFilesByFilePermissions(claims, permission),
+				filters.FilterByName(name),
+				filters.FilterFilesByTags(tags),
+			).Model(models.File{}),
+			files[0].ID,
+		)).First(&models.User{}).Error; err == nil {
 			pageInfo.HasPreviousPage = true
 		}
 
-		if err := s.db.Scopes(
-			scopes.FilePermission(models.File{}, "file_id", permission, "collaborator_id = ? OR ? = ?", claims.ID, claims.Kind, models.UserKindAdmin),
-			scopes.FileTag(models.File{}, "file_id", "id", "tag_name IN (?)", tags),
-			scopes.NameLike(models.File{}, "name", name),
-			scopes.GetAfter(files[len(files)-1].ID),
-		).First(&models.File{}).Error; err == nil {
+		if err := s.db.Scopes(scopes.HasNextPage(
+			s.db.Scopes(
+				filters.FilterFilesByFilePermissions(claims, permission),
+				filters.FilterByName(name),
+				filters.FilterFilesByTags(tags),
+			).Model(models.File{}),
+			files[len(files)-1].ID,
+		)).First(&models.User{}).Error; err == nil {
 			pageInfo.HasNextPage = true
 		}
-
-		pageInfo.StartCursor = &fileConnection.Edges[0].Cursor
-		pageInfo.EndCursor = &fileConnection.Edges[len(fileConnection.Edges)-1].Cursor
 	}
 
 	fileConnection.PageInfo = &pageInfo
@@ -93,32 +87,46 @@ func (s *FileStore) GetAllFiles(claims *auth.Claims, after, before *string, firs
 	return &fileConnection, nil
 }
 
-func (s *FileStore) CreateFile(file *models.File) (*gorm.DB, *models.File, error) {
+func (s *FileStore) CreateFile(file *models.File, callback func() error) (*models.File, error) {
 	tx := s.db.Begin()
 
 	if err := tx.Create(file).Error; err != nil {
-		return nil, nil, gqlerror.Errorf("Incorrect form data or file already exists!")
+		return nil, gqlerror.Errorf("Incorrect form data or file already exists!")
 	}
 
-	return tx, file, nil
+	if err := callback(); err != nil {
+		return nil, err
+	}
+
+	return file, nil
 }
 
-func (s *FileStore) UpdateFile(file *models.File) (*gorm.DB, *models.File, error) {
+func (s *FileStore) UpdateFile(file *models.File, callback func() error) (*models.File, error) {
 	tx := s.db.Begin()
 
 	if err := tx.Save(file).Error; err != nil {
-		return nil, nil, gqlerror.Errorf("Incorrect form data or file already exists!")
+		return nil, gqlerror.Errorf("Incorrect form data or file already exists!")
 	}
 
-	return tx, file, nil
+	if err := callback(); err != nil {
+		tx.Rollback()
+
+		return nil, err
+	}
+
+	return file, nil
 }
 
-func (s *FileStore) DeleteFile(file *models.File) (*gorm.DB, *models.File, error) {
+func (s *FileStore) DeleteFile(file *models.File, callback func() error) (*models.File, error) {
 	tx := s.db.Begin()
 
 	if err := tx.Select("Collaborators", "FileTags").Delete(file).Error; err != nil {
-		return nil, nil, gqlerror.Errorf("File not found!")
+		return nil, gqlerror.Errorf("File not found!")
 	}
 
-	return tx, file, nil
+	if err := callback(); err != nil {
+		return nil, err
+	}
+
+	return file, nil
 }

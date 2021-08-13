@@ -1,13 +1,12 @@
 type FileCollaboratorConnection {
     edges: [FileCollaboratorEdge]
-    nodes: [User]
     pageInfo: PageInfo!
 }
 
 type FileCollaboratorEdge {
     cursor: String!
     node: User!
-    permission: FilePermission!
+    permissions: FilePermissions!
 }
 
 input FileCollaboratorInput {
@@ -18,5 +17,5 @@ input FileCollaboratorInput {
     collaboratorId: ID!
 
     """File permission"""
-    permission: FilePermission!
+    permissions: FilePermissions!
 }

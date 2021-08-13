@@ -19,8 +19,8 @@ func (r *queryResolver) Tags(ctx context.Context, after *string, before *string,
 
 // Field resolver
 
-func (r *tagResolver) Files(ctx context.Context, obj *models.Tag, after, before *string, first, last *int, name *string, permission *models.FilePermission, tags []string) (*models.FileConnection, error) {
+func (r *tagResolver) Files(ctx context.Context, obj *models.Tag, after, before *string, first, last *int, name *string, permissions *models.FilePermissions, tags []string) (*models.FileConnection, error) {
 	claims, _ := auth.ClaimsFromContext(ctx)
 
-	return r.Store.File.GetAllFiles(claims, after, before, first, last, name, *permission, append(tags, obj.Name))
+	return r.Store.File.GetAllFiles(claims, after, before, first, last, name, *permissions, append(tags, obj.Name))
 }

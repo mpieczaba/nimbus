@@ -18,13 +18,13 @@ import (
 func (r *queryResolver) File(ctx context.Context, id string) (*models.File, error) {
 	claims, _ := auth.ClaimsFromContext(ctx)
 
-	return r.Store.File.GetFile(claims, models.FilePermissionRead, "id = ?", id)
+	return r.Store.File.GetFile(claims, models.FilePermissionsRead, "id = ?", id)
 }
 
-func (r *queryResolver) Files(ctx context.Context, after, before *string, first, last *int, name *string, permission *models.FilePermission, tags []string) (*models.FileConnection, error) {
+func (r *queryResolver) Files(ctx context.Context, after, before *string, first, last *int, name *string, permissions *models.FilePermissions, tags []string) (*models.FileConnection, error) {
 	claims, _ := auth.ClaimsFromContext(ctx)
 
-	return r.Store.File.GetAllFiles(claims, after, before, first, last, name, *permission, tags)
+	return r.Store.File.GetAllFiles(claims, after, before, first, last, name, *permissions, tags)
 }
 
 // Mutation
@@ -46,7 +46,7 @@ func (r *mutationResolver) CreateFile(ctx context.Context, input models.FileInpu
 
 	id := xid.New().String()
 
-	tx, file, err := r.Store.File.CreateFile(&models.File{
+	return r.Store.File.CreateFile(&models.File{
 		ID:        id,
 		Name:      fileName,
 		MimeType:  input.File.ContentType,
@@ -55,24 +55,12 @@ func (r *mutationResolver) CreateFile(ctx context.Context, input models.FileInpu
 		Collaborators: []models.FileCollaborator{{
 			FileID:         id,
 			CollaboratorID: claims.ID,
-			Permission:     utils.GetFilePermissionIndex(models.FilePermissionAdmin),
+			Permissions:    utils.GetFilePermissionsIndex(models.FilePermissionsAdmin),
 		}},
+	}, func() error {
+		// Write file to data directory
+		return filesystem.WriteFile(id, input.File.File)
 	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	// Write file to data directory
-	if err = filesystem.WriteFile(id, input.File.File); err != nil {
-		tx.Rollback()
-
-		return nil, err
-	}
-
-	tx.Commit()
-
-	return file, nil
 }
 
 func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input models.FileUpdateInput) (*models.File, error) {
@@ -82,7 +70,7 @@ func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input mode
 
 	claims, _ := auth.ClaimsFromContext(ctx)
 
-	fileToUpdate, err := r.Store.File.GetFile(claims, models.FilePermissionMaintain, "id = ?", id)
+	fileToUpdate, err := r.Store.File.GetFile(claims, models.FilePermissionsMaintain, "id = ?", id)
 
 	if err != nil {
 		return nil, err
@@ -98,51 +86,25 @@ func (r *mutationResolver) UpdateFile(ctx context.Context, id string, input mode
 		fileToUpdate.Size = input.File.Size
 	}
 
-	tx, file, err := r.Store.File.UpdateFile(fileToUpdate)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if input.File.File != nil {
+	return r.Store.File.UpdateFile(fileToUpdate, func() error {
 		// Update file in data directory
-		if err = filesystem.WriteFile(fileToUpdate.ID, input.File.File); err != nil {
-			tx.Rollback()
-
-			return nil, err
-		}
-	}
-
-	tx.Commit()
-
-	return file, err
+		return filesystem.WriteFile(fileToUpdate.ID, input.File.File)
+	})
 }
 
 func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*models.File, error) {
 	claims, _ := auth.ClaimsFromContext(ctx)
 
-	fileToDelete, err := r.Store.File.GetFile(claims, models.FilePermissionAdmin, "id = ?", id)
+	fileToDelete, err := r.Store.File.GetFile(claims, models.FilePermissionsAdmin, "id = ?", id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	tx, file, err := r.Store.File.DeleteFile(fileToDelete)
-
-	if err != nil {
-		return nil, err
-	}
-
-	// Remove file from data directory
-	if err = filesystem.RemoveFile(fileToDelete.ID); err != nil {
-		tx.Rollback()
-
-		return nil, err
-	}
-
-	tx.Commit()
-
-	return file, err
+	return r.Store.File.DeleteFile(fileToDelete, func() error {
+		// Remove file from data directory
+		return filesystem.RemoveFile(fileToDelete.ID)
+	})
 }
 
 // Field resolver
@@ -155,6 +117,6 @@ func (r *fileResolver) Tags(ctx context.Context, obj *models.File, after, before
 	return r.Store.FileTag.GetFileTags(after, before, first, last, obj.ID, name)
 }
 
-func (r *fileResolver) Collaborators(ctx context.Context, obj *models.File, after, before *string, first, last *int, username *string, permission *models.FilePermission) (*models.FileCollaboratorConnection, error) {
-	return r.Store.FileCollaborator.GetFileCollaborators(after, before, first, last, obj.ID, username, *permission)
+func (r *fileResolver) Collaborators(ctx context.Context, obj *models.File, after, before *string, first, last *int, username *string, permissions *models.FilePermissions) (*models.FileCollaboratorConnection, error) {
+	return r.Store.FileCollaborator.GetFileCollaborators(after, before, first, last, obj.ID, username, *permissions)
 }

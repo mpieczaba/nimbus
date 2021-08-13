@@ -25,7 +25,7 @@ type Query {
         first: Int
         last: Int
         name: String
-        permission: FilePermission = READ
+        permission: FilePermissions = READ
         tags: [String!]
     ): FileConnection @auth
 

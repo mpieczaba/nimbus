@@ -4,6 +4,7 @@ import (
 	"github.com/mpieczaba/nimbus/auth"
 	"github.com/mpieczaba/nimbus/models"
 	"github.com/mpieczaba/nimbus/store/scopes"
+	"github.com/mpieczaba/nimbus/store/scopes/filters"
 	"github.com/mpieczaba/nimbus/utils"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -34,45 +35,37 @@ func (s *TagStore) GetAllTags(after, before *string, first, last *int, name *str
 	var tagConnection models.TagConnection
 	var tags []*models.Tag
 
-	if err := s.db.Scopes(
-		scopes.NameLike(models.Tag{}, "name", name),
-		scopes.Paginate(after, before, first, last),
-	).Find(&tags).Error; err != nil {
+	if err := s.db.Scopes(scopes.Paginate(
+		s.db.Scopes(filters.FilterByName(name)).Model(models.Tag{}),
+		after, before, first, last,
+	)).Find(&tags).Error; err != nil {
 		return nil, gqlerror.Errorf("Invalid pagination input or internal database error occurred while getting all tags!")
 	}
 
-	pageInfo := models.PageInfo{
-		HasNextPage:     false,
-		HasPreviousPage: false,
-	}
+	pageInfo := utils.GetEmptyPageInfo()
 
 	if len(tags) > 0 {
-		tagConnection.Nodes = tags
-
 		for _, tag := range tags {
-			cursor, err := utils.EncodeCursor(tag.ID)
-
-			if err != nil {
-				return nil, gqlerror.Errorf("An error occurred while getting all tags!")
-			}
-
 			tagConnection.Edges = append(tagConnection.Edges, &models.TagEdge{
-				Cursor: cursor,
+				Cursor: utils.EncodeCursor(tag.ID),
 				Node:   tag,
 			})
 		}
 
-		if err := s.db.Scopes(
-			scopes.NameLike(models.Tag{}, "name", name),
-			scopes.GetBefore(tags[0].ID),
-		).First(&models.Tag{}).Error; err == nil {
+		pageInfo.StartCursor = &tagConnection.Edges[0].Cursor
+		pageInfo.EndCursor = &tagConnection.Edges[len(tagConnection.Edges)-1].Cursor
+
+		if err := s.db.Scopes(scopes.HasPreviousPage(
+			s.db.Scopes(filters.FilterByName(name)).Model(models.Tag{}),
+			tags[0].ID,
+		)).First(&models.Tag{}).Error; err == nil {
 			pageInfo.HasPreviousPage = true
 		}
 
-		if err := s.db.Scopes(
-			scopes.NameLike(models.Tag{}, "name", name),
-			scopes.GetAfter(tags[len(tags)-1].ID),
-		).First(&models.Tag{}).Error; err == nil {
+		if err := s.db.Scopes(scopes.HasNextPage(
+			s.db.Scopes(filters.FilterByName(name)).Model(models.Tag{}),
+			tags[len(tags)-1].ID,
+		)).First(&models.Tag{}).Error; err == nil {
 			pageInfo.HasNextPage = true
 		}
 	}
@@ -83,9 +76,11 @@ func (s *TagStore) GetAllTags(after, before *string, first, last *int, name *str
 }
 
 func (s *TagStore) CreateTagsOrAppendFileTags(claims *auth.Claims, tags []*models.Tag) ([]*models.Tag, error) {
-	if err := s.db.Scopes(
-		scopes.FilePermission(models.User{}, "collaborator_id", models.FilePermissionMaintain, "file_id = ? AND (collaborator_id = ? OR ? = ?)", tags[0].FileTags[0].FileID, claims.ID, claims.Kind, models.UserKindAdmin),
-	).First(&models.User{}).Error; err != nil {
+	if err := s.db.Scopes(filters.FilterFileCollaboratorsByFilePermissions(
+		models.FilePermissionsMaintain,
+		"file_id = ? AND (collaborator_id = ? OR ? = ?)",
+		tags[0].FileTags[0].FileID, claims.ID, claims.Kind, models.UserKindAdmin,
+	)).First(&models.User{}).Error; err != nil {
 		return nil, gqlerror.Errorf("No required permission!")
 	}
 

@@ -33,7 +33,7 @@ type File {
         first: Int
         last: Int
         username: String
-        permission: FilePermission = READ
+        permissions: FilePermissions = READ
     ): FileCollaboratorConnection
 
     """Create time"""
@@ -45,7 +45,6 @@ type File {
 
 type FileConnection {
     edges: [FileEdge]
-    nodes: [File]
     pageInfo: PageInfo!
 }
 
@@ -70,7 +69,7 @@ input FileUpdateInput {
     file: Upload
 }
 
-enum FilePermission {
+enum FilePermissions {
     ADMIN
     MAINTAIN
     WRITE

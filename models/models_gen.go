@@ -17,19 +17,17 @@ type AuthPayload struct {
 
 type FileCollaboratorConnection struct {
 	Edges    []*FileCollaboratorEdge `json:"edges"`
-	Nodes    []*User                 `json:"nodes"`
 	PageInfo *PageInfo               `json:"pageInfo"`
 }
 
 type FileCollaboratorEdge struct {
-	Cursor     string         `json:"cursor"`
-	Node       *User          `json:"node"`
-	Permission FilePermission `json:"permission"`
+	Cursor      string          `json:"cursor"`
+	Node        *User           `json:"node"`
+	Permissions FilePermissions `json:"permissions"`
 }
 
 type FileConnection struct {
 	Edges    []*FileEdge `json:"edges"`
-	Nodes    []*File     `json:"nodes"`
 	PageInfo *PageInfo   `json:"pageInfo"`
 }
 
@@ -40,7 +38,6 @@ type FileEdge struct {
 
 type FileTagConnection struct {
 	Edges    []*FileTagEdge `json:"edges"`
-	Nodes    []*Tag         `json:"nodes"`
 	PageInfo *PageInfo      `json:"pageInfo"`
 }
 
@@ -58,7 +55,6 @@ type PageInfo struct {
 
 type TagConnection struct {
 	Edges    []*TagEdge `json:"edges"`
-	Nodes    []*Tag     `json:"nodes"`
 	PageInfo *PageInfo  `json:"pageInfo"`
 }
 
@@ -69,7 +65,6 @@ type TagEdge struct {
 
 type UserConnection struct {
 	Edges    []*UserEdge `json:"edges"`
-	Nodes    []*User     `json:"nodes"`
 	PageInfo *PageInfo   `json:"pageInfo"`
 }
 
@@ -78,48 +73,48 @@ type UserEdge struct {
 	Node   *User  `json:"node"`
 }
 
-type FilePermission string
+type FilePermissions string
 
 const (
-	FilePermissionAdmin    FilePermission = "ADMIN"
-	FilePermissionMaintain FilePermission = "MAINTAIN"
-	FilePermissionWrite    FilePermission = "WRITE"
-	FilePermissionRead     FilePermission = "READ"
+	FilePermissionsAdmin    FilePermissions = "ADMIN"
+	FilePermissionsMaintain FilePermissions = "MAINTAIN"
+	FilePermissionsWrite    FilePermissions = "WRITE"
+	FilePermissionsRead     FilePermissions = "READ"
 )
 
-var AllFilePermission = []FilePermission{
-	FilePermissionAdmin,
-	FilePermissionMaintain,
-	FilePermissionWrite,
-	FilePermissionRead,
+var AllFilePermissions = []FilePermissions{
+	FilePermissionsAdmin,
+	FilePermissionsMaintain,
+	FilePermissionsWrite,
+	FilePermissionsRead,
 }
 
-func (e FilePermission) IsValid() bool {
+func (e FilePermissions) IsValid() bool {
 	switch e {
-	case FilePermissionAdmin, FilePermissionMaintain, FilePermissionWrite, FilePermissionRead:
+	case FilePermissionsAdmin, FilePermissionsMaintain, FilePermissionsWrite, FilePermissionsRead:
 		return true
 	}
 	return false
 }
 
-func (e FilePermission) String() string {
+func (e FilePermissions) String() string {
 	return string(e)
 }
 
-func (e *FilePermission) UnmarshalGQL(v interface{}) error {
+func (e *FilePermissions) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = FilePermission(str)
+	*e = FilePermissions(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid FilePermission", str)
+		return fmt.Errorf("%s is not a valid FilePermissions", str)
 	}
 	return nil
 }
 
-func (e FilePermission) MarshalGQL(w io.Writer) {
+func (e FilePermissions) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

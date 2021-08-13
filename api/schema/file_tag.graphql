@@ -1,6 +1,5 @@
 type FileTagConnection {
     edges: [FileTagEdge]
-    nodes: [Tag]
     pageInfo: PageInfo!
 }
 

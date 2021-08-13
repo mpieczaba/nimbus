@@ -55,7 +55,7 @@ type ComplexityRoot struct {
 	}
 
 	File struct {
-		Collaborators func(childComplexity int, after *string, before *string, first *int, last *int, username *string, permission *models.FilePermission) int
+		Collaborators func(childComplexity int, after *string, before *string, first *int, last *int, username *string, permissions *models.FilePermissions) int
 		CreatedAt     func(childComplexity int) int
 		Extension     func(childComplexity int) int
 		ID            func(childComplexity int) int
@@ -69,19 +69,17 @@ type ComplexityRoot struct {
 
 	FileCollaboratorConnection struct {
 		Edges    func(childComplexity int) int
-		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
 	}
 
 	FileCollaboratorEdge struct {
-		Cursor     func(childComplexity int) int
-		Node       func(childComplexity int) int
-		Permission func(childComplexity int) int
+		Cursor      func(childComplexity int) int
+		Node        func(childComplexity int) int
+		Permissions func(childComplexity int) int
 	}
 
 	FileConnection struct {
 		Edges    func(childComplexity int) int
-		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
 	}
 
@@ -92,7 +90,6 @@ type ComplexityRoot struct {
 
 	FileTagConnection struct {
 		Edges    func(childComplexity int) int
-		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
 	}
 
@@ -124,7 +121,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		File  func(childComplexity int, id string) int
-		Files func(childComplexity int, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermission, tags []string) int
+		Files func(childComplexity int, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermissions, tags []string) int
 		Tag   func(childComplexity int, name string) int
 		Tags  func(childComplexity int, after *string, before *string, first *int, last *int, name *string) int
 		User  func(childComplexity int, id *string) int
@@ -133,14 +130,13 @@ type ComplexityRoot struct {
 
 	Tag struct {
 		CreatedAt func(childComplexity int) int
-		Files     func(childComplexity int, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermission, tags []string) int
+		Files     func(childComplexity int, after *string, before *string, first *int, last *int, name *string, permissions *models.FilePermissions, tags []string) int
 		Name      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 	}
 
 	TagConnection struct {
 		Edges    func(childComplexity int) int
-		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
 	}
 
@@ -159,7 +155,6 @@ type ComplexityRoot struct {
 
 	UserConnection struct {
 		Edges    func(childComplexity int) int
-		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
 	}
 
@@ -172,7 +167,7 @@ type ComplexityRoot struct {
 type FileResolver interface {
 	URL(ctx context.Context, obj *models.File) (string, error)
 	Tags(ctx context.Context, obj *models.File, after *string, before *string, first *int, last *int, name *string) (*models.FileTagConnection, error)
-	Collaborators(ctx context.Context, obj *models.File, after *string, before *string, first *int, last *int, username *string, permission *models.FilePermission) (*models.FileCollaboratorConnection, error)
+	Collaborators(ctx context.Context, obj *models.File, after *string, before *string, first *int, last *int, username *string, permissions *models.FilePermissions) (*models.FileCollaboratorConnection, error)
 }
 type MutationResolver interface {
 	Login(ctx context.Context, username string, password string) (*models.AuthPayload, error)
@@ -191,12 +186,12 @@ type QueryResolver interface {
 	User(ctx context.Context, id *string) (*models.User, error)
 	Users(ctx context.Context, after *string, before *string, first *int, last *int, username *string) (*models.UserConnection, error)
 	File(ctx context.Context, id string) (*models.File, error)
-	Files(ctx context.Context, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermission, tags []string) (*models.FileConnection, error)
+	Files(ctx context.Context, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermissions, tags []string) (*models.FileConnection, error)
 	Tag(ctx context.Context, name string) (*models.Tag, error)
 	Tags(ctx context.Context, after *string, before *string, first *int, last *int, name *string) (*models.TagConnection, error)
 }
 type TagResolver interface {
-	Files(ctx context.Context, obj *models.Tag, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermission, tags []string) (*models.FileConnection, error)
+	Files(ctx context.Context, obj *models.Tag, after *string, before *string, first *int, last *int, name *string, permissions *models.FilePermissions, tags []string) (*models.FileConnection, error)
 }
 
 type executableSchema struct {
@@ -238,7 +233,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.File.Collaborators(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["username"].(*string), args["permission"].(*models.FilePermission)), true
+		return e.complexity.File.Collaborators(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["username"].(*string), args["permissions"].(*models.FilePermissions)), true
 
 	case "File.createdAt":
 		if e.complexity.File.CreatedAt == nil {
@@ -315,13 +310,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FileCollaboratorConnection.Edges(childComplexity), true
 
-	case "FileCollaboratorConnection.nodes":
-		if e.complexity.FileCollaboratorConnection.Nodes == nil {
-			break
-		}
-
-		return e.complexity.FileCollaboratorConnection.Nodes(childComplexity), true
-
 	case "FileCollaboratorConnection.pageInfo":
 		if e.complexity.FileCollaboratorConnection.PageInfo == nil {
 			break
@@ -343,12 +331,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FileCollaboratorEdge.Node(childComplexity), true
 
-	case "FileCollaboratorEdge.permission":
-		if e.complexity.FileCollaboratorEdge.Permission == nil {
+	case "FileCollaboratorEdge.permissions":
+		if e.complexity.FileCollaboratorEdge.Permissions == nil {
 			break
 		}
 
-		return e.complexity.FileCollaboratorEdge.Permission(childComplexity), true
+		return e.complexity.FileCollaboratorEdge.Permissions(childComplexity), true
 
 	case "FileConnection.edges":
 		if e.complexity.FileConnection.Edges == nil {
@@ -356,13 +344,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FileConnection.Edges(childComplexity), true
-
-	case "FileConnection.nodes":
-		if e.complexity.FileConnection.Nodes == nil {
-			break
-		}
-
-		return e.complexity.FileConnection.Nodes(childComplexity), true
 
 	case "FileConnection.pageInfo":
 		if e.complexity.FileConnection.PageInfo == nil {
@@ -391,13 +372,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FileTagConnection.Edges(childComplexity), true
-
-	case "FileTagConnection.nodes":
-		if e.complexity.FileTagConnection.Nodes == nil {
-			break
-		}
-
-		return e.complexity.FileTagConnection.Nodes(childComplexity), true
 
 	case "FileTagConnection.pageInfo":
 		if e.complexity.FileTagConnection.PageInfo == nil {
@@ -602,7 +576,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Files(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermission), args["tags"].([]string)), true
+		return e.complexity.Query.Files(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermissions), args["tags"].([]string)), true
 
 	case "Query.tag":
 		if e.complexity.Query.Tag == nil {
@@ -669,7 +643,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Tag.Files(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermission), args["tags"].([]string)), true
+		return e.complexity.Tag.Files(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permissions"].(*models.FilePermissions), args["tags"].([]string)), true
 
 	case "Tag.name":
 		if e.complexity.Tag.Name == nil {
@@ -691,13 +665,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TagConnection.Edges(childComplexity), true
-
-	case "TagConnection.nodes":
-		if e.complexity.TagConnection.Nodes == nil {
-			break
-		}
-
-		return e.complexity.TagConnection.Nodes(childComplexity), true
 
 	case "TagConnection.pageInfo":
 		if e.complexity.TagConnection.PageInfo == nil {
@@ -761,13 +728,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserConnection.Edges(childComplexity), true
-
-	case "UserConnection.nodes":
-		if e.complexity.UserConnection.Nodes == nil {
-			break
-		}
-
-		return e.complexity.UserConnection.Nodes(childComplexity), true
 
 	case "UserConnection.pageInfo":
 		if e.complexity.UserConnection.PageInfo == nil {
@@ -899,7 +859,7 @@ type AuthPayload {
         first: Int
         last: Int
         username: String
-        permission: FilePermission = READ
+        permissions: FilePermissions = READ
     ): FileCollaboratorConnection
 
     """Create time"""
@@ -911,7 +871,6 @@ type AuthPayload {
 
 type FileConnection {
     edges: [FileEdge]
-    nodes: [File]
     pageInfo: PageInfo!
 }
 
@@ -936,7 +895,7 @@ input FileUpdateInput {
     file: Upload
 }
 
-enum FilePermission {
+enum FilePermissions {
     ADMIN
     MAINTAIN
     WRITE
@@ -945,14 +904,13 @@ enum FilePermission {
 `, BuiltIn: false},
 	{Name: "api/schema/file_collaborator.graphql", Input: `type FileCollaboratorConnection {
     edges: [FileCollaboratorEdge]
-    nodes: [User]
     pageInfo: PageInfo!
 }
 
 type FileCollaboratorEdge {
     cursor: String!
     node: User!
-    permission: FilePermission!
+    permissions: FilePermissions!
 }
 
 input FileCollaboratorInput {
@@ -963,12 +921,11 @@ input FileCollaboratorInput {
     collaboratorId: ID!
 
     """File permission"""
-    permission: FilePermission!
+    permissions: FilePermissions!
 }
 `, BuiltIn: false},
 	{Name: "api/schema/file_tag.graphql", Input: `type FileTagConnection {
     edges: [FileTagEdge]
-    nodes: [Tag]
     pageInfo: PageInfo!
 }
 
@@ -1057,7 +1014,7 @@ input FileTagsInput {
         first: Int
         last: Int
         name: String
-        permission: FilePermission = READ
+        permission: FilePermissions = READ
         tags: [String!]
     ): FileConnection @auth
 
@@ -1102,7 +1059,7 @@ scalar Upload
          first: Int
          last: Int
          name: String
-         permission: FilePermission = READ
+         permissions: FilePermissions = READ
          tags: [String!]
      ): FileConnection
 
@@ -1115,7 +1072,6 @@ scalar Upload
 
  type TagConnection {
      edges: [TagEdge]
-     nodes: [Tag]
      pageInfo: PageInfo!
  }
 
@@ -1145,7 +1101,6 @@ type User {
 
 type UserConnection {
     edges: [UserEdge]
-    nodes: [User]
     pageInfo: PageInfo!
 }
 
@@ -1234,15 +1189,15 @@ func (ec *executionContext) field_File_collaborators_args(ctx context.Context, r
 		}
 	}
 	args["username"] = arg4
-	var arg5 *models.FilePermission
-	if tmp, ok := rawArgs["permission"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
-		arg5, err = ec.unmarshalOFilePermission2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx, tmp)
+	var arg5 *models.FilePermissions
+	if tmp, ok := rawArgs["permissions"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permissions"))
+		arg5, err = ec.unmarshalOFilePermissions2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermissions(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["permission"] = arg5
+	args["permissions"] = arg5
 	return args, nil
 }
 
@@ -1606,10 +1561,10 @@ func (ec *executionContext) field_Query_files_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["name"] = arg4
-	var arg5 *models.FilePermission
+	var arg5 *models.FilePermissions
 	if tmp, ok := rawArgs["permission"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
-		arg5, err = ec.unmarshalOFilePermission2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx, tmp)
+		arg5, err = ec.unmarshalOFilePermissions2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermissions(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1807,15 +1762,15 @@ func (ec *executionContext) field_Tag_files_args(ctx context.Context, rawArgs ma
 		}
 	}
 	args["name"] = arg4
-	var arg5 *models.FilePermission
-	if tmp, ok := rawArgs["permission"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
-		arg5, err = ec.unmarshalOFilePermission2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx, tmp)
+	var arg5 *models.FilePermissions
+	if tmp, ok := rawArgs["permissions"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permissions"))
+		arg5, err = ec.unmarshalOFilePermissions2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermissions(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["permission"] = arg5
+	args["permissions"] = arg5
 	var arg6 []string
 	if tmp, ok := rawArgs["tags"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
@@ -2210,7 +2165,7 @@ func (ec *executionContext) _File_collaborators(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.File().Collaborators(rctx, obj, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["username"].(*string), args["permission"].(*models.FilePermission))
+		return ec.resolvers.File().Collaborators(rctx, obj, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["username"].(*string), args["permissions"].(*models.FilePermissions))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2326,38 +2281,6 @@ func (ec *executionContext) _FileCollaboratorConnection_edges(ctx context.Contex
 	return ec.marshalOFileCollaboratorEdge2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFileCollaboratorEdge(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _FileCollaboratorConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *models.FileCollaboratorConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "FileCollaboratorConnection",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Nodes, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*models.User)
-	fc.Result = res
-	return ec.marshalOUser2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐUser(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _FileCollaboratorConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.FileCollaboratorConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2463,7 +2386,7 @@ func (ec *executionContext) _FileCollaboratorEdge_node(ctx context.Context, fiel
 	return ec.marshalNUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _FileCollaboratorEdge_permission(ctx context.Context, field graphql.CollectedField, obj *models.FileCollaboratorEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _FileCollaboratorEdge_permissions(ctx context.Context, field graphql.CollectedField, obj *models.FileCollaboratorEdge) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2481,7 +2404,7 @@ func (ec *executionContext) _FileCollaboratorEdge_permission(ctx context.Context
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Permission, nil
+		return obj.Permissions, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2493,9 +2416,9 @@ func (ec *executionContext) _FileCollaboratorEdge_permission(ctx context.Context
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.FilePermission)
+	res := resTmp.(models.FilePermissions)
 	fc.Result = res
-	return ec.marshalNFilePermission2githubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx, field.Selections, res)
+	return ec.marshalNFilePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermissions(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FileConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.FileConnection) (ret graphql.Marshaler) {
@@ -2528,38 +2451,6 @@ func (ec *executionContext) _FileConnection_edges(ctx context.Context, field gra
 	res := resTmp.([]*models.FileEdge)
 	fc.Result = res
 	return ec.marshalOFileEdge2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFileEdge(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _FileConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *models.FileConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "FileConnection",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Nodes, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*models.File)
-	fc.Result = res
-	return ec.marshalOFile2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FileConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.FileConnection) (ret graphql.Marshaler) {
@@ -2697,38 +2588,6 @@ func (ec *executionContext) _FileTagConnection_edges(ctx context.Context, field 
 	res := resTmp.([]*models.FileTagEdge)
 	fc.Result = res
 	return ec.marshalOFileTagEdge2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFileTagEdge(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _FileTagConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *models.FileTagConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "FileTagConnection",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Nodes, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*models.Tag)
-	fc.Result = res
-	return ec.marshalOTag2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐTag(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FileTagConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.FileTagConnection) (ret graphql.Marshaler) {
@@ -3785,7 +3644,7 @@ func (ec *executionContext) _Query_files(ctx context.Context, field graphql.Coll
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Files(rctx, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermission), args["tags"].([]string))
+			return ec.resolvers.Query().Files(rctx, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermissions), args["tags"].([]string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Auth == nil {
@@ -4047,7 +3906,7 @@ func (ec *executionContext) _Tag_files(ctx context.Context, field graphql.Collec
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Tag().Files(rctx, obj, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermission), args["tags"].([]string))
+		return ec.resolvers.Tag().Files(rctx, obj, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permissions"].(*models.FilePermissions), args["tags"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4161,38 +4020,6 @@ func (ec *executionContext) _TagConnection_edges(ctx context.Context, field grap
 	res := resTmp.([]*models.TagEdge)
 	fc.Result = res
 	return ec.marshalOTagEdge2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐTagEdge(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TagConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *models.TagConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "TagConnection",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Nodes, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*models.Tag)
-	fc.Result = res
-	return ec.marshalOTag2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐTag(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TagConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.TagConnection) (ret graphql.Marshaler) {
@@ -4505,38 +4332,6 @@ func (ec *executionContext) _UserConnection_edges(ctx context.Context, field gra
 	res := resTmp.([]*models.UserEdge)
 	fc.Result = res
 	return ec.marshalOUserEdge2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐUserEdge(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _UserConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *models.UserConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "UserConnection",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Nodes, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*models.User)
-	fc.Result = res
-	return ec.marshalOUser2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.UserConnection) (ret graphql.Marshaler) {
@@ -5753,11 +5548,11 @@ func (ec *executionContext) unmarshalInputFileCollaboratorInput(ctx context.Cont
 			if err != nil {
 				return it, err
 			}
-		case "permission":
+		case "permissions":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
-			it.Permission, err = ec.unmarshalNFilePermission2githubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permissions"))
+			it.Permissions, err = ec.unmarshalNFilePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermissions(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6077,8 +5872,6 @@ func (ec *executionContext) _FileCollaboratorConnection(ctx context.Context, sel
 			out.Values[i] = graphql.MarshalString("FileCollaboratorConnection")
 		case "edges":
 			out.Values[i] = ec._FileCollaboratorConnection_edges(ctx, field, obj)
-		case "nodes":
-			out.Values[i] = ec._FileCollaboratorConnection_nodes(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._FileCollaboratorConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6116,8 +5909,8 @@ func (ec *executionContext) _FileCollaboratorEdge(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "permission":
-			out.Values[i] = ec._FileCollaboratorEdge_permission(ctx, field, obj)
+		case "permissions":
+			out.Values[i] = ec._FileCollaboratorEdge_permissions(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6145,8 +5938,6 @@ func (ec *executionContext) _FileConnection(ctx context.Context, sel ast.Selecti
 			out.Values[i] = graphql.MarshalString("FileConnection")
 		case "edges":
 			out.Values[i] = ec._FileConnection_edges(ctx, field, obj)
-		case "nodes":
-			out.Values[i] = ec._FileConnection_nodes(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._FileConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6208,8 +5999,6 @@ func (ec *executionContext) _FileTagConnection(ctx context.Context, sel ast.Sele
 			out.Values[i] = graphql.MarshalString("FileTagConnection")
 		case "edges":
 			out.Values[i] = ec._FileTagConnection_edges(ctx, field, obj)
-		case "nodes":
-			out.Values[i] = ec._FileTagConnection_nodes(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._FileTagConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6502,8 +6291,6 @@ func (ec *executionContext) _TagConnection(ctx context.Context, sel ast.Selectio
 			out.Values[i] = graphql.MarshalString("TagConnection")
 		case "edges":
 			out.Values[i] = ec._TagConnection_edges(ctx, field, obj)
-		case "nodes":
-			out.Values[i] = ec._TagConnection_nodes(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._TagConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6612,8 +6399,6 @@ func (ec *executionContext) _UserConnection(ctx context.Context, sel ast.Selecti
 			out.Values[i] = graphql.MarshalString("UserConnection")
 		case "edges":
 			out.Values[i] = ec._UserConnection_edges(ctx, field, obj)
-		case "nodes":
-			out.Values[i] = ec._UserConnection_nodes(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._UserConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6956,13 +6741,13 @@ func (ec *executionContext) unmarshalNFileInput2githubᚗcomᚋmpieczabaᚋnimbu
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNFilePermission2githubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx context.Context, v interface{}) (models.FilePermission, error) {
-	var res models.FilePermission
+func (ec *executionContext) unmarshalNFilePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermissions(ctx context.Context, v interface{}) (models.FilePermissions, error) {
+	var res models.FilePermissions
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNFilePermission2githubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx context.Context, sel ast.SelectionSet, v models.FilePermission) graphql.Marshaler {
+func (ec *executionContext) marshalNFilePermissions2githubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermissions(ctx context.Context, sel ast.SelectionSet, v models.FilePermissions) graphql.Marshaler {
 	return v
 }
 
@@ -7384,46 +7169,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) marshalOFile2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFile(ctx context.Context, sel ast.SelectionSet, v []*models.File) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOFile2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFile(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
 func (ec *executionContext) marshalOFile2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFile(ctx context.Context, sel ast.SelectionSet, v *models.File) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -7539,16 +7284,16 @@ func (ec *executionContext) marshalOFileEdge2ᚖgithubᚗcomᚋmpieczabaᚋnimbu
 	return ec._FileEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOFilePermission2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx context.Context, v interface{}) (*models.FilePermission, error) {
+func (ec *executionContext) unmarshalOFilePermissions2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermissions(ctx context.Context, v interface{}) (*models.FilePermissions, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(models.FilePermission)
+	var res = new(models.FilePermissions)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOFilePermission2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermission(ctx context.Context, sel ast.SelectionSet, v *models.FilePermission) graphql.Marshaler {
+func (ec *executionContext) marshalOFilePermissions2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermissions(ctx context.Context, sel ast.SelectionSet, v *models.FilePermissions) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -7699,46 +7444,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return graphql.MarshalString(*v)
 }
 
-func (ec *executionContext) marshalOTag2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v []*models.Tag) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOTag2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐTag(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
 func (ec *executionContext) marshalOTag2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v *models.Tag) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -7807,46 +7512,6 @@ func (ec *executionContext) unmarshalOUpload2githubᚗcomᚋ99designsᚋgqlgen�
 
 func (ec *executionContext) marshalOUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v graphql.Upload) graphql.Marshaler {
 	return graphql.MarshalUpload(v)
-}
-
-func (ec *executionContext) marshalOUser2ᚕᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v []*models.User) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐUser(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
 }
 
 func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {

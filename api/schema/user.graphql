@@ -19,7 +19,6 @@ type User {
 
 type UserConnection {
     edges: [UserEdge]
-    nodes: [User]
     pageInfo: PageInfo!
 }
 

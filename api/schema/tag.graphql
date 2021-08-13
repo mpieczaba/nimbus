@@ -9,7 +9,7 @@
          first: Int
          last: Int
          name: String
-         permission: FilePermission = READ
+         permissions: FilePermissions = READ
          tags: [String!]
      ): FileConnection
 
@@ -22,7 +22,6 @@
 
  type TagConnection {
      edges: [TagEdge]
-     nodes: [Tag]
      pageInfo: PageInfo!
  }
 
