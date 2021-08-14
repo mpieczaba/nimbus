@@ -36,6 +36,7 @@ func (app *App) ServeHTTP() error {
 
 	// Files
 	app.http.GET("/files/:id", handlers.FileHandler())
+	app.http.GET("/files/download/:id/:name", handlers.FileDownloadHandler())
 
 	log.Println("Nimbus server listening on " + os.Getenv("HOST"))
 

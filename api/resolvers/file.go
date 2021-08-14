@@ -109,8 +109,12 @@ func (r *mutationResolver) DeleteFile(ctx context.Context, id string) (*models.F
 
 // Field resolver
 
-func (r *Resolver) URL(ctx context.Context, obj *models.File) (string, error) {
+func (r *fileResolver) URL(ctx context.Context, obj *models.File) (string, error) {
 	return "http://" + os.Getenv("HOST") + "/files/" + obj.ID, nil
+}
+
+func (r *fileResolver) DownloadURL(ctx context.Context, obj *models.File) (string, error) {
+	return "http://" + os.Getenv("HOST") + "/files/download/" + obj.ID + "/" + obj.Name, nil
 }
 
 func (r *fileResolver) Tags(ctx context.Context, obj *models.File, after, before *string, first, last *int, name *string) (*models.FileTagConnection, error) {

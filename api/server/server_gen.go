@@ -57,6 +57,7 @@ type ComplexityRoot struct {
 	File struct {
 		Collaborators func(childComplexity int, after *string, before *string, first *int, last *int, username *string, permissions *models.FilePermissions) int
 		CreatedAt     func(childComplexity int) int
+		DownloadURL   func(childComplexity int) int
 		Extension     func(childComplexity int) int
 		ID            func(childComplexity int) int
 		MimeType      func(childComplexity int) int
@@ -121,7 +122,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		File  func(childComplexity int, id string) int
-		Files func(childComplexity int, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermissions, tags []string) int
+		Files func(childComplexity int, after *string, before *string, first *int, last *int, name *string, permissions *models.FilePermissions, tags []string) int
 		Tag   func(childComplexity int, name string) int
 		Tags  func(childComplexity int, after *string, before *string, first *int, last *int, name *string) int
 		User  func(childComplexity int, id *string) int
@@ -166,6 +167,7 @@ type ComplexityRoot struct {
 
 type FileResolver interface {
 	URL(ctx context.Context, obj *models.File) (string, error)
+	DownloadURL(ctx context.Context, obj *models.File) (string, error)
 	Tags(ctx context.Context, obj *models.File, after *string, before *string, first *int, last *int, name *string) (*models.FileTagConnection, error)
 	Collaborators(ctx context.Context, obj *models.File, after *string, before *string, first *int, last *int, username *string, permissions *models.FilePermissions) (*models.FileCollaboratorConnection, error)
 }
@@ -186,7 +188,7 @@ type QueryResolver interface {
 	User(ctx context.Context, id *string) (*models.User, error)
 	Users(ctx context.Context, after *string, before *string, first *int, last *int, username *string) (*models.UserConnection, error)
 	File(ctx context.Context, id string) (*models.File, error)
-	Files(ctx context.Context, after *string, before *string, first *int, last *int, name *string, permission *models.FilePermissions, tags []string) (*models.FileConnection, error)
+	Files(ctx context.Context, after *string, before *string, first *int, last *int, name *string, permissions *models.FilePermissions, tags []string) (*models.FileConnection, error)
 	Tag(ctx context.Context, name string) (*models.Tag, error)
 	Tags(ctx context.Context, after *string, before *string, first *int, last *int, name *string) (*models.TagConnection, error)
 }
@@ -241,6 +243,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.File.CreatedAt(childComplexity), true
+
+	case "File.downloadURL":
+		if e.complexity.File.DownloadURL == nil {
+			break
+		}
+
+		return e.complexity.File.DownloadURL(childComplexity), true
 
 	case "File.extension":
 		if e.complexity.File.Extension == nil {
@@ -576,7 +585,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Files(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermissions), args["tags"].([]string)), true
+		return e.complexity.Query.Files(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permissions"].(*models.FilePermissions), args["tags"].([]string)), true
 
 	case "Query.tag":
 		if e.complexity.Query.Tag == nil {
@@ -843,6 +852,9 @@ type AuthPayload {
     """File URL"""
     url: String!
 
+    """File download URL"""
+    downloadURL: String!
+
     """Tags file was tagged with"""
     tags(
         after: String
@@ -920,7 +932,7 @@ input FileCollaboratorInput {
     """Collaborator user id"""
     collaboratorId: ID!
 
-    """File permission"""
+    """File permissions"""
     permissions: FilePermissions!
 }
 `, BuiltIn: false},
@@ -1014,7 +1026,7 @@ input FileTagsInput {
         first: Int
         last: Int
         name: String
-        permission: FilePermissions = READ
+        permissions: FilePermissions = READ
         tags: [String!]
     ): FileConnection @auth
 
@@ -1562,14 +1574,14 @@ func (ec *executionContext) field_Query_files_args(ctx context.Context, rawArgs 
 	}
 	args["name"] = arg4
 	var arg5 *models.FilePermissions
-	if tmp, ok := rawArgs["permission"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
+	if tmp, ok := rawArgs["permissions"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permissions"))
 		arg5, err = ec.unmarshalOFilePermissions2ᚖgithubᚗcomᚋmpieczabaᚋnimbusᚋmodelsᚐFilePermissions(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["permission"] = arg5
+	args["permissions"] = arg5
 	var arg6 []string
 	if tmp, ok := rawArgs["tags"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
@@ -2085,6 +2097,41 @@ func (ec *executionContext) _File_url(ctx context.Context, field graphql.Collect
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.File().URL(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _File_downloadURL(ctx context.Context, field graphql.CollectedField, obj *models.File) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "File",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.File().DownloadURL(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3644,7 +3691,7 @@ func (ec *executionContext) _Query_files(ctx context.Context, field graphql.Coll
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Files(rctx, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permission"].(*models.FilePermissions), args["tags"].([]string))
+			return ec.resolvers.Query().Files(rctx, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["name"].(*string), args["permissions"].(*models.FilePermissions), args["tags"].([]string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Auth == nil {
@@ -5811,6 +5858,20 @@ func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._File_url(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "downloadURL":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._File_downloadURL(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

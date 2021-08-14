@@ -10,20 +10,21 @@ interface Props {
   file: {
     id: string;
     name: string;
+    extension: string;
     url: string;
+    downloadURL: string;
   };
-  thumbnail?: string;
 }
 
-const FileCard: React.FC<Props> = ({ file, thumbnail }) => {
+const FileCard: React.FC<Props> = ({ file }) => {
   return (
     <Link to={`/files/${file.id}`}>
       <Wrapper>
         <Thumbnail>
-          <FileThumbnail thumbnail={thumbnail} />
+          <FileThumbnail extension={file.extension} url={file.url} image />
         </Thumbnail>
 
-        <FileInfo file={{ id: file.id, name: file.name, url: file.url }} />
+        <FileInfo file={file} />
       </Wrapper>
     </Link>
   );

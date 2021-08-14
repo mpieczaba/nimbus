@@ -17,6 +17,9 @@ type File {
     """File URL"""
     url: String!
 
+    """File download URL"""
+    downloadURL: String!
+
     """Tags file was tagged with"""
     tags(
         after: String

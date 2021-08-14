@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import {
   IconMenu2,
@@ -9,7 +8,8 @@ import {
   IconLogout,
 } from "@tabler/icons";
 
-import { setToken } from "../../actions/authActions";
+import { useAppDispatch } from "../../hooks/store";
+import { setToken } from "../../store/actions/authActions";
 
 import { Wrapper, NavButton, SidebarItemLogo, Logo } from "./styles";
 
@@ -22,7 +22,7 @@ import Sidebar, {
 import Search from "../Search";
 
 const Navbar: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const history = useHistory();
   const location = useLocation();
 
@@ -57,12 +57,14 @@ const Navbar: React.FC = () => {
                   </SidebarItemLogo>
                 </Link>
 
-                <SidebarItem>
-                  <SidebarItemIcon>
-                    <IconFiles />
-                  </SidebarItemIcon>
-                  Files
-                </SidebarItem>
+                <Link to="/files">
+                  <SidebarItem>
+                    <SidebarItemIcon>
+                      <IconFiles />
+                    </SidebarItemIcon>
+                    Files
+                  </SidebarItem>
+                </Link>
 
                 <SidebarItem>
                   <SidebarItemIcon>

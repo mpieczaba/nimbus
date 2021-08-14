@@ -47,10 +47,13 @@ export const style = css`
   }
 `;
 
-export const AppWrapper = styled.div`
+export const AppWrapper = styled.div<{
+  scrollable: boolean;
+}>`
   display: flex;
   width: 100%;
   height: 100vh;
   position: absolute;
   flex-direction: column;
+  overflow-y: ${(props) => (props.scrollable ? "auto" : "hidden")};
 `;

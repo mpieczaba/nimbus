@@ -8,6 +8,9 @@ import {
   IconDotsVertical,
 } from "@tabler/icons";
 
+import { useAppDispatch } from "../../hooks/store";
+import { setScrollable } from "../../store/actions/uiActions";
+
 import { colors } from "../../themes/colors";
 
 import {
@@ -34,30 +37,35 @@ interface Props {
   file: {
     id: string;
     name: string;
+    extension: string;
     size?: string;
     url: string;
+    downloadURL: string;
     modificationDate?: string;
   };
-  thumbnail?: string;
 }
 
-const FileInfo: React.FC<Props> = ({ rich, file, thumbnail }) => {
+const FileInfo: React.FC<Props> = ({ rich, file }) => {
+  const dispatch = useAppDispatch();
+
   const [dropdown, showHideDropdown] = useState<boolean>(false);
 
   const handleDropdownShowHide = (e: MouseEvent) => {
     e.preventDefault();
 
+    dispatch(setScrollable(!dropdown));
+
     showHideDropdown(!dropdown);
   };
 
   const handleDownload = () => {
-    window.open(file.url, "_blank");
+    window.open(file.downloadURL, "_blank");
   };
 
   return (
     <Wrapper>
       <Thumbnail rich={rich}>
-        <FileThumbnail thumbnail={thumbnail} />
+        <FileThumbnail extension={file.extension} url={file.url} image={rich} />
       </Thumbnail>
 
       <FileInfoWrapper>
@@ -80,7 +88,7 @@ const FileInfo: React.FC<Props> = ({ rich, file, thumbnail }) => {
           <DropdownItemsWrapper>
             <DropdownItemName>
               <Thumbnail>
-                <FileThumbnail />
+                <FileThumbnail extension={file.extension} />
               </Thumbnail>
               <span>{file.name}</span>
             </DropdownItemName>

@@ -1,10 +1,14 @@
-import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+import { gql } from "@apollo/client";
+import * as Apollo from "@apollo/client";
 export type Maybe<T> = T | null;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-const defaultOptions =  {}
+export type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> &
+  { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> &
+  { [SubKey in K]: Maybe<T[SubKey]> };
+const defaultOptions = {};
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -16,138 +20,133 @@ export type Scalars = {
   Upload: any;
 };
 
-
-
 export type AuthPayload = {
-  __typename?: 'AuthPayload';
+  __typename?: "AuthPayload";
   /** JWT authorization token */
-  token: Scalars['String'];
+  token: Scalars["String"];
   /** Signed in user */
   user: User;
 };
 
 export type File = {
-  __typename?: 'File';
+  __typename?: "File";
   /** Unique id */
-  id: Scalars['ID'];
+  id: Scalars["ID"];
   /** File name */
-  name: Scalars['String'];
+  name: Scalars["String"];
   /** File [mime type](https://www.iana.org/assignments/media-types/media-types.xhtml) */
-  mimeType: Scalars['String'];
+  mimeType: Scalars["String"];
   /** File extension */
-  extension: Scalars['String'];
+  extension: Scalars["String"];
   /** File size */
-  size: Scalars['Int'];
+  size: Scalars["Int"];
   /** File URL */
-  url: Scalars['String'];
+  url: Scalars["String"];
+  /** File download URL */
+  downloadURL: Scalars["String"];
   /** Tags file was tagged with */
   tags?: Maybe<FileTagConnection>;
   /** File collaborators */
   collaborators?: Maybe<FileCollaboratorConnection>;
   /** Create time */
-  createdAt: Scalars['Time'];
+  createdAt: Scalars["Time"];
   /** Update time */
-  updatedAt: Scalars['Time'];
+  updatedAt: Scalars["Time"];
 };
-
 
 export type FileTagsArgs = {
-  after?: Maybe<Scalars['String']>;
-  before?: Maybe<Scalars['String']>;
-  first?: Maybe<Scalars['Int']>;
-  last?: Maybe<Scalars['Int']>;
-  name?: Maybe<Scalars['String']>;
+  after?: Maybe<Scalars["String"]>;
+  before?: Maybe<Scalars["String"]>;
+  first?: Maybe<Scalars["Int"]>;
+  last?: Maybe<Scalars["Int"]>;
+  name?: Maybe<Scalars["String"]>;
 };
 
-
 export type FileCollaboratorsArgs = {
-  after?: Maybe<Scalars['String']>;
-  before?: Maybe<Scalars['String']>;
-  first?: Maybe<Scalars['Int']>;
-  last?: Maybe<Scalars['Int']>;
-  username?: Maybe<Scalars['String']>;
-  permission?: Maybe<FilePermission>;
+  after?: Maybe<Scalars["String"]>;
+  before?: Maybe<Scalars["String"]>;
+  first?: Maybe<Scalars["Int"]>;
+  last?: Maybe<Scalars["Int"]>;
+  username?: Maybe<Scalars["String"]>;
+  permissions?: Maybe<FilePermissions>;
 };
 
 export type FileCollaboratorConnection = {
-  __typename?: 'FileCollaboratorConnection';
+  __typename?: "FileCollaboratorConnection";
   edges?: Maybe<Array<Maybe<FileCollaboratorEdge>>>;
-  nodes?: Maybe<Array<Maybe<User>>>;
   pageInfo: PageInfo;
 };
 
 export type FileCollaboratorEdge = {
-  __typename?: 'FileCollaboratorEdge';
-  cursor: Scalars['String'];
+  __typename?: "FileCollaboratorEdge";
+  cursor: Scalars["String"];
   node: User;
-  permission: FilePermission;
+  permissions: FilePermissions;
 };
 
 export type FileCollaboratorInput = {
   /** File id */
-  fileId: Scalars['ID'];
+  fileId: Scalars["ID"];
   /** Collaborator user id */
-  collaboratorId: Scalars['ID'];
-  /** File permission */
-  permission: FilePermission;
+  collaboratorId: Scalars["ID"];
+  /** File permissions */
+  permissions: FilePermissions;
 };
 
 export type FileConnection = {
-  __typename?: 'FileConnection';
+  __typename?: "FileConnection";
   edges?: Maybe<Array<Maybe<FileEdge>>>;
-  nodes?: Maybe<Array<Maybe<File>>>;
   pageInfo: PageInfo;
 };
 
 export type FileEdge = {
-  __typename?: 'FileEdge';
-  cursor: Scalars['String'];
+  __typename?: "FileEdge";
+  cursor: Scalars["String"];
   node: File;
 };
 
 export type FileInput = {
   /** File name (optional) */
-  name?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars["String"]>;
   /** File */
-  file: Scalars['Upload'];
+  file: Scalars["Upload"];
 };
 
-export enum FilePermission {
-  Admin = 'ADMIN',
-  Maintain = 'MAINTAIN',
-  Write = 'WRITE',
-  Read = 'READ'
+export enum FilePermissions {
+  Admin = "ADMIN",
+  Maintain = "MAINTAIN",
+  Write = "WRITE",
+  Read = "READ",
 }
 
 export type FileTagConnection = {
-  __typename?: 'FileTagConnection';
+  __typename?: "FileTagConnection";
   edges?: Maybe<Array<Maybe<FileTagEdge>>>;
-  nodes?: Maybe<Array<Maybe<Tag>>>;
   pageInfo: PageInfo;
 };
 
 export type FileTagEdge = {
-  __typename?: 'FileTagEdge';
-  cursor: Scalars['String'];
+  __typename?: "FileTagEdge";
+  cursor: Scalars["String"];
   node: Tag;
 };
 
 export type FileTagsInput = {
   /** File id */
-  fileId: Scalars['ID'];
+  fileId: Scalars["ID"];
   /** Tag names */
-  tagNames: Array<Scalars['String']>;
+  tagNames: Array<Scalars["String"]>;
 };
 
 export type FileUpdateInput = {
   /** File name */
-  name?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars["String"]>;
   /** File */
-  file?: Maybe<Scalars['Upload']>;
+  file?: Maybe<Scalars["Upload"]>;
 };
 
 export type Mutation = {
-  __typename?: 'Mutation';
+  __typename?: "Mutation";
   /** Sign in user with username and password */
   login: AuthPayload;
   /** Sign up user with UserInput */
@@ -172,75 +171,64 @@ export type Mutation = {
   removeCollaboratorFromFile?: Maybe<File>;
 };
 
-
 export type MutationLoginArgs = {
-  username: Scalars['String'];
-  password: Scalars['String'];
+  username: Scalars["String"];
+  password: Scalars["String"];
 };
-
 
 export type MutationCreateUserArgs = {
   input: UserInput;
 };
 
-
 export type MutationUpdateUserArgs = {
-  id?: Maybe<Scalars['ID']>;
+  id?: Maybe<Scalars["ID"]>;
   input: UserUpdateInput;
 };
 
-
 export type MutationDeleteUserArgs = {
-  id?: Maybe<Scalars['ID']>;
+  id?: Maybe<Scalars["ID"]>;
 };
-
 
 export type MutationCreateFileArgs = {
   input: FileInput;
 };
 
-
 export type MutationUpdateFileArgs = {
-  id: Scalars['ID'];
+  id: Scalars["ID"];
   input: FileUpdateInput;
 };
 
-
 export type MutationDeleteFileArgs = {
-  id: Scalars['ID'];
+  id: Scalars["ID"];
 };
-
 
 export type MutationAddTagsToFileArgs = {
   input: FileTagsInput;
 };
 
-
 export type MutationRemoveTagsFromFileArgs = {
   input: FileTagsInput;
 };
-
 
 export type MutationAddCollaboratorToFileArgs = {
   input: FileCollaboratorInput;
 };
 
-
 export type MutationRemoveCollaboratorFromFileArgs = {
-  fileId: Scalars['ID'];
-  collaboratorId: Scalars['ID'];
+  fileId: Scalars["ID"];
+  collaboratorId: Scalars["ID"];
 };
 
 export type PageInfo = {
-  __typename?: 'PageInfo';
-  hasNextPage: Scalars['Boolean'];
-  hasPreviousPage: Scalars['Boolean'];
-  startCursor?: Maybe<Scalars['String']>;
-  endCursor?: Maybe<Scalars['String']>;
+  __typename?: "PageInfo";
+  hasNextPage: Scalars["Boolean"];
+  hasPreviousPage: Scalars["Boolean"];
+  startCursor?: Maybe<Scalars["String"]>;
+  endCursor?: Maybe<Scalars["String"]>;
 };
 
 export type Query = {
-  __typename?: 'Query';
+  __typename?: "Query";
   /** Get user by id or currently authenticated user if no id is specified */
   user?: Maybe<User>;
   /** Get all users */
@@ -255,213 +243,208 @@ export type Query = {
   tags?: Maybe<TagConnection>;
 };
 
-
 export type QueryUserArgs = {
-  id?: Maybe<Scalars['ID']>;
+  id?: Maybe<Scalars["ID"]>;
 };
-
 
 export type QueryUsersArgs = {
-  after?: Maybe<Scalars['String']>;
-  before?: Maybe<Scalars['String']>;
-  first?: Maybe<Scalars['Int']>;
-  last?: Maybe<Scalars['Int']>;
-  username?: Maybe<Scalars['String']>;
+  after?: Maybe<Scalars["String"]>;
+  before?: Maybe<Scalars["String"]>;
+  first?: Maybe<Scalars["Int"]>;
+  last?: Maybe<Scalars["Int"]>;
+  username?: Maybe<Scalars["String"]>;
 };
-
 
 export type QueryFileArgs = {
-  id: Scalars['ID'];
+  id: Scalars["ID"];
 };
-
 
 export type QueryFilesArgs = {
-  after?: Maybe<Scalars['String']>;
-  before?: Maybe<Scalars['String']>;
-  first?: Maybe<Scalars['Int']>;
-  last?: Maybe<Scalars['Int']>;
-  name?: Maybe<Scalars['String']>;
-  permission?: Maybe<FilePermission>;
-  tags?: Maybe<Array<Scalars['String']>>;
+  after?: Maybe<Scalars["String"]>;
+  before?: Maybe<Scalars["String"]>;
+  first?: Maybe<Scalars["Int"]>;
+  last?: Maybe<Scalars["Int"]>;
+  name?: Maybe<Scalars["String"]>;
+  permissions?: Maybe<FilePermissions>;
+  tags?: Maybe<Array<Scalars["String"]>>;
 };
-
 
 export type QueryTagArgs = {
-  name: Scalars['String'];
+  name: Scalars["String"];
 };
 
-
 export type QueryTagsArgs = {
-  after?: Maybe<Scalars['String']>;
-  before?: Maybe<Scalars['String']>;
-  first?: Maybe<Scalars['Int']>;
-  last?: Maybe<Scalars['Int']>;
-  name?: Maybe<Scalars['String']>;
+  after?: Maybe<Scalars["String"]>;
+  before?: Maybe<Scalars["String"]>;
+  first?: Maybe<Scalars["Int"]>;
+  last?: Maybe<Scalars["Int"]>;
+  name?: Maybe<Scalars["String"]>;
 };
 
 export type Tag = {
-  __typename?: 'Tag';
+  __typename?: "Tag";
   /** Unique name */
-  name: Scalars['String'];
-  /** Files tagged with the tag */
+  name: Scalars["String"];
+  /** FilesContainer tagged with the tag */
   files?: Maybe<FileConnection>;
   /** Create time */
-  createdAt: Scalars['Time'];
+  createdAt: Scalars["Time"];
   /** Update time */
-  updatedAt: Scalars['Time'];
+  updatedAt: Scalars["Time"];
 };
 
-
 export type TagFilesArgs = {
-  after?: Maybe<Scalars['String']>;
-  before?: Maybe<Scalars['String']>;
-  first?: Maybe<Scalars['Int']>;
-  last?: Maybe<Scalars['Int']>;
-  name?: Maybe<Scalars['String']>;
-  permission?: Maybe<FilePermission>;
-  tags?: Maybe<Array<Scalars['String']>>;
+  after?: Maybe<Scalars["String"]>;
+  before?: Maybe<Scalars["String"]>;
+  first?: Maybe<Scalars["Int"]>;
+  last?: Maybe<Scalars["Int"]>;
+  name?: Maybe<Scalars["String"]>;
+  permissions?: Maybe<FilePermissions>;
+  tags?: Maybe<Array<Scalars["String"]>>;
 };
 
 export type TagConnection = {
-  __typename?: 'TagConnection';
+  __typename?: "TagConnection";
   edges?: Maybe<Array<Maybe<TagEdge>>>;
-  nodes?: Maybe<Array<Maybe<Tag>>>;
   pageInfo: PageInfo;
 };
 
 export type TagEdge = {
-  __typename?: 'TagEdge';
-  cursor: Scalars['String'];
+  __typename?: "TagEdge";
+  cursor: Scalars["String"];
   node: Tag;
 };
 
-
-
 export type User = {
-  __typename?: 'User';
+  __typename?: "User";
   /** Unique id */
-  id: Scalars['ID'];
+  id: Scalars["ID"];
   /** Unique username */
-  username: Scalars['String'];
+  username: Scalars["String"];
   /** User kind */
   kind: UserKind;
   /** Create time */
-  createdAt: Scalars['Time'];
+  createdAt: Scalars["Time"];
   /** Update time */
-  updatedAt: Scalars['Time'];
+  updatedAt: Scalars["Time"];
 };
 
 export type UserConnection = {
-  __typename?: 'UserConnection';
+  __typename?: "UserConnection";
   edges?: Maybe<Array<Maybe<UserEdge>>>;
-  nodes?: Maybe<Array<Maybe<User>>>;
   pageInfo: PageInfo;
 };
 
 export type UserEdge = {
-  __typename?: 'UserEdge';
-  cursor: Scalars['String'];
+  __typename?: "UserEdge";
+  cursor: Scalars["String"];
   node: User;
 };
 
 export type UserInput = {
   /** Unique username */
-  username: Scalars['String'];
+  username: Scalars["String"];
   /** User password */
-  password: Scalars['String'];
+  password: Scalars["String"];
 };
 
 export enum UserKind {
-  Admin = 'ADMIN',
-  User = 'USER',
-  Banned = 'BANNED'
+  Admin = "ADMIN",
+  User = "USER",
+  Banned = "BANNED",
 }
 
 export type UserUpdateInput = {
   /** Unique username */
-  username?: Maybe<Scalars['String']>;
+  username?: Maybe<Scalars["String"]>;
   /** User password */
-  password?: Maybe<Scalars['String']>;
+  password?: Maybe<Scalars["String"]>;
   /** User kind - requires admin privileges */
   kind?: Maybe<UserKind>;
 };
 
 export type LoginMutationVariables = Exact<{
-  username: Scalars['String'];
-  password: Scalars['String'];
+  username: Scalars["String"];
+  password: Scalars["String"];
 }>;
 
-
-export type LoginMutation = (
-  { __typename?: 'Mutation' }
-  & { login: (
-    { __typename?: 'AuthPayload' }
-    & Pick<AuthPayload, 'token'>
-    & { user: (
-      { __typename?: 'User' }
-      & Pick<User, 'username'>
-    ) }
-  ) }
-);
+export type LoginMutation = { __typename?: "Mutation" } & {
+  login: { __typename?: "AuthPayload" } & Pick<AuthPayload, "token"> & {
+      user: { __typename?: "User" } & Pick<User, "username">;
+    };
+};
 
 export type FilesQueryVariables = Exact<{
-  after?: Maybe<Scalars['String']>;
-  first?: Maybe<Scalars['Int']>;
-  name?: Maybe<Scalars['String']>;
-  tags?: Maybe<Array<Scalars['String']> | Scalars['String']>;
+  after?: Maybe<Scalars["String"]>;
+  first?: Maybe<Scalars["Int"]>;
+  name?: Maybe<Scalars["String"]>;
+  tags?: Maybe<Array<Scalars["String"]> | Scalars["String"]>;
 }>;
 
-
-export type FilesQuery = (
-  { __typename?: 'Query' }
-  & { files?: Maybe<(
-    { __typename?: 'FileConnection' }
-    & { edges?: Maybe<Array<Maybe<(
-      { __typename?: 'FileEdge' }
-      & Pick<FileEdge, 'cursor'>
-      & { node: (
-        { __typename?: 'File' }
-        & Pick<File, 'id' | 'name' | 'size' | 'url' | 'updatedAt'>
-      ) }
-    )>>>, pageInfo: (
-      { __typename?: 'PageInfo' }
-      & Pick<PageInfo, 'hasNextPage' | 'endCursor'>
-    ) }
-  )> }
-);
+export type FilesQuery = { __typename?: "Query" } & {
+  files?: Maybe<
+    { __typename?: "FileConnection" } & {
+      edges?: Maybe<
+        Array<
+          Maybe<
+            { __typename?: "FileEdge" } & Pick<FileEdge, "cursor"> & {
+                node: { __typename?: "File" } & Pick<
+                  File,
+                  | "id"
+                  | "name"
+                  | "extension"
+                  | "size"
+                  | "url"
+                  | "downloadURL"
+                  | "updatedAt"
+                >;
+              }
+          >
+        >
+      >;
+      pageInfo: { __typename?: "PageInfo" } & Pick<
+        PageInfo,
+        "hasNextPage" | "endCursor"
+      >;
+    }
+  >;
+};
 
 export type TagsQueryVariables = Exact<{
-  name?: Maybe<Scalars['String']>;
-  first?: Maybe<Scalars['Int']>;
+  name?: Maybe<Scalars["String"]>;
+  first?: Maybe<Scalars["Int"]>;
 }>;
 
-
-export type TagsQuery = (
-  { __typename?: 'Query' }
-  & { tags?: Maybe<(
-    { __typename?: 'TagConnection' }
-    & { edges?: Maybe<Array<Maybe<(
-      { __typename?: 'TagEdge' }
-      & { node: (
-        { __typename?: 'Tag' }
-        & Pick<Tag, 'name'>
-      ) }
-    )>>> }
-  )> }
-);
-
+export type TagsQuery = { __typename?: "Query" } & {
+  tags?: Maybe<
+    { __typename?: "TagConnection" } & {
+      edges?: Maybe<
+        Array<
+          Maybe<
+            { __typename?: "TagEdge" } & {
+              node: { __typename?: "Tag" } & Pick<Tag, "name">;
+            }
+          >
+        >
+      >;
+    }
+  >;
+};
 
 export const LoginDocument = gql`
-    mutation Login($username: String!, $password: String!) {
-  login(username: $username, password: $password) {
-    token
-    user {
-      username
+  mutation Login($username: String!, $password: String!) {
+    login(username: $username, password: $password) {
+      token
+      user {
+        username
+      }
     }
   }
-}
-    `;
-export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutationVariables>;
+`;
+export type LoginMutationFn = Apollo.MutationFunction<
+  LoginMutation,
+  LoginMutationVariables
+>;
 
 /**
  * __useLoginMutation__
@@ -481,33 +464,46 @@ export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutati
  *   },
  * });
  */
-export function useLoginMutation(baseOptions?: Apollo.MutationHookOptions<LoginMutation, LoginMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument, options);
-      }
+export function useLoginMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    LoginMutation,
+    LoginMutationVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<LoginMutation, LoginMutationVariables>(
+    LoginDocument,
+    options
+  );
+}
 export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
-export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
+export type LoginMutationOptions = Apollo.BaseMutationOptions<
+  LoginMutation,
+  LoginMutationVariables
+>;
 export const FilesDocument = gql`
-    query Files($after: String, $first: Int, $name: String, $tags: [String!]) {
-  files(after: $after, first: $first, name: $name, tags: $tags) {
-    edges {
-      cursor
-      node {
-        id
-        name
-        size
-        url
-        updatedAt
+  query Files($after: String, $first: Int, $name: String, $tags: [String!]) {
+    files(after: $after, first: $first, name: $name, tags: $tags) {
+      edges {
+        cursor
+        node {
+          id
+          name
+          extension
+          size
+          url
+          downloadURL
+          updatedAt
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
     }
-    pageInfo {
-      hasNextPage
-      endCursor
-    }
   }
-}
-    `;
+`;
 
 /**
  * __useFilesQuery__
@@ -528,28 +524,41 @@ export const FilesDocument = gql`
  *   },
  * });
  */
-export function useFilesQuery(baseOptions?: Apollo.QueryHookOptions<FilesQuery, FilesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<FilesQuery, FilesQueryVariables>(FilesDocument, options);
-      }
-export function useFilesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FilesQuery, FilesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<FilesQuery, FilesQueryVariables>(FilesDocument, options);
-        }
+export function useFilesQuery(
+  baseOptions?: Apollo.QueryHookOptions<FilesQuery, FilesQueryVariables>
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<FilesQuery, FilesQueryVariables>(
+    FilesDocument,
+    options
+  );
+}
+export function useFilesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<FilesQuery, FilesQueryVariables>
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<FilesQuery, FilesQueryVariables>(
+    FilesDocument,
+    options
+  );
+}
 export type FilesQueryHookResult = ReturnType<typeof useFilesQuery>;
 export type FilesLazyQueryHookResult = ReturnType<typeof useFilesLazyQuery>;
-export type FilesQueryResult = Apollo.QueryResult<FilesQuery, FilesQueryVariables>;
+export type FilesQueryResult = Apollo.QueryResult<
+  FilesQuery,
+  FilesQueryVariables
+>;
 export const TagsDocument = gql`
-    query Tags($name: String, $first: Int) {
-  tags(name: $name, first: $first) {
-    edges {
-      node {
-        name
+  query Tags($name: String, $first: Int) {
+    tags(name: $name, first: $first) {
+      edges {
+        node {
+          name
+        }
       }
     }
   }
-}
-    `;
+`;
 
 /**
  * __useTagsQuery__
@@ -568,14 +577,21 @@ export const TagsDocument = gql`
  *   },
  * });
  */
-export function useTagsQuery(baseOptions?: Apollo.QueryHookOptions<TagsQuery, TagsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<TagsQuery, TagsQueryVariables>(TagsDocument, options);
-      }
-export function useTagsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TagsQuery, TagsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<TagsQuery, TagsQueryVariables>(TagsDocument, options);
-        }
+export function useTagsQuery(
+  baseOptions?: Apollo.QueryHookOptions<TagsQuery, TagsQueryVariables>
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<TagsQuery, TagsQueryVariables>(TagsDocument, options);
+}
+export function useTagsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<TagsQuery, TagsQueryVariables>
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<TagsQuery, TagsQueryVariables>(
+    TagsDocument,
+    options
+  );
+}
 export type TagsQueryHookResult = ReturnType<typeof useTagsQuery>;
 export type TagsLazyQueryHookResult = ReturnType<typeof useTagsLazyQuery>;
 export type TagsQueryResult = Apollo.QueryResult<TagsQuery, TagsQueryVariables>;

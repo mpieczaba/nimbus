@@ -11,7 +11,7 @@ import (
 func FilterFilesByFilePermissions(claims *auth.Claims, permissions models.FilePermissions) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		subQuery := db.Session(&gorm.Session{NewDB: true}).Model(models.FileCollaborator{}).Select("file_id").Where(
-			"permission <= ?", utils.GetFilePermissionsIndex(permissions),
+			"permissions <= ?", utils.GetFilePermissionsIndex(permissions),
 		).Where("collaborator_id = ? OR ? = ?", claims.ID, claims.Kind, models.UserKindAdmin)
 
 		return db.Where("id IN (?)", subQuery)

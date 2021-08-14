@@ -7,7 +7,7 @@ import (
 )
 
 func CheckTagName(fl validator.FieldLevel) bool {
-	ok, _ := regexp.MatchString("^(?:#[A-Za-z0-9_]+)$", fl.Field().String())
+	ok, _ := regexp.MatchString("^[A-Za-z0-9_]+$", fl.Field().String())
 
 	return ok
 }

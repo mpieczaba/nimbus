@@ -11,11 +11,15 @@ const Dropdown = styled.div`
   height: 100%;
   top: 0;
   left: 0;
+  bottom: 0;
+  right: 0;
   background: ${colors.overlay};
+  z-index: 1000;
 `;
 
 export const DropdownItemsWrapper = styled.div`
   display: flex;
+  position: relative;
   flex-direction: column;
   width: 100%;
   gap: 1.5rem;

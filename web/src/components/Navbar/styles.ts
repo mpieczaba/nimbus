@@ -14,6 +14,7 @@ export const Wrapper = styled.div`
   width: 100%;
   background: ${colors.background};
   border-bottom: 2px solid ${colors.accent};
+  z-index: 500;
 `;
 
 export const NavButton = styled.button`

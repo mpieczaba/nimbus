@@ -30,9 +30,9 @@ const Search: React.FC = () => {
 
     if (searchInput.length > 0) urlSearchParams.set("search", searchInput);
 
-    tags.map((tag) => urlSearchParams.append("tag", tag.substring(1)));
+    tags.map((tag) => urlSearchParams.append("tag", tag));
 
-    history.push({ pathname: "/", search: urlSearchParams.toString() });
+    history.push({ pathname: "/files", search: urlSearchParams.toString() });
   };
 
   const handleSearchInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -44,7 +44,7 @@ const Search: React.FC = () => {
 
       getTags({
         variables: {
-          name: `${e.target.value}%`,
+          name: `${e.target.value.substring(1)}%`,
           first: 10,
         },
       });
@@ -71,7 +71,7 @@ const Search: React.FC = () => {
         <Tag
           key={index}
           removable
-          tagName={name}
+          tagName={`#${name}`}
           handleTagRemove={() => handleTagRemove(index)}
         />
       ))}
@@ -80,7 +80,7 @@ const Search: React.FC = () => {
         <SearchInput
           type="text"
           name="search"
-          placeholder="Search..."
+          placeholder="Search for files..."
           value={searchInput}
           onChange={handleSearchInputChange}
         />
@@ -92,7 +92,7 @@ const Search: React.FC = () => {
             {data?.tags?.edges?.map((edge, index) => (
               <Tag
                 key={index}
-                tagName={edge!.node.name}
+                tagName={`#${edge!.node.name}`}
                 onClick={() => handleTagClick(edge!.node.name)}
               />
             ))}

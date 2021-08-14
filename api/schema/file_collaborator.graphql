@@ -16,6 +16,6 @@ input FileCollaboratorInput {
     """Collaborator user id"""
     collaboratorId: ID!
 
-    """File permission"""
+    """File permissions"""
     permissions: FilePermissions!
 }

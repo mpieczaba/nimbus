@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
-import { useDispatch } from "react-redux";
 import { useHistory } from "react-router-dom";
 import { Formik, FormikErrors } from "formik";
 import { IconUser, IconLock } from "@tabler/icons";
 
-import { setToken } from "../../actions/authActions";
+import { useAppDispatch } from "../../hooks/store";
+
+import { setToken } from "../../store/actions/authActions";
 
 import {
   LoginMutationVariables,
@@ -24,7 +25,7 @@ import Input, {
 import Button from "../Button";
 
 const LoginForm: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const history = useHistory();
 
   const [login, { error }] = useLoginMutation({

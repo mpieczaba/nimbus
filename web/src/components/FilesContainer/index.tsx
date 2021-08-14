@@ -9,6 +9,8 @@ import {
   IconLayoutList,
 } from "@tabler/icons";
 
+import { useAppDispatch } from "../../hooks/store";
+
 import { useFilesQuery } from "../../generated/graphql";
 
 import Dropdown, {
@@ -32,8 +34,10 @@ import {
 } from "./styles";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { extractSearchOperators } from "../../utils/search";
+import { setScrollable } from "../../store/actions/uiActions";
 
-const Files: React.FC = () => {
+const FilesContainer: React.FC = () => {
+  const dispatch = useAppDispatch();
   const location = useLocation();
 
   const urlSearchParams = new URLSearchParams(location.search);
@@ -42,7 +46,7 @@ const Files: React.FC = () => {
     variables: {
       first: 20,
       name: extractSearchOperators(urlSearchParams.get("search")),
-      tags: urlSearchParams.getAll("tag").map((tag) => `#${tag}`),
+      tags: urlSearchParams.getAll("tag"),
     },
   });
 
@@ -51,6 +55,8 @@ const Files: React.FC = () => {
   const [view, setView] = useState<boolean>(true);
 
   const handleDropdownShowHide = () => {
+    dispatch(setScrollable(!dropdown));
+
     showHideDropdown(!dropdown);
   };
 
@@ -103,7 +109,7 @@ const Files: React.FC = () => {
                 after: data?.files.pageInfo.endCursor,
                 first: 20,
                 name: urlSearchParams.get("search"),
-                tags: urlSearchParams.getAll("tag").map((tag) => `#${tag}`),
+                tags: urlSearchParams.getAll("tag"),
               },
             });
           }
@@ -115,15 +121,7 @@ const Files: React.FC = () => {
         {view ? (
           <FileCardWrapper>
             {data.files?.edges?.map((edge, index) => (
-              <FileCard
-                key={index}
-                file={{
-                  id: edge!.node.id,
-                  name: edge!.node.name,
-                  url: edge!.node.url,
-                }}
-                thumbnail={edge!.node.url}
-              />
+              <FileCard key={index} file={edge!.node} />
             ))}
           </FileCardWrapper>
         ) : (
@@ -132,15 +130,12 @@ const Files: React.FC = () => {
               <FileList
                 key={index}
                 file={{
-                  id: edge!.node.id,
-                  name: edge!.node.name,
+                  ...edge!.node,
                   modificationDate: dayjs(edge!.node.updatedAt)
                     .format("D MMM YYYY H:m")
                     .toString(),
                   size: fileSize(edge!.node.size).toString(),
-                  url: edge!.node.url,
                 }}
-                thumbnail={edge!.node.url}
               />
             ))}
           </FileListWrapper>
@@ -150,4 +145,4 @@ const Files: React.FC = () => {
   );
 };
 
-export default Files;
+export default FilesContainer;

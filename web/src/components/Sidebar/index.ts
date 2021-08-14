@@ -11,6 +11,7 @@ const Sidebar = styled.div`
   top: 0;
   left: 0;
   background: ${colors.overlay};
+  z-index: 1000;
 `;
 
 export const SidebarItemsWrapper = styled.div`

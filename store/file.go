@@ -98,6 +98,8 @@ func (s *FileStore) CreateFile(file *models.File, callback func() error) (*model
 		return nil, err
 	}
 
+	tx.Commit()
+
 	return file, nil
 }
 
@@ -114,6 +116,8 @@ func (s *FileStore) UpdateFile(file *models.File, callback func() error) (*model
 		return nil, err
 	}
 
+	tx.Commit()
+
 	return file, nil
 }
 
@@ -127,6 +131,8 @@ func (s *FileStore) DeleteFile(file *models.File, callback func() error) (*model
 	if err := callback(); err != nil {
 		return nil, err
 	}
+
+	tx.Commit()
 
 	return file, nil
 }

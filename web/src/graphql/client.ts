@@ -16,7 +16,7 @@ const cache = new InMemoryCache({
 // TODO: Move to redux and env variables
 const client = new ApolloClient({
   link: createHttpLink({
-    uri: "http://192.168.1.18:8080/graphql",
+    uri: `http://${process.env.REACT_APP_BACKEND_HOST}/graphql`,
     headers: {
       Authorization: token ? `Bearer ${token}` : "",
     },
