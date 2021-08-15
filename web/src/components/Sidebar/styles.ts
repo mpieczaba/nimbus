@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 import { colors } from "../../themes/colors";
 
-const Sidebar = styled.div`
+export const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -10,8 +10,19 @@ const Sidebar = styled.div`
   height: 100%;
   top: 0;
   left: 0;
-  background: ${colors.overlay};
+  bottom: 0;
+  right: 0;
   z-index: 1000;
+`;
+
+export const Overlay = styled.div`
+  display: flex;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: ${colors.overlay};
 `;
 
 export const SidebarItemsWrapper = styled.div`
@@ -23,6 +34,7 @@ export const SidebarItemsWrapper = styled.div`
   background: ${colors.background};
   box-shadow: ${colors.boxShadow};
   animation: 100ms ease-out 0s 1 goRight;
+  z-index: 1100;
 `;
 
 export const SidebarItem = styled.div`
@@ -45,5 +57,3 @@ export const SidebarItemIcon = styled.div`
   margin-right: 1rem;
   color: ${colors.textGray};
 `;
-
-export default Sidebar;

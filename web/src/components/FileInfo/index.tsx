@@ -1,4 +1,4 @@
-import React, { useState, MouseEvent } from "react";
+import React, { useState } from "react";
 import {
   IconDownload,
   IconPencil,
@@ -7,9 +7,6 @@ import {
   IconTrash,
   IconDotsVertical,
 } from "@tabler/icons";
-
-import { useAppDispatch } from "../../hooks/store";
-import { setScrollable } from "../../store/actions/uiActions";
 
 import { colors } from "../../themes/colors";
 
@@ -26,11 +23,7 @@ import {
 } from "./styles";
 
 import FileThumbnail from "../FileThumbnail";
-import Dropdown, {
-  DropdownItemsWrapper,
-  DropdownItem,
-  DropdownItemIcon,
-} from "../Dropdown";
+import Dropdown, { DropdownItem, DropdownItemIcon } from "../Dropdown";
 
 interface Props {
   rich?: boolean;
@@ -46,17 +39,7 @@ interface Props {
 }
 
 const FileInfo: React.FC<Props> = ({ rich, file }) => {
-  const dispatch = useAppDispatch();
-
   const [dropdown, showHideDropdown] = useState<boolean>(false);
-
-  const handleDropdownShowHide = (e: MouseEvent) => {
-    e.preventDefault();
-
-    dispatch(setScrollable(!dropdown));
-
-    showHideDropdown(!dropdown);
-  };
 
   const handleDownload = () => {
     window.open(file.downloadURL, "_blank");
@@ -79,57 +62,53 @@ const FileInfo: React.FC<Props> = ({ rich, file }) => {
         ) : null}
       </FileInfoWrapper>
 
-      <FileMenuButton onClick={handleDropdownShowHide}>
+      <FileMenuButton onClick={() => showHideDropdown(true)}>
         <IconDotsVertical />
       </FileMenuButton>
 
-      {dropdown ? (
-        <Dropdown onClick={handleDropdownShowHide}>
-          <DropdownItemsWrapper>
-            <DropdownItemName>
-              <Thumbnail>
-                <FileThumbnail extension={file.extension} />
-              </Thumbnail>
-              <span>{file.name}</span>
-            </DropdownItemName>
+      <Dropdown active={dropdown} hideDropdown={() => showHideDropdown(false)}>
+        <DropdownItemName>
+          <Thumbnail>
+            <FileThumbnail extension={file.extension} />
+          </Thumbnail>
+          <span>{file.name}</span>
+        </DropdownItemName>
 
-            <DropdownItem>
-              <DropdownItemIcon>
-                <IconInfoCircle />
-              </DropdownItemIcon>
-              Details
-            </DropdownItem>
+        <DropdownItem>
+          <DropdownItemIcon>
+            <IconInfoCircle />
+          </DropdownItemIcon>
+          Details
+        </DropdownItem>
 
-            <DropdownItem>
-              <DropdownItemIcon>
-                <IconShare />
-              </DropdownItemIcon>
-              Share
-            </DropdownItem>
+        <DropdownItem>
+          <DropdownItemIcon>
+            <IconShare />
+          </DropdownItemIcon>
+          Share
+        </DropdownItem>
 
-            <DropdownItem onClick={handleDownload}>
-              <DropdownItemIcon>
-                <IconDownload />
-              </DropdownItemIcon>
-              Download
-            </DropdownItem>
+        <DropdownItem onClick={handleDownload}>
+          <DropdownItemIcon>
+            <IconDownload />
+          </DropdownItemIcon>
+          Download
+        </DropdownItem>
 
-            <DropdownItem>
-              <DropdownItemIcon>
-                <IconPencil />
-              </DropdownItemIcon>
-              Change name
-            </DropdownItem>
+        <DropdownItem>
+          <DropdownItemIcon>
+            <IconPencil />
+          </DropdownItemIcon>
+          Change name
+        </DropdownItem>
 
-            <DropdownItemDelete>
-              <DropdownItemIcon>
-                <IconTrash color={colors.error} />
-              </DropdownItemIcon>
-              Delete
-            </DropdownItemDelete>
-          </DropdownItemsWrapper>
-        </Dropdown>
-      ) : null}
+        <DropdownItemDelete>
+          <DropdownItemIcon>
+            <IconTrash color={colors.error} />
+          </DropdownItemIcon>
+          Delete
+        </DropdownItemDelete>
+      </Dropdown>
     </Wrapper>
   );
 };

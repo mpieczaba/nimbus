@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 import { colors } from "../../themes/colors";
-import { DropdownItemTitle, DropdownItem } from "../Dropdown";
+import { DropdownItemTitle, DropdownItem } from "../Dropdown/styles";
 
 export const Wrapper = styled.div`
   display: flex;
@@ -71,6 +71,12 @@ export const DropdownItemName = styled(DropdownItemTitle)`
     width: 1.25rem;
     height: 1.25rem;
     margin-right: 1.5rem;
+  }
+
+  span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 `;
 

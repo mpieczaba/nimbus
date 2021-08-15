@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import dayjs from "dayjs";
 import fileSize from "filesize";
+import InfiniteScroll from "react-infinite-scroll-component";
 import {
   IconArrowDown,
   IconArrowUp,
@@ -9,15 +10,9 @@ import {
   IconLayoutList,
 } from "@tabler/icons";
 
-import { useAppDispatch } from "../../hooks/store";
-
 import { useFilesQuery } from "../../generated/graphql";
 
-import Dropdown, {
-  DropdownItemsWrapper,
-  DropdownItem,
-  DropdownItemTitle,
-} from "../Dropdown";
+import Dropdown, { DropdownItem, DropdownItemTitle } from "../Dropdown";
 import FileCard from "../FileCard";
 import FileList from "../FileList";
 import Tag from "../Tag";
@@ -32,12 +27,10 @@ import {
   FileListWrapper,
   Tags,
 } from "./styles";
-import InfiniteScroll from "react-infinite-scroll-component";
+
 import { extractSearchOperators } from "../../utils/search";
-import { setScrollable } from "../../store/actions/uiActions";
 
 const FilesContainer: React.FC = () => {
-  const dispatch = useAppDispatch();
   const location = useLocation();
 
   const urlSearchParams = new URLSearchParams(location.search);
@@ -54,12 +47,6 @@ const FilesContainer: React.FC = () => {
   const [order, setOrder] = useState<boolean>(true);
   const [view, setView] = useState<boolean>(true);
 
-  const handleDropdownShowHide = () => {
-    dispatch(setScrollable(!dropdown));
-
-    showHideDropdown(!dropdown);
-  };
-
   const handleViewOptionChange = () => {
     setView(!view);
   };
@@ -75,17 +62,18 @@ const FilesContainer: React.FC = () => {
     <Wrapper>
       <OptionsWrapper>
         <FilterOption>
-          <div onClick={handleDropdownShowHide}>Name</div>
-          {dropdown ? (
-            <Dropdown onClick={handleDropdownShowHide}>
-              <DropdownItemsWrapper>
-                <DropdownItemTitle>Sort by</DropdownItemTitle>
-                <DropdownItem>Name</DropdownItem>
-                <DropdownItem>Modification date</DropdownItem>
-                <DropdownItem>Size</DropdownItem>
-              </DropdownItemsWrapper>
-            </Dropdown>
-          ) : null}
+          <div onClick={() => showHideDropdown(true)}>Name</div>
+
+          <Dropdown
+            active={dropdown}
+            hideDropdown={() => showHideDropdown(false)}
+          >
+            <DropdownItemTitle>Sort by</DropdownItemTitle>
+            <DropdownItem>Name</DropdownItem>
+            <DropdownItem>Modification date</DropdownItem>
+            <DropdownItem>Size</DropdownItem>
+          </Dropdown>
+
           <FilterButton onClick={handleOrderChange}>
             {order ? <IconArrowDown /> : <IconArrowUp />}
           </FilterButton>

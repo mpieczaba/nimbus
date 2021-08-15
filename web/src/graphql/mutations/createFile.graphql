@@ -1,0 +1,11 @@
+mutation createFile($fileInput: FileInput!) {
+  createFile(input: $fileInput) {
+    id
+    name
+    extension
+    size
+    url
+    downloadURL
+    updatedAt
+  }
+}

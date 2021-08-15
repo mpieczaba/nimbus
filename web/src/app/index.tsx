@@ -2,8 +2,6 @@ import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { createGlobalStyle } from "styled-components";
 
-import { useTypedSelector } from "../hooks/store";
-
 import PrivateRoute from "../utils/PrivateRoute";
 
 import { style, AppWrapper } from "../themes/styles";
@@ -17,12 +15,10 @@ import Navbar from "../components/Navbar";
 const GlobalStyle = createGlobalStyle`${style}`;
 
 const App: React.FC = () => {
-  const uiState = useTypedSelector((state) => state.ui);
-
   return (
     <>
       <GlobalStyle />
-      <AppWrapper scrollable={!uiState.overlayState}>
+      <AppWrapper>
         <Router>
           <Switch>
             <Route exact path="/login">

@@ -17,6 +17,7 @@
     "@types/react-router-dom": "^5.1.7",
     "@types/styled-components": "^5.1.10",
     "@uiw/file-icons": "https://github.com/uiwjs/file-icons",
+    "apollo-upload-client": "^16.0.0",
     "dayjs": "^1.10.5",
     "filesize": "^6.3.0",
     "formik": "^2.2.9",
