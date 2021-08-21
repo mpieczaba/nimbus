@@ -24,13 +24,6 @@ const client = new ApolloClient({
     },
   }),
 
-  /*
-  link: createHttpLink({
-    uri: `http://${process.env.REACT_APP_BACKEND_HOST}/graphql`,
-    headers: {
-      Authorization: token ? `Bearer ${token}` : "",
-    },*/
-
   cache: cache,
 });
 

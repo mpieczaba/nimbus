@@ -39,9 +39,10 @@ export const PopupItemsWrapper = styled.div`
   z-index: 1100;
 `;
 
-export const PopupItem = styled.div`
+export const PopupItem = styled.div<{ right?: boolean }>`
   display: flex;
   flex-direction: row;
+  justify-content: ${(props) => (props.right ? "flex-end" : "flex-start")};
   align-items: center;
   padding: 0 0.5rem;
   margin: 0 1rem;

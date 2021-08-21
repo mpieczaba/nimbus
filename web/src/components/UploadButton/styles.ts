@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 import { colors } from "../../themes/colors";
 
-import { PopupItemTitle } from "../Popup/styles";
+import { PopupItemTitle } from "../Popup";
 
 export const Wrapper = styled.div`
   display: flex;
@@ -26,15 +26,6 @@ export const FileInputLabel = styled.label`
   display: flex;
   align-items: center;
   justify-content: center;
-`;
-
-export const Thumbnail = styled.div`
-  align-self: center;
-
-  div {
-    width: 1.5rem;
-    height: 1.5rem;
-  }
 `;
 
 export const PopupItemName = styled(PopupItemTitle)`

@@ -56,7 +56,7 @@ const LoginForm: React.FC = () => {
 
           if (!username) errors.username = "Required!";
           else if (!password) errors.password = "Required!";
-          else if (!/^(?:[A-Za-z0-9_]+)$/.test(username))
+          else if (!/^:[A-Za-z0-9_]+$/.test(username))
             errors.username = "Invalid username!";
 
           return errors;

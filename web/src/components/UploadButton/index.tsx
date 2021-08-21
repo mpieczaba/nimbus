@@ -1,20 +1,50 @@
 import React, { ChangeEvent, useState } from "react";
-import { extname } from "path";
-import { Formik, Form } from "formik";
-import { IconEdit, IconPlus, IconTag } from "@tabler/icons";
+import { Formik, Form, FormikErrors } from "formik";
+import { IconPencil, IconPlus } from "@tabler/icons";
 
-import { useCreateFileMutation } from "../../generated/graphql";
+import {
+  FilesQuery,
+  FilesDocument,
+  useCreateFileMutation,
+  FilesQueryVariables,
+  FileEdge,
+} from "../../generated/graphql";
 
 import Button from "../Button";
-import Popup, { PopupItem, PopupItemIcon } from "../Popup";
-import FileThumbnail from "../FileThumbnail";
+import Popup, { PopupItem } from "../Popup";
+import Input, {
+  InputWrapper,
+  InputAndIconWrapper,
+  InputIcon,
+  InputError,
+} from "../Input";
 
-import { Wrapper, FileInputLabel, Thumbnail, PopupItemName } from "./styles";
+import { Wrapper, FileInputLabel, PopupItemName } from "./styles";
 
 const UploadButton: React.FC = () => {
   const [createFile, { error }] = useCreateFileMutation({
-    onCompleted: ({ createFile }) => {
-      if (createFile) console.log(createFile);
+    onCompleted: () => showHidePopup(false),
+    update: (cache, { data }) => {
+      if (data?.createFile) {
+        const existingFiles = cache.readQuery<FilesQuery, FilesQueryVariables>({
+          query: FilesDocument,
+          variables: { name: null, tags: [] },
+        });
+
+        cache.writeQuery<FilesQuery>({
+          query: FilesDocument,
+          variables: { name: null, tags: [] },
+          data: {
+            files: {
+              edges: [
+                { node: data.createFile, cursor: "" },
+                ...(existingFiles!.files!.edges as Array<FileEdge>),
+              ],
+              pageInfo: existingFiles!.files!.pageInfo,
+            },
+          },
+        });
+      }
     },
   });
 
@@ -25,15 +55,22 @@ const UploadButton: React.FC = () => {
       <Formik
         initialValues={{
           upload: File,
+          name: "",
+        }}
+        validate={({ name }) => {
+          const errors: FormikErrors<{ name: string }> = {};
+
+          if (!/^[^/>|:&]+$/.test(name)) errors.name = "Invalid file name!";
+
+          return errors;
         }}
         onSubmit={async (values, { setSubmitting }) => {
-          console.log(values.upload);
-
           try {
             await createFile({
               variables: {
                 fileInput: {
                   file: values.upload,
+                  name: values.name,
                 },
               },
             });
@@ -44,7 +81,7 @@ const UploadButton: React.FC = () => {
           setSubmitting(false);
         }}
       >
-        {({ isSubmitting, submitForm, setFieldValue, values }) => (
+        {({ isSubmitting, setFieldValue, values, handleChange, errors }) => (
           <Form>
             <FileInputLabel>
               <input
@@ -54,6 +91,7 @@ const UploadButton: React.FC = () => {
                 onChange={(e: ChangeEvent<HTMLInputElement>) => {
                   if (e.target.files) {
                     setFieldValue("upload", e.target.files[0]);
+                    setFieldValue("name", e.target.files[0].name);
 
                     showHidePopup(true);
                   }
@@ -64,35 +102,30 @@ const UploadButton: React.FC = () => {
             </FileInputLabel>
 
             <Popup active={popup} hidePopup={() => showHidePopup(false)}>
-              <PopupItemName>
-                <Thumbnail>
-                  {<FileThumbnail extension={extname(values.upload.name)} />}
-                </Thumbnail>
-                <span>{values.upload.name}</span>
-              </PopupItemName>
+              <PopupItemName>Change file name</PopupItemName>
 
               <PopupItem>
-                <PopupItemIcon>
-                  <IconEdit />
-                </PopupItemIcon>
-                Rename
+                <InputWrapper>
+                  <InputAndIconWrapper>
+                    <InputIcon>
+                      <IconPencil />
+                    </InputIcon>
+
+                    <Input
+                      type="text"
+                      name="name"
+                      placeholder="File name"
+                      value={values.name}
+                      onChange={handleChange}
+                    />
+                  </InputAndIconWrapper>
+
+                  <InputError>{errors.name}</InputError>
+                </InputWrapper>
               </PopupItem>
 
-              <PopupItem>
-                <PopupItemIcon>
-                  <IconTag />
-                </PopupItemIcon>
-                Add tags
-              </PopupItem>
-
-              <PopupItem>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  onClick={async (e) => {
-                    await submitForm();
-                  }}
-                >
+              <PopupItem right>
+                <Button type="submit" disabled={isSubmitting}>
                   Upload
                 </Button>
                 {error && console.log(error.message)}
